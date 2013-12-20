@@ -29,4 +29,7 @@ include:
 	- Tecplot (ascii) 2D output format;
 	- Save&Restart simulation state;
 	- Serial&Parallel(OpenMP, MPI) version;
-                                                                                                                                                                                                       - Serial and Parallel (OpenMP,MPI) solver versions
+
+OpenHyperFLOW2D it is open source clone of HyperFLOW2D (in-house CFD code) 
+with reduced functionality, and can be used without restriction for educational 
+and academic purpose. Reference at the publication is obligatory
