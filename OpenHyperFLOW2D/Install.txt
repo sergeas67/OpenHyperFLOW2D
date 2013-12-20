@@ -24,15 +24,37 @@ Recommended requirements for this version:
 Installation
 ============
 
-
 1. Configure C++ compiler
 
+Edit '.compiler' file:
+
+If you are using GNU C++ compiler, select COMPILER=GNU, if you are using Intel C++ compiler,
+select COMPILER=Intel. Should also specify a used set of SIMD instructions SIMD={...} (e.g. SIMD=AVX).
+For determining the top-end set of SIMD instructions for the current CPU use script get_SIMD.sh
 
 2. Configure parallel features
 
+Edit '.parallel' file:
+
+If you plan to use only the serial version OpenHyperFLOW2D specify an empty parameter PARALLEL=.
+If you want to use OpenMP version specify PARALLEL=OPEN_MP. It should be noted that the current
+version OpenHyperFLOW2D has performance problems. If you are using a multicore/multiprocessor
+workstation or HPC cluster, it is recommended to use a parallel MPI version OpenHyperFLOW2D,
+in this case, specify PARALLEL=MPI. If you chose the MPI version, you must also specify the
+vendor of MPI library MPIVEND = {...} (e.g. MPIVEND=INTEL or MPIVEND=MVAPICH). Additionally,
+you must specify the path to the MPI library in the section corresponding to the selected vendor
+(e.g. MPI2DIR=/opt/intel/impi/4.1.0)
 
 3. Build
 
+Run command 'make build' of 'make rebuild' for build OpenHyperFLOW2D
 
 4. Run Test Cases
 
+Run command 'make test' for run all test cases or run
+
+  'make ObliqueShock' for Oblique Shock test case
+
+  'make Wedge' for Wedge test case
+
+  'make sphere2d' for Sphere2D test case

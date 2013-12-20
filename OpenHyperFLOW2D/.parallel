@@ -71,7 +71,7 @@ endif
 ifeq (${MPIVEND},OpenMPI)
 
 ifeq ("${COMPILER}","Intel")
-MPIDIR   = ${PATH_TO_MPI}/icc/openmpi-1.6.3
+MPIDIR   = ${PATH_TO_MPI}
 endif
 
 ifeq ("${COMPILER}","GNU")

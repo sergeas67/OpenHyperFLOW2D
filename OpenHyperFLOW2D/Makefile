@@ -96,9 +96,9 @@ local:
 test: ObliqueShock
 
 ObliqueShock:
-	bin/OpenHyperFLOW2D.sh TestCases/ObliqueShock  2
+	bin/OpenHyperFLOW2D.sh TestCases/ObliqueShock
 FlatPlate:
-	bin/OpenHyperFLOW2D.sh TestCases/FlatPlate 6
+	bin/OpenHyperFLOW2D.sh TestCases/FlatPlate
 Wedge:
 	bin/OpenHyperFLOW2D.sh TestCases/Wedge
 sphere2d:
