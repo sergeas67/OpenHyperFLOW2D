@@ -56,12 +56,9 @@
 <data/CFL=0.1>
 
 ; CFL scenario
-<table=CFL_Scenario/5>
+<table=CFL_Scenario/2>
 0       0.01
-95000   0.01
-100000  0.005
-150000  0.005
-200000  0.01
+200000  0.1
 <endtable>
 
 ; Base blending factor
@@ -706,12 +703,13 @@
 
 ; PreHeater & Diffuzor
 ; X/Y coordinates of bounds (m)
-<table=Contour1/5>
-0.2     0.0
+<table=Contour1/6>
+0.1     0.0
 0.0     0.0
 0.0     0.25
 0.49999 0.25
 0.49999 0.0
+0.2     0.0
 <endtable>
 
 ; Material ID
@@ -722,12 +720,14 @@
 <data/Contour1.Bound3.Cond=NT_FC_2D>
 <data/Contour1.Bound4.Cond=NT_D0X_2D>
 <data/Contour1.Bound5.Cond=NT_AX_2D>
+<data/Contour1.Bound6.Cond=NT_S_2D>
 
 <data/Contour1.Bound1.Flow2D=1>
 <data/Contour1.Bound2.Flow2D=1>
 <data/Contour1.Bound3.Flow2D=1>
 <data/Contour1.Bound4.Flow2D=1>
 <data/Contour1.Bound5.Flow2D=1>
+<data/Contour1.Bound6.Flow2D=2>
 
 ; Turbulence model of bound
 <data/Contour1.Bound1.TurbulenceModel=0>
@@ -735,6 +735,8 @@
 <data/Contour1.Bound3.TurbulenceModel=0>
 <data/Contour1.Bound4.TurbulenceModel=0>
 <data/Contour1.Bound5.TurbulenceModel=0>
+<data/Contour1.Bound6.TurbulenceModel=0>
+
 
 ; Reset bounds flag state
 <data/Contour1.Bound1.isReset=0>
@@ -742,6 +744,7 @@
 <data/Contour1.Bound3.isReset=0>
 <data/Contour1.Bound4.isReset=0>
 <data/Contour1.Bound5.isReset=0>
+<data/Contour1.Bound6.isReset=0>
 
 ; -------
 ; Number of areas
@@ -758,7 +761,7 @@
 <data/Area1.Type=1>
 ;
 ; Flow index
-<data/Area1.Flow2D=3>
+<data/Area1.Flow2D=1>
 
 ; Turbulence model in area
 <data/Area1.TurbulenceModel=0>

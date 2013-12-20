@@ -489,27 +489,9 @@ inline void FlowNode2D<T,a>::FillNode2D(int is_mu_t,
             SrcAdd[i] = 0.;
     }
 
-#ifdef _PREVENT_RAREFACTION_ISSUE_
-    p_old = p;
-    Tmp2  = FlowNodeCore2D<T,a>::S[i2d_Ro]*(U*U+V*V)*0.5+Tmp3;
-    p  = (k-1.0)*(FlowNodeCore2D<T,a>::S[i2d_RoE] - Tmp2);
-    if(p < p_old)
-       beta = beta * (p/p_old);
-    while (p < 0.0 && p_iter < 10) { // Try prevent 'vacuum' issue
-#ifdef __ICC
-         __declspec(align(_ALIGN)) T E_old = p_old/(k-1.0) + Tmp2;
-#else
-          T E_old __attribute__ ((aligned (_ALIGN))) = p_old/(k-1.0) + Tmp2;
-#endif //__ICC
-      FlowNodeCore2D<T,a>::S[i2d_RoE] = (E_old + FlowNodeCore2D<T,a>::S[i2d_RoE])*0.5;
-      p  = (k-1.0)*(FlowNodeCore2D<T,a>::S[i2d_RoE] - Tmp2);
-      beta = beta*0.5;
-      p_iter++;
-    }
-#else
     p  = (k-1.)*(FlowNodeCore2D<T,a>::S[i2d_RoE]-FlowNodeCore2D<T,a>::S[i2d_Ro]*(U*U+V*V)*0.5-Tmp3);
     Tg = p/R/FlowNodeCore2D<T,a>::S[i2d_Ro];
-#endif
+
     FlowNodeTurbulence2D<T,a>::lam_t  = FlowNodeTurbulence2D<T,a>::mu_t*CP;
 
     if(is_mu_t) {
