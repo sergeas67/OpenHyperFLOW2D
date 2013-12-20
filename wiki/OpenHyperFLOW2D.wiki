@@ -1,7 +1,7 @@
  
 = Open Source CFD simulation package *OpenHyperFLOW2D* =
 
-||[http://openhyperflow2d.googlecode.com/git/doc/OpenHyperFLOW2D-Logo.png] || Copyright (C)  1995-2013 by Serge A. Suchkov ||
+||[http://openhyperflow2d.googlecode.com/svn/trunk/OpenHyperFLOW2D/doc/OpenHyperFLOW2D-Logo.png] || Copyright (C)  1995-2013 by Serge A. Suchkov ||
 ||  || Copyright policy: LGPL V3 || 
 
 *OpenHyperFLOW2D* it is research CFD code for simulation 2D (flat/axisymmetrical) transient viscous compressible multicomponent sub/trans/supersonic reacting gas flows.
@@ -35,6 +35,7 @@
 ==Test Cases:==
 
 ||  *Test Case*  || *Source*  ||  *Input data file*  ||
-|| Oblique Shock || [http://www.aero.polimi.it/freecase/?OpenFOAM_%2B_Code_Aster:Aerodynamic_problems:Oblique_shock http://openhyperflow2d.googlecode.com/git/doc/ObliqueShock.png] || [http://code.google.com/p/openhyperflow2d/source/browse/TestCases/ObliqueShock.dat]|| 
+|| Oblique Shock || [http://www.aero.polimi.it/freecase/?OpenFOAM_%2B_Code_Aster:Aerodynamic_problems:Oblique_shock http://openhyperflow2d.googlecode.com/svn/trunk/OpenHyperFLOW2D/doc/ObliqueShock.png] || [http://code.google.com/p/openhyperflow2d/source/browse/TestCases/ObliqueShock.dat]||
+|| Wedge || [http://openhyperflow2d.googlecode.com/svn/trunk/OpenHyperFLOW2D/doc/Wedge.png] || [http://openhyperflow2d.googlecode.com/svn/trunk/OpenHyperFLOW2D/TestCases/Wedge.dat] || 
 
 *OpenHyperFLOW2D* it is open source clone of *HyperFLOW2D* (in-house CFD code) with reduced functionality, and can be used without restriction for educational and academic purpose. Reference at the publication is obligatory.
