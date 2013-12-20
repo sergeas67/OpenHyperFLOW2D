@@ -1,0 +1,3 @@
+CURRENT_VER = 1.00
+VER = ${CURRENT_VER}
+
