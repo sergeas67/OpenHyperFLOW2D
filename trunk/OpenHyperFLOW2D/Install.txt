@@ -1,0 +1,38 @@
+Minimum System Requirements
+===========================
+
+* CPU:           x86_64 compatible;
+* OS:            Linux x86_64 (tested on OpenSUSE 10+, SLES 10+, CentOS 6+, Scientific Linux 5+);
+* C++ compiler:  GNU C++ 4.1+ or Intel C++ 10+;
+
+Recommended System Requirements
+===============================
+
+The main (and most effective) version of OpenHyperFLOW2D is parallel MPI version.
+
+Recommended requirements for this version:
+
+* CPU: Multicore (4+) CPU with SIMD (SSE3+) instruction support (Intel Xeon or AMD Opteron);
+* Linux Cluster 10+ nodes;
+* Infiniband interconnect (SDR/DDR/FDR)
+* MPI2 library with Infiniband support (Intel MPI 3+, MVAPICH2 1+, HP MPI).
+   OpenMPI also support but have some problem with non-bocking data exchange.
+* Multicore/multiprocessor workstations are also recommended to use parallel MPI version of
+  OpenHyperFLOW2D (OpenMP version is also available, but it has performance problems)
+
+
+Installation
+============
+
+
+1. Configure C++ compiler
+
+
+2. Configure parallel features
+
+
+3. Build
+
+
+4. Run Test Cases
+
