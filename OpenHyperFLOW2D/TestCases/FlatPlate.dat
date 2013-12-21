@@ -102,7 +102,7 @@
 ; 2 - Zero equation (algebraic) model (ZEM) 
 ; 3 - One equation models
 ; 4 - Two equations models
-; 5 - LES
+; 5 - Smagorinsky
 <data/TurbulenceModel=3>
 <data/isTurbulenceReset=1>
 <data/ZeroEqFactor=0>
@@ -110,7 +110,7 @@
 <data/SigW=1.0>
 ; turbulence Pr_t in flow
 <data/SigF=1.0>
-; Boundary layar initial thickness, m
+; Boundary layer initial thickness, m
 <data/delta_bl=0.1>
 <data/TurbStartIter=1>
 ; Turbulence models (extended)

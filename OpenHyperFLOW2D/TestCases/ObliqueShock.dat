@@ -103,7 +103,7 @@
 <data/SigW=1.0>
 ; turbulence Pr_t in flow
 <data/SigF=1.0>
-; Boundary layar initial thickness, m
+; Boundary layer initial thickness, m
 <data/delta_bl=0.1>
 <data/TurbStartIter=1>
 ; Turbulence models (extended)
