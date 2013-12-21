@@ -28,7 +28,8 @@ ulimit -s unlimited
 
 
 
-`cat ./.mpi`/mpiexec -n ${NCORES} ${HYPERFLOW2D} ${ProjectName}.dat 1>  ${ProjectName}.out  2> ${ProjectName}.err
+`cat ./.mpi`/mpiexec -n ${NCORES} ${HYPERFLOW2D} ${ProjectName}.dat
+#1>  ${ProjectName}.out  2> ${ProjectName}.err
 
 else
 if [ "$1" == "" ]
@@ -38,6 +39,7 @@ echo "Usage: $0 {project name}"
 exit
 fi
 
-${HYPERFLOW2D} ${ProjectName}.dat 1>  ${ProjectName}.out  2> ${ProjectName}.err
+${HYPERFLOW2D} ${ProjectName}.dat
+#1>  ${ProjectName}.out  2> ${ProjectName}.err
 
 fi

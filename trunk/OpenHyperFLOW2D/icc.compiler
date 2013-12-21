@@ -4,6 +4,9 @@
 # Path to compiler
 ICC_PATH  = /opt/intel
 
+GCC_VER=`gcc -v 2> .gcc_ver;cat .gcc_ver | tail -n1 | cut -d ' ' -f 3 | tr -d .;rm -f .gcc_ver`
+#ICC_VER=`icc -v 2> .icc_ver;cat .icc_ver | cut -d ' ' -f 3 | cut -d . -f 1;rm -f .icc_ver`
+
 ifneq  ("$(MPI)","")
 # C compiler
 CC         = mpicc
@@ -45,12 +48,13 @@ PROFILE    = -prof_dir . -prof_file icc.profile
 NOPROFILE  =
 DEBUG      = 
 
-# -opt-multi-version-aggressive -opt-report3 -opt-report-phase:hpo -vec-report5 
+# -opt-multi-version-aggressive -opt-report3 -opt-report-phase:hpo -vec-report5
 # -opt-report -opt-report-phase:hpo -vec-report
 # -g -opt-multi-version-aggressive -opt-report -opt-report-phase:hpo -vec-report
+# -D_ICC_VER_${ICC_VER}
 
 ALIGN      = 16
-GCC_COMPAT = -gcc-version=446 -Wno-deprecated -diag-disable 576 -Wno-non-virtual-dtor
+GCC_COMPAT = -gcc-version=${GCC_VER} -Wno-deprecated -diag-disable 576 -Wno-non-virtual-dtor 
 
 ifeq ("$(SIMD)","SSE3")
 
@@ -102,12 +106,20 @@ ifeq ($(OPTLEVEL),0)
 OPTIMIZE  = -O$(OPTLEVEL) -D_ALIGN=${ALIGN2}
 else
 OPTIMIZE  = -O$(OPTLEVEL) -ip  -march=$(CPU) $(CPU_EXT)  -no-prec-div -fp-model fast=2 -fomit-frame-pointer  -unroll-aggressive -Zp$(ALIGN) \
-            -falign-functions=$(ALIGN) -D_ALIGN=${ALIGN2}  -opt-multi-version-aggressive -opt-prefetch=4 -Kc++eh -Krtti $(GCC_COMPAT) -D_HAS_TRADITIONAL_IOSTREAMS
+            -falign-functions=$(ALIGN) -D_ALIGN=${ALIGN2} -opt-multi-version-aggressive -Kc++eh -Krtti $(GCC_COMPAT) -D_HAS_TRADITIONAL_IOSTREAMS
 endif
-OPTIONS	  = $(DEBUG)  -D_DEBUG_$(DEBUGLEVEL) $(PARALLEL) $(OPTIMIZE) $(NOPROFILE) -Wno-deprecated  -D_UNIFORM_MESH_
+
+#ifeq ("$(ICC_VER)","13")
+#
+#OPTIMIZE  += -opt-prefetch=4
+#
+#endif
+
+OPTIONS  = $(DEBUG)  -D_DEBUG_$(DEBUGLEVEL) $(PARALLEL) $(OPTIMIZE) $(NOPROFILE) -Wno-deprecated  -D_UNIFORM_MESH_
 
 ifeq    ("$(OPENMP)","-D_OPEN_MP")
 OPTIONS    += -openmp -D_OPEN_MP -D_OPENMP
 endif
 #-vec-guard-write   -opt-multi-version-aggressive
 #-mcmodel=large
+

@@ -395,13 +395,12 @@ inline void FlowNode2D<T,a>::FillNode2D(int is_mu_t,
     else if(k < 1)
         return;
 #ifdef __ICC
-    __declspec(align(_ALIGN)) unsigned int i,p_iter=0;
+    __declspec(align(_ALIGN)) unsigned int i;
     __declspec(align(_ALIGN)) T  sxx,txy,syy,qx,qy;   // viscous stresses & diffusion fluxes
     __declspec(align(_ALIGN)) T L, _mu, _lam, t00, G;
-    __declspec(align(_ALIGN)) T Tmp1,Tmp2,p_old,Tmp3=0.;
+    __declspec(align(_ALIGN)) T Tmp1,Tmp2,Tmp3=0.;
 #else
     unsigned int i __attribute__ ((aligned (_ALIGN)));
-    unsigned int p_iter __attribute__ ((aligned (_ALIGN))) = 0;
      // viscous stresses & diffusion fluxes
     T  sxx   __attribute__ ((aligned (_ALIGN)));
     T  txy   __attribute__ ((aligned (_ALIGN)));
@@ -415,7 +414,6 @@ inline void FlowNode2D<T,a>::FillNode2D(int is_mu_t,
     T  G     __attribute__ ((aligned (_ALIGN)));
     T  Tmp1  __attribute__ ((aligned (_ALIGN)));
     T  Tmp2  __attribute__ ((aligned (_ALIGN)));
-    T  p_old __attribute__ ((aligned (_ALIGN)));
     T  Tmp3  __attribute__ ((aligned (_ALIGN))) =0.;
 #endif //__ICC
 

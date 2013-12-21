@@ -101,8 +101,10 @@ FlatPlate:
 	bin/OpenHyperFLOW2D.sh TestCases/FlatPlate
 Wedge:
 	bin/OpenHyperFLOW2D.sh TestCases/Wedge
-sphere2d:
+sphere2D:
 	bin/OpenHyperFLOW2D.sh TestCases/sphere2D
+Nozzle2D:
+	bin/OpenHyperFLOW2D.sh TestCases/Nozzle2D
 #
 $(TARGET_2D): local  Utl libexcept libflow objData libhyperflow libdeeps2d liboutcfd $(OBJECTS_2D)
 	$(CXXC) $(STATIC) $(CLFLAGS) $(OBJECTS_2D) $(OPTIONS) $(LLIBS_2D) -o $(TARGET_2D)

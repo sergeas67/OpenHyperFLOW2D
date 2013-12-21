@@ -26,20 +26,18 @@ DEBUG      =
 PICFLAGS   = -fPIC
 #STATIC= -static
 
-#CPU       = opteron
-#CPU_EXT   = -m64 -ftree-vectorize  -msse3 -msse2 -msse -mmmx -m3dnow -mfpmath=sse -mtune=$(CPU)
-
-#CPU        = core2
-#CPU_EXT    = -m64 -ftree-vectorize  -msse3 -msse2 -msse -mmmx -mfpmath=sse -mtune=$(CPU)
+ifeq ("$(SIMD)","AVX")
+ALIGN      = 32
+else
+ALIGN      = 16
+endif
 
 CPU        = native
 CPU_EXT    = -m64 -ftree-vectorize  -msse3 -msse2 -msse -mmmx -mfpmath=sse -mtune=$(CPU)
 
-
 CXXOPTIONS = -Wno-deprecated 
 COPTIONS   =
 
-ALIGN      = 16
 OPTLEVEL   = 3
 
 ifeq     ($(OPTLEVEL),0)
@@ -51,7 +49,7 @@ OPTIMIZE   = -O$(OPTLEVEL) -ffast-math  -march=$(CPU) -funroll-loops -fprefetch-
              -fcse-skip-blocks -D_ALIGN=${ALIGN}  $(CPU_EXT)
 endif
 
-OPTIONS    =  $(STATIC) $(DEBUG) -D_DEBUG_$(DEBUGLEVEL) $(PARALLEL) $(OPTIMIZE) $(PROFILE) -Wall  -Wno-unused-parameter -W -D_UNIFORM_MESH_ 
+OPTIONS    =  $(STATIC) $(DEBUG) -D_DEBUG_$(DEBUGLEVEL) $(PARALLEL) $(OPTIMIZE) $(PROFILE) -Wall  -Wno-unused-parameter -W -D_UNIFORM_MESH_
 CXXOPTIONS =  -Wno-deprecated
 INCPATH    = -I .. -I .
 

@@ -1,7 +1,7 @@
                      OpenHyperFLOW2D
 
-       Copyright (C)  1995-2013 by Serge A. Suchkov
-               Copyright policy: LGPL V3
+Copyright (C)  1995-2013 by Serge A. Suchkov (sergeas67@gmail.com)
+                Copyright policy: LGPL V3
 
 CFD code for simulation 2D (flat/axisymmetrical) transient viscous
 compressible multicomponent sub/trans/supersonic reacting gas flows.
@@ -30,6 +30,6 @@ include:
 	- Save&Restart simulation state;
 	- Serial&Parallel(OpenMP, MPI) version;
 
-OpenHyperFLOW2D it is open source clone of HyperFLOW2D (in-house CFD code) 
-with reduced functionality, and can be used without restriction for educational 
-and academic purpose. Reference at the publication is obligatory
+OpenHyperFLOW2D it is open source clone of HyperFLOW2D (in-house CFD code)
+with reduced functionality, and can be used without restriction for educational
+and academic purpose. Reference at the publication is obligatory.
