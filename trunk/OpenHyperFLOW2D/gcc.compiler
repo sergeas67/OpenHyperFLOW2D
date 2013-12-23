@@ -50,7 +50,6 @@ OPTIMIZE   = -O$(OPTLEVEL) -ffast-math  -march=$(CPU) -funroll-loops -fprefetch-
 endif
 
 OPTIONS    =  $(STATIC) $(DEBUG) -D_DEBUG_$(DEBUGLEVEL) $(PARALLEL) $(OPTIMIZE) $(PROFILE) -Wall  -Wno-unused-parameter -W -D_UNIFORM_MESH_
-CXXOPTIONS =  -Wno-deprecated
 INCPATH    = -I .. -I .
 
 ifeq    ("$(OPENMP)","-D_OPEN_MP")
