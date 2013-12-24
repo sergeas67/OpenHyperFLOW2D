@@ -568,10 +568,17 @@ void DEEPS2D_Run(ofstream* f_stream
                       FlowNode2D< double,NUM_COMPONENTS >* RightNode=NULL;
 #ifdef _MPI
 // MPI version
-                  if(rank == 0 )
-                    max_RMS =  0.5*ExitMonitorValue;
-                  else
-                    max_RMS =  2*ExitMonitorValue;
+                  if(rank == 0 ) {
+                    if(MonitorNumber < 5)
+                      max_RMS =  0.5*ExitMonitorValue;
+                    else
+                      max_RMS = 0.;
+                  } else {
+                    if(MonitorNumber < 5)
+                       max_RMS =  2*ExitMonitorValue;
+                    else
+                       max_RMS = 0.;
+                  }
 
                   k_max_RMS = -1;
 
@@ -583,7 +590,7 @@ void DEEPS2D_Run(ofstream* f_stream
                       DD_max[rank].DD[kk].DD   = 0.;                          // max residual per rank
                       DD_max[rank].DD[kk].i    = 0;                           // max residual x-coord
                       DD_max[rank].DD[kk].j    = 0;                           // max residual y-coord
-                      DD_local[kk]             = 0.;                          // loacal residual
+                      DD_local[kk]             = 0.;                          // local residual
                     }
 #else
 #ifdef _OPENMP
@@ -3628,7 +3635,7 @@ void* InitDEEPS2D(void* lpvParam)
                            Abort_OpenHyperFLOW2D();
                        }
                        sprintf(NameContour,"Rect%i",j+1);
-                       SBR = new SolidBoundRect2D(NameContour,J,Xstart,Ystart,X_0,Y_0,dx,dy,(CondType2D)NT_WNS_2D,pTestFlow2D,Y,TM);
+                       SBR = new SolidBoundRect2D(NameContour,J,Xstart,Ystart,X_0,Y_0,dx,dy,(CondType2D)NT_WS_2D,pTestFlow2D,Y,TM);
                        *f_stream << "OK\n" << flush;
                        delete SBR;
                      }
@@ -3793,7 +3800,7 @@ void* InitDEEPS2D(void* lpvParam)
                             Abort_OpenHyperFLOW2D();
                         }
                         sprintf(NameContour,"Airfoil%i",j+1);
-                        SBA = new SolidBoundAirfoil2D(NameContour,J,Xstart,Ystart,mm,pp,thick,dx,dy,(CondType2D)NT_WNS_2D,pTestFlow2D,Y,TM,scale,attack_angle,f_stream);
+                        SBA = new SolidBoundAirfoil2D(NameContour,J,Xstart,Ystart,mm,pp,thick,dx,dy,(CondType2D)NT_WS_2D,pTestFlow2D,Y,TM,scale,attack_angle,f_stream);
                         *f_stream << "OK\n" << flush;
                         delete SBA;
                     }

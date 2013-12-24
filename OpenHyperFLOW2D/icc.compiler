@@ -56,10 +56,21 @@ DEBUG      =
 ALIGN      = 16
 GCC_COMPAT = -gcc-version=${GCC_VER} -Wno-deprecated -diag-disable 576 -Wno-non-virtual-dtor 
 
+
+
+ifeq ("$(SIMD)","SSE2")
+
+CPU        = pentium4
+CPU_EXT    = -xO
+ALIGN2     = 16
+
+endif
+
+
 ifeq ("$(SIMD)","SSE3")
 
 CPU        = pentium4
-CPU_EXT    = -xSSE2 -msse2 -msse3
+CPU_EXT    = -msse3
 ALIGN2     = 16
 
 endif
