@@ -26,14 +26,23 @@ endif
 # MPIVEND=OpenMPI   - OpenMPI
 #######################################################
 ifeq (${PARALLEL},MPI)
-MPIVEND=INTEL
+MPIVEND=OpenMPI
 endif
 #######################################################
 # MVAPICH
 #######################################################
 ifeq (${MPIVEND},MVAPICH)
+
+ifeq ("${COMPILER}","Intel")
+MPI2DIR=/share/mpi/icc/mvapich-1.2.0
+MPI1DIR=/share/mpi/icc/mvapich-1.2.0
+endif
+
+ifeq ("${COMPILER}","GNU")
 MPI2DIR=/share/mpi/gcc/mvapich-1.2.0
 MPI1DIR=/share/mpi/gcc/mvapich-1.2.0
+endif
+
 MPIDIR    = $(MPI2DIR)
 MPILIB    = $(MPIDIR)/lib
 MPIBIN    = $(MPIDIR)/bin
@@ -71,11 +80,12 @@ endif
 ifeq (${MPIVEND},OpenMPI)
 
 ifeq ("${COMPILER}","Intel")
-MPIDIR   = ${PATH_TO_MPI}
+MPIDIR   = /share/mpi/icc/openmpi-1.6.3
 endif
 
 ifeq ("${COMPILER}","GNU")
-MPIDIR   = /share/mpi/gcc/openmpi-1.6.3
+#MPIDIR   = /share/mpi/gcc/openmpi-1.6.3
+MPIDIR   = /usr/lib64/mpi/gcc/openmpi
 endif
 
 MPIARCH   = LINUX
@@ -104,3 +114,5 @@ PARALLEL=$(MMAP) $(MPI) $(OPENMP)
 endif
 
 LLIBS     = $(PARALLEL)
+
+NUM_NODES=1
