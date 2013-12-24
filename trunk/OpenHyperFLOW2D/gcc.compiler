@@ -2,6 +2,7 @@
 # GNU C/C++ compiler options
 ######################################
 ifneq  ("$(MPI)","")
+
 # C compiler
 CC         = ${MPIDIR}/bin/mpicc
 # C++ compiler
@@ -12,14 +13,24 @@ CXXC       = ${MPIDIR}/bin/mpic++
 else 
 ifeq ("$(MPIVEND)","MVAPICH")
 CXXC       = ${MPIDIR}/bin/mpicxx
+else
+ifeq ("$(MPIVEND)","OpenMPI")
+# C compiler
+CC         = ${MPIDIR}/bin/mpicc
+# C++ compiler
+CXXC       = ${MPIDIR}/bin/mpic++
+endif
 endif
 endif
 else
+
 # C compiler
 CC         = gcc
 # C++ compiler
 CXXC       = g++
+
 endif
+
 
 NOPROFILE  = -fomit-frame-pointer
 DEBUG      =
