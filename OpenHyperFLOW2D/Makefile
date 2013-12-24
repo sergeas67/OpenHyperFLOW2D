@@ -25,12 +25,11 @@ VERSION     = $(CURRENT_VER)
 
 CFLAGS    =  $(OPTIONS) -D_UNIFORM_MESH_ -D_REMOVE_SWAPFILE_ -D_VER=${CURRENT_VER} \
              -D_TECPLOT_ -D_GNUPLOT_ -D_WRITE_LARGE_FILE_ -D_STREAM_COMPAT $(MODELS)
-
 #-DSRC_ADD
 LIBCFLAGS =
 
 # StdLibs
-CLFLAGS   += 
+CLFLAGS   +=
 #-lm
 
 #STATIC = -static
@@ -44,7 +43,7 @@ TARGET_2D    = $(TARGET_BASE)-$(VERSION)
 SOURCES_2D   = hf2d_start.cpp
 OBJECTS_2D   = hf2d_start.o
 HF2D_START   = $(OBJECTS_2D)
-DATAFILE     = 
+DATAFILE     =
 SOURCE       = $(SOURCE_2D)
 OBJECTS      = $(OBJECTS_2D)
 
@@ -96,15 +95,15 @@ local:
 test: ObliqueShock
 
 ObliqueShock:
-	bin/OpenHyperFLOW2D.sh TestCases/ObliqueShock
+	bin/OpenHyperFLOW2D.sh TestCases/ObliqueShock ${NUM_NODES}
 FlatPlate:
-	bin/OpenHyperFLOW2D.sh TestCases/FlatPlate
+	bin/OpenHyperFLOW2D.sh TestCases/FlatPlate ${NUM_NODES}
 Wedge:
-	bin/OpenHyperFLOW2D.sh TestCases/Wedge
+	bin/OpenHyperFLOW2D.sh TestCases/Wedge ${NUM_NODES}
 sphere2D:
-	bin/OpenHyperFLOW2D.sh TestCases/sphere2D
+	bin/OpenHyperFLOW2D.sh TestCases/sphere2D ${NUM_NODES}
 Nozzle2D:
-	bin/OpenHyperFLOW2D.sh TestCases/Nozzle2D
+	bin/OpenHyperFLOW2D.sh TestCases/Nozzle2D ${NUM_NODES}
 #
 $(TARGET_2D): local  Utl libexcept libflow objData libhyperflow libdeeps2d liboutcfd $(OBJECTS_2D)
 	$(CXXC) $(STATIC) $(CLFLAGS) $(OBJECTS_2D) $(OPTIONS) $(LLIBS_2D) -o $(TARGET_2D)
