@@ -5,7 +5,7 @@
 # COMPILER=GNU   - GNU C++ compiler
 # COMPILER=Intel - Intel C++ compile
 ####################################################
-COMPILER=GNU
+COMPILER=Intel
 # Debug level
 DEBUGLEVEL = 0
 
