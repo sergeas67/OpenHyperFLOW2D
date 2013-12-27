@@ -966,10 +966,10 @@ void DEEPS2D_Run(ofstream* f_stream
                                           //SQUARE locally adopted blending factor function with relaxation (SLABFFR)
                                           CurrentNode->beta = min((beta_min+CurrentNode->beta)*0.5,(beta_min*beta_min)/(beta_min+DD_local[k]*DD_local[k]));
                                         } else if( bFF == BFF_SQR) {
-                                        //SQRT() locally adopted blending factor function (SQRLABF)
+                                        //SQRT() locally adopted blending factor function (SQRLABF) + most accurate & stable +
                                           CurrentNode->beta = min(beta_min,(beta_min*beta_min)/(beta_min+sqrt(DD_local[k])));
                                         } else if( bFF == BFF_SQRR) {
-                                        //SQRT() locally adopted blending factor function with relaxation (SQRLABFFR)
+                                        //SQRT() locally adopted blending factor function with relaxation (SQRLABFFR) + most stable +
                                           CurrentNode->beta = min((beta_min+CurrentNode->beta)*0.5,(beta_min*beta_min)/(beta_min+sqrt(DD_local[k]))); 
                                         }
 #ifdef _MPI

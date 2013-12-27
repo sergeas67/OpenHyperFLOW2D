@@ -93,7 +93,7 @@ local:
 	echo -e "${MPIBIN}" > .mpi
 	echo -e "${MPILIB}" > .mpilib
 	./get_SIMD.sh > .simd
-test: ObliqueShock
+test: ObliqueShock Wedge Step
 
 ObliqueShock:
 	bin/OpenHyperFLOW2D.sh TestCases/ObliqueShock ${NUM_NODES}
@@ -105,6 +105,8 @@ sphere2D:
 	bin/OpenHyperFLOW2D.sh TestCases/sphere2D ${NUM_NODES}
 Nozzle2D:
 	bin/OpenHyperFLOW2D.sh TestCases/Nozzle2D ${NUM_NODES}
+Step:
+	bin/OpenHyperFLOW2D.sh TestCases/Step ${NUM_NODES}
 #
 $(TARGET_2D): local  Utl libexcept libflow objData libhyperflow libdeeps2d liboutcfd $(OBJECTS_2D)
 	$(CXXC) $(STATIC) $(CLFLAGS) $(OBJECTS_2D) $(OPTIONS) $(LLIBS_2D) -o $(TARGET_2D)
