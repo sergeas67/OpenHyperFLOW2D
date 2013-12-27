@@ -16,4 +16,4 @@ IS_OPENMP=`gcc -fopenmp -S -I . -I  utl utl/utl.cpp 2>/dev/null; echo $?`
 endif
 
 # Top SIMD features
-SIMD=SSE3
+SIMD=AVX

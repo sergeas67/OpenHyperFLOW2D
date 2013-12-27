@@ -47,7 +47,8 @@ MPIDIR    = $(MPI2DIR)
 MPILIB    = $(MPIDIR)/lib
 MPIBIN    = $(MPIDIR)/bin
 MPIARCH   = LINUX
-MPI       = -L $(MPILIB) -D_MPI -D_MPI_NB -D_MVAPICH_
+MPI       = -L $(MPILIB) -D_MPI -D_MVAPICH_
+#-D_MPI_NB 
 PARALLEL_SUFFIX +=-MPI-NB
 endif
 #######################################################
@@ -84,8 +85,8 @@ MPIDIR   = /share/mpi/icc/openmpi-1.6.3
 endif
 
 ifeq ("${COMPILER}","GNU")
-#MPIDIR   = /share/mpi/gcc/openmpi-1.6.3
-MPIDIR   = /usr/lib64/mpi/gcc/openmpi
+MPIDIR   = /share/mpi/gcc/openmpi-1.6.3
+#MPIDIR   = /usr/lib64/mpi/gcc/openmpi
 endif
 
 MPIARCH   = LINUX

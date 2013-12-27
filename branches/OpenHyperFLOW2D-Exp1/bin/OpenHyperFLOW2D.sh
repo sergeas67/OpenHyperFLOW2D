@@ -2,8 +2,8 @@
 
 HYPERFLOW2D=bin/OpenHyperFLOW2D-1.00
 ProjectName=$1
-
-MPI=`$HYPERFLOW2D | grep "parallel MPI"`
+MPILIB=`cat ./.mpilib`
+MPI=`LD_LIBRARY_PATH=${MPILIB} $HYPERFLOW2D | grep "parallel MPI"`
 
 if [ "$MPI" != "" ]
 then
@@ -27,8 +27,18 @@ declare -i NUMNODES=${NHOSTS}+1
 ulimit -s unlimited
 
 
+# MPI 1
+#declare -i pnum=0
+#rm -f ./.hosts
+#while [ $pnum -lt $CORESPERHOST ]
+#do
+#echo localhost >> ./.hosts
+#pnum=$pnum+1
+#done
+#LD_LIBRARY_PATH=${MPILIB} `cat ./.mpi`/mpirun -np ${NCORES} -hostfile .hosts ${HYPERFLOW2D} ${ProjectName}.dat
 
-`cat ./.mpi`/mpiexec -n ${NCORES} ${HYPERFLOW2D} ${ProjectName}.dat
+# MPI 2
+LD_LIBRARY_PATH=${MPILIB} `cat ./.mpi`/mpiexec -n ${NCORES}  ${HYPERFLOW2D} ${ProjectName}.dat 
 #1>  ${ProjectName}.out  2> ${ProjectName}.err
 
 else

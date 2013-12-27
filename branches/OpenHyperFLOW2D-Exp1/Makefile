@@ -91,8 +91,9 @@ clean_lib_symlinks:
 	rm -f ./lib/*.a
 local:
 	echo -e "${MPIBIN}" > .mpi
+	echo -e "${MPILIB}" > .mpilib
 	./get_SIMD.sh > .simd
-test: ObliqueShock
+test: ObliqueShock Wedge Step
 
 ObliqueShock:
 	bin/OpenHyperFLOW2D.sh TestCases/ObliqueShock ${NUM_NODES}
@@ -104,12 +105,14 @@ sphere2D:
 	bin/OpenHyperFLOW2D.sh TestCases/sphere2D ${NUM_NODES}
 Nozzle2D:
 	bin/OpenHyperFLOW2D.sh TestCases/Nozzle2D ${NUM_NODES}
+Step:
+	bin/OpenHyperFLOW2D.sh TestCases/Step ${NUM_NODES}
 #
 $(TARGET_2D): local  Utl libexcept libflow objData libhyperflow libdeeps2d liboutcfd $(OBJECTS_2D)
 	$(CXXC) $(STATIC) $(CLFLAGS) $(OBJECTS_2D) $(OPTIONS) $(LLIBS_2D) -o $(TARGET_2D)
 	cp $(TARGET_2D) bin/$(TARGET_2D)
 clean:
-	rm -fR $(TARGET_2D) bin/$(TARGET_2D) .simd .mpi *.plt *.hf2d *.o lib/* doc/doxygen/*;
+	rm -fR $(TARGET_2D) bin/$(TARGET_2D) .simd .mpi .mpilib .hosts *.plt *.hf2d *.o lib/* doc/doxygen/*;
 	@cd libFlow;make -f Makefile clean;cd ..;\
 	cd libOpenHyperFLOW2D;make -f Makefile clean;cd ..;\
 	cd libExcept;make -f Makefile clean;cd ..;\
