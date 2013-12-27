@@ -27,15 +27,15 @@
 <data/FlowType=0>
 
 ; -X- dimension of computation area
-<data/MaxX=900>
+<data/MaxX=300>
 ;
 ; -Y- dimension of computation area
-<data/MaxY=300>
+<data/MaxY=100>
 ;
 ; [dx] coordinate step, m
-<data/dx=0.001>
+<data/dx=0.01>
 ; [dy] coordinate step, m
-<data/dy=0.001>
+<data/dy=0.01>
 
 ;------------------------------------------------------------------;
 ; Computation parameters                                           ;
@@ -49,7 +49,7 @@
 ; 4 - Rho*E residual
 ; 5 - Time
 <data/MonitorNumber=5>
-<data/ExitMonitorValue=0.003>
+<data/ExitMonitorValue=3.0>
 
 ;Maximum time of calculation, s
 ; Courant number (for gas phase only)
@@ -73,7 +73,7 @@
 <endtable>
 
 ; Maximum number of steps
-<data/Nmax=1000>
+<data/Nmax=100>
 ; Every NOutStep-th step is displayed
 <data/NOutStep=100>
 <data/NSaveStep=1>
@@ -89,12 +89,7 @@
 ; 3 -  square BFF with relaxation       beta = (beta + beta0^2/(beta0 + | max_local_residual^2 |))/2
 ; 4 -  square root BFF                  beta = beta0^2/(beta0 + sqrt(| max_local_residual |))
 ; 5 -  square root  BFF with relaxation beta = (beta + beta0^2/(beta0 + sqrt(| max_local_residual |)))/2
-; 6 -  Mach number inverse depended BFF beta = beta0^2/(beta0 + | max_local_residual | ^ 1.0/Mach)
-; 7 -  Mach number direct depended BFF  beta = beta0^2/(beta0 + | max_local_residual | ^ Mach)
-; 8 -  Local gradient depended BFF
-; 9 -  Mixed (square+local gradient) BFF
-; 10 - Hybrid (square+local gradient+Mach number inverse depended) BFF
-<data/BFF=4>
+<data/BFF=5>
 ;-------------------------------------------------
 ; Turbulence models
 ;-------------------------------------------------
@@ -103,7 +98,7 @@
 ; 2 - Zero equation (algebraic) model (ZEM) 
 ; 3 - One equation models
 ; 4 - Two equations models
-; 5 - LES
+; 5 - Smagorinsky (SGS)
 <data/TurbulenceModel=0>
 <data/isTurbulenceReset=1>
 <data/ZeroEqFactor=0>
@@ -356,49 +351,27 @@
 <endtable>
 
 ;------------------------------------------
-;  Inert component (air) properties
+;  Inert component  properties (model)
 ; ----------------------------------------
 ; Heat of AIR formation, J/kg 
 <data/H_air=0.0>
 ; Gas constant, J/(kg.K)
-<data/R_air=287.0>
+<data/R_air=0.714286>
 
 ; Heat conductivity, Wt/(m.K), as function of temperature, K
-<table=lam_air/10>
-90.     0.015
-203.5   0.020
-300.    0.0267
-400.    0.0329
-1000.   0.070
-1500.   0.09269
-2000.   0.11521
-2500.   0.13565
-3000.   0.1551
-3500.   0.17341
+<table=lam_air/2>
+0.1     36.3e-6
+100.    36.3e-6
 <endtable>
 ; Viscosity, Pa.s, as function of temperature, K
-<table=mu_air/10>
-100.     7.68e-6
-203.5    13.66e-6
-300.     18.34e-6
-400.     22.5e-6
-1000.    48.5e-6
-1500.    53.698e-6
-2000.    64.73e-6
-2500.    74.847e-6
-3000.    84.288e-6
-3500.    93.149e-6
+<table=mu_air/2>
+0.1     18.1e-6
+100.    18.1e-6
 <endtable>
 ; Heat capacity, J/(kg.K), as function of temperature, K
-<table=Cp_air/8>
-203.5    1005.8
-300.     1005.5
-400.     1009.7
-1500.    1210.8
-2000.    1251.5
-2500.    1275.8
-3000.    1295.4
-3500.    1307.4
+<table=Cp_air/2>
+0.1    2.5
+100.   2.5
 <endtable>
 
 ;--------------------------------------------------
@@ -414,7 +387,6 @@
 ; 2 - combustion products
 ; 3 - air
 
-
 ;---------------------------------
 ;"Flow2D" Object  list
 ;---------------------------------
@@ -426,23 +398,23 @@
 <data/Flow2D-1.CompIndex=3>
 
 ; Flow pressure (p*) , Pa.
-<data/Flow2D-1.p=101325.0>
+<data/Flow2D-1.p=1.0>
 
 ; Flow temperature (T*) , K.
-<data/Flow2D-1.T=288.17>
+<data/Flow2D-1.T=1.0>
 
 ; Flow velocity (U/V) , m/sec.
-<data/Flow2D-1.U=1020.82>
+<data/Flow2D-1.U=3.0>
 <data/Flow2D-1.V=0.0>
 
 ;---- Flow2D 2 -------
 <data/Flow2D-2.CompIndex=3>
 
 ; Flow pressure (p*) , Pa.
-<data/Flow2D-2.p=101325.0>
+<data/Flow2D-2.p=1.0>
 
 ; Flow temperature (T*) , K.
-<data/Flow2D-2.T=288.17>
+<data/Flow2D-2.T=1.0>
 ; k=0.8
 ; Flow velocity (U/V) , m/sec.
 <data/Flow2D-2.U=0.0>
@@ -463,12 +435,12 @@
 ; PreHeater & Diffuzor
 ; X/Y coordinates of bounds (m)
 <table=Contour1/6>
-0.18    0.0
+0.6     0.0
 0.0     0.0
-0.0     0.3
-0.8999  0.3
-0.8999  0.06
-0.18    0.06
+0.0     1.0
+2.9999  1.0
+2.9999  0.2
+0.6     0.2
 <endtable>
 
 ; Material ID
@@ -478,8 +450,8 @@
 <data/Contour1.Bound2.Cond=NT_FC_2D>
 <data/Contour1.Bound3.Cond=NT_AX_2D>
 <data/Contour1.Bound4.Cond=NT_D0X_2D>
-<data/Contour1.Bound5.Cond=NT_AX_2D>
-<data/Contour1.Bound6.Cond=NT_AY_2D>
+<data/Contour1.Bound5.Cond=NT_WNS_2D>
+<data/Contour1.Bound6.Cond=NT_WNS_2D>
 
 <data/Contour1.Bound1.Flow2D=1>
 <data/Contour1.Bound2.Flow2D=1>
@@ -530,7 +502,7 @@
 
 ;--- Area 2 ------
 <table=Area2/1>
-800  3
+200  3
 <endtable>
 ;
 ; Type of area:

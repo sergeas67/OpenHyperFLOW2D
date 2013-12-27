@@ -1,8 +1,8 @@
 ;-------------------------------------------------;
-; Data file for Wedge test case                   ;
+; Data file for FlameHolder                       ;
 ;-------------------------------------------------;
-<start/Wedge>; Start directive
-<data/ProjectName=Wedge>
+<start/FlameHolder>; Start directive
+<data/ProjectName=FlameHolder>
 ;
 ; Output data file (TecPlot format)
 <data/OutputFile=.plt>
@@ -10,7 +10,7 @@
 <data/ErrorFile=-err.plt>
 ; Swap file for gas area (need for reuse precalculate gas area state data)
 <data/GasSwapFile=.hf2d>
-<data/isAdiabaticWall=0>
+<data/isAdiabaticWall=1>
 ; Out heat flux on walls along x direction
 <data/isOutHeatFluxX=0>
 ; Out heat flux on walls along y direction
@@ -27,15 +27,15 @@
 <data/FlowType=0>
 
 ; -X- dimension of computation area
-<data/MaxX=425>
+<data/MaxX=1000>
 ;
 ; -Y- dimension of computation area
 <data/MaxY=300>
 ;
 ; [dx] coordinate step, m
-<data/dx=0.001>
+<data/dx=0.0005>
 ; [dy] coordinate step, m
-<data/dy=0.001>
+<data/dy=0.0005>
 
 ;--------------------------------------------------
 ; Computation parameters
@@ -49,17 +49,16 @@
 ; 4 - Rho*E residual
 ; 5 - Time
 <data/MonitorNumber=5>
-<data/ExitMonitorValue=0.0025>
+<data/ExitMonitorValue=1.0>
 
 ;Maximum time of calculation, s
 ; Courant number (for gas phase only)
 <data/CFL=0.1>
 
 ; CFL scenario
-<table=CFL_Scenario/4>
-0       0.1
+<table=CFL_Scenario/2>
+0       0.01
 1000    0.1
-20000   0.1
 200000  0.1
 <endtable>
 
@@ -67,17 +66,18 @@
 <data/beta=0.9895>
 
 ; Base blending factor scenario
-<table=beta_Scenario/3>
-0       0.9855
-20000   0.9895
-100000  0.9895
+<table=beta_Scenario/4>
+0       0.95
+500     0.975
+1000    0.985
+500000  0.9875
 <endtable>
 
 ; Maximum number of steps
 <data/Nmax=25000>
 ; Every NOutStep-th step is displayed
 <data/NOutStep=100>
-<data/NSaveStep=4>
+<data/NSaveStep=1>
 <data/isVerboseOutput=1>
 ; Initial time
 <data/InitTime=0.>
@@ -88,7 +88,7 @@
 ; 1 -  linear BFF with relaxation       beta = (beta + beta0^2/(beta0 + | max_local_residual |))/2
 ; 4 -  square root BFF                  beta = beta0^2/(beta0 + sqrt(| max_local_residual |))
 ; 5 -  square root  BFF with relaxation beta = (beta + beta0^2/(beta0 + sqrt(| max_local_residual |)))/2
-<data/BFF=3>
+<data/BFF=5>
 ;-------------------------------------------------
 ; Turbulence models
 ;-------------------------------------------------
@@ -97,8 +97,8 @@
 ; 2 - Zero equation (algebraic) model (ZEM) 
 ; 3 - One equation models
 ; 4 - Two equations models
-; 5 - Smagorinsky
-<data/TurbulenceModel=0>
+; 5 - LES
+<data/TurbulenceModel=4>
 <data/isTurbulenceReset=1>
 <data/ZeroEqFactor=0>
 ; turbulence  Pr_t near wall
@@ -119,7 +119,7 @@
 ; 7 - Launder and Sharma, with Yap-correction k-eps model
 ; 8 - RNG k-eps model
 ; 9 - Spalart-Allmares model
-<data/TurbExtModel=0>
+<data/TurbExtModel=4>
 
 ;--------------------------------------------------
 ; Solid body temperature Ts0, K
@@ -132,8 +132,8 @@
 
 ; General parameters
 
-; Stechiometric Oxygen/Fuel mass ratio: K0 = Mox/Mh2 (H2+O2)
-<data/K0=34.>
+; Stechiometric Oxygen/Fuel mass ratio: K0 = Mox/Mfuel
+<data/K0=34.296>
  
 ; Coefficient of chemical reactions completion:
 ;   1.  = 0%   (no combustion)
@@ -176,71 +176,56 @@
 ;<data/Src1.Y_fuel=0.121>
 ;<data/Src1.Y_ox=0.879>
 
-;------------------------
-; Combustion products  properties
-; ------------------------
-; Heat of Combustion products formation, J/kg 
-<data/H_cp=-0.1735.3e7>
+;--------------------------------------------------
+; Combustion products  properties (H2 + AIR)
+; -------------------------------------------------
+; Heat of Combustion products formation, J/kg
+<data/H_cp=-0.31496e7>
 ; Gas constant, J/(kg.K)
-<data/R_cp=428.59>
-; Heat conductivity, Wt/(m.K), as function of temperature, K
-<table=lam_cp/17>
-881.38  0.13717
-994.4   0.14949
-1207.6  0.17328
-1420.3  0.19777
-1553.5  0.21333
-1603.6  0.21920
-1685.5  0.22881
-1719.9  0.23286
-1751.2  0.23654
-1789.6  0.24105
-1806.4  0.24302
-1854.1  0.24862
-1896.0  0.25354
-1933.6  0.25794
-1967.6  0.26191
-3130.2  0.38701
-3338.5  0.40609
+<data/R_cp=337.37>
+;  Heat conductivity, Wt/(m.K), as function of temperature, K
+<table=lam_cp/8>
+500.   0.041217
+1000.  0.080477
+1500.  0.11809
+2000.  0.15367
+2500.  0.19142
+3000.  0.24482
+3500.  0.32559
+4000.  0.40183
 <endtable>
 
 ; Viscosity, Pa.s, as function of temperature, K
-<table=mu_cp/10>
-881.38   3.5268e-5
-994.4    3.8695e-5
-1207.6   4.4849e-5
-1420.3   5.0664e-5
-1553.5   5.4163e-5
-1603.6   5.5453e-5
-1806.4   6.0541e-5
-1967.6   6.4445e-5
-3130.2   8.9133e-5
-3338.5   9.2813e-5
+<table=mu_cp/8>
+500.   2.2588e-5
+1000.  3.8185e-5
+1500.  5.0959e-5
+2000.  6.2192e-5
+2500.  7.2485e-5
+3000.  8.2231e-5
+3500.  9.1192e-5
+4000.  9.8838e-5
 <endtable>
 
 ; Heat capacity, J/(kg.K), as function of temperature, K
-<table=Cp_cp/10>
-881.38   1557.3
-994.4    1581.4
-1207.6   1624.6
-1420.3   1668.2
-1553.5   1694.4
-1603.6   1704.0
-1806.4   1741.1
-1967.6   1768.6
-3130.2   1924.0
-3338.5   1931.8
+<table=Cp_cp/8>
+500.   1275.7
+1000.  1447.6
+1500.  1582.1
+2000.  1674.4
+2500.  1737.2
+3000.  1783.1
+3500.  1821.2
+4000.  1856.4
 <endtable>
 
-;---------------------
-; Fuel properties
-; ---------------------
-
-; Heat of Fuel formation, J/kg 
+;---------------------------------------
+; Fuel properties (H2)
+; --------------------------------------
+; Heat of Fuel formation, J/kg
 <data/H_Fuel=0.0>
-
 ; Gas constant, J/(kg.K)
-<data/R_Fuel=4157.0>
+<data/R_Fuel=4157.>
 
 ; Heat conductivity, Wt/(m.K), as function of temperature, K
 <table=lam_Fuel/3>
@@ -264,17 +249,18 @@
 1500.    16050.
 <endtable>
 
-;---------------------
-;  O2 properties
-; ---------------------
-; Heat of O2 formation, J/kg
-<data/H_OX=50.0e3>
+;---------------------------------------
+;  Oxidizer properties  (AIR)
+; --------------------------------------
+; Heat of air formation, J/kg 
+<data/H_OX=0.0.>
 
 ; Gas constant, J/(kg.K)
-<data/R_OX=290.0>
+<data/R_OX=287.05>
 
 ; Heat conductivity, Wt/(m.K), as function of temperature, K
-<table=lam_OX/12>
+<table=lam_OX/13>
+1936.8   0.12900
 1722.4   0.11499
 1518.3   0.10369
 1054.8   0.076167
@@ -290,7 +276,8 @@
 <endtable>
 
 ; Viscosity, Pa.s, as function of temperature, K
-<table=mu_OX/12>
+<table=mu_OX/13>
+1936.8  0.63479e-4
 1722.4  0.58807e-4
 1518.3  0.54074e-4
 1054.8  0.42341e-4
@@ -306,11 +293,12 @@
 <endtable>
 
 ; Heat capacity, J/(kg.K), as function of temperature, K
-<table=Cp_OX/12>
-1722.4   1398.0
-1518.3   1351.5
-1054.8   1251.5
-812.42   1190.5
+<table=Cp_OX/13>
+1936.8   1405.4
+1722.4   1356.4
+1518.3   1331.0
+1054.8   1249.9
+812.42   1190.4
 747.87   1172.4
 627.61   1136.8
 576.99   1121.3
@@ -321,50 +309,65 @@
 234.98   1052.9
 <endtable>
 
-;------------------------------------------
-;  Inert component (air) properties
-; ----------------------------------------
-; Heat of AIR formation, J/kg 
-<data/H_air=0.0>
+;---------------------
+;  Air properties
+; ---------------------
+
+; Heat of air formation, J/kg 
+<data/H_air=0.0.>
+
 ; Gas constant, J/(kg.K)
-<data/R_air=287.0>
+<data/R_air=287.05>
 
 ; Heat conductivity, Wt/(m.K), as function of temperature, K
-<table=lam_air/10>
-90.     0.015
-203.5   0.020
-300.    0.0267
-400.    0.0329
-1000.   0.070
-1500.   0.09269
-2000.   0.11521
-2500.   0.13565
-3000.   0.1551
-3500.   0.17341
+<table=lam_air/13>
+1936.8   0.12900
+1722.4   0.11499
+1518.3   0.10369
+1054.8   0.076167
+812.42   0.060663
+747.87   0.056408
+627.61   0.048348
+576.99   0.044907
+442.38   0.03563
+337.23   0.028299
+308.85   0.02632
+256.7    0.022628
+234.98   0.021017
 <endtable>
+
 ; Viscosity, Pa.s, as function of temperature, K
-<table=mu_air/10>
-100.     7.68e-6
-203.5    13.66e-6
-300.     18.34e-6
-400.     22.5e-6
-1000.    48.5e-6
-1500.    53.698e-6
-2000.    64.73e-6
-2500.    74.847e-6
-3000.    84.288e-6
-3500.    93.149e-6
+<table=mu_air/13>
+1936.8  0.63479e-4
+1722.4  0.58807e-4
+1518.3  0.54074e-4
+1054.8  0.42341e-4
+812.42  0.35426e-4
+747.87  0.33455e-4
+627.61  0.2959e-4
+576.99  0.27875e-4
+442.38  0.22981e-4
+337.23  0.18706e-4
+308.85  0.17462e-4
+256.7   0.15053e-4
+234.98  0.13998e-4
 <endtable>
+
 ; Heat capacity, J/(kg.K), as function of temperature, K
-<table=Cp_air/8>
-203.5    1005.8
-300.     1004.5
-400.     1009.7
-1500.    1210.8
-2000.    1251.5
-2500.    1275.8
-3000.    1295.4
-3500.    1307.4
+<table=Cp_air/13>
+1936.8   1405.4
+1722.4   1356.4
+1518.3   1331.0
+1054.8   1249.9
+812.42   1190.4
+747.87   1172.4
+627.61   1136.8
+576.99   1121.3
+442.38   1080.8
+337.23   1056.5
+308.85   1053.4
+256.7    1052.9
+234.98   1052.9
 <endtable>
 
 ;--------------------------------------------------
@@ -380,53 +383,36 @@
 ; 2 - combustion products
 ; 3 - air
 
-;---- Flow 1 -------
-<data/Flow1.CompIndex=3>
-
-; Flow pressure (p*) , Pa.
-<data/Flow1.p=1.e5>
-
-; Flow temperature (T*) , K.
-<data/Flow1.T=300.>
-
-; Flow defenition type
-; 1 - W
-; 0 - Lam
-<data/Flow1.Type=1>
-
-; Flow velocity (W) , m/sec.
-<data/Flow1.W=0.01>
-
 
 ;---------------------------------
-;"Flow2D" Object list
+;"Flow2D" Object  list
 ;---------------------------------
 
 ; Numper of "Flow2D" objects
 <data/NumFlow2D=2>
 
 ;---- Flow2D 1 -------
-<data/Flow2D-1.CompIndex=3>
+<data/Flow2D-1.CompIndex=1>
 
 ; Flow pressure (p*) , Pa.
-<data/Flow2D-1.p=101350.0>
+<data/Flow2D-1.p=101325.0>
 
 ; Flow temperature (T*) , K.
-<data/Flow2D-1.T=288.9>
+<data/Flow2D-1.T=288.17>
 
 ; Flow velocity (U/V) , m/sec.
-<data/Flow2D-1.U=851.84>
+<data/Flow2D-1.U=30.0>
 <data/Flow2D-1.V=0.0>
 
 ;---- Flow2D 2 -------
-<data/Flow2D-2.CompIndex=3>
+<data/Flow2D-2.CompIndex=1>
 
 ; Flow pressure (p*) , Pa.
-<data/Flow2D-2.p=101350.0>
+<data/Flow2D-2.p=101325.0>
 
 ; Flow temperature (T*) , K.
-<data/Flow2D-2.T=288.9>
-
+<data/Flow2D-2.T=288.17>
+; k=0.8
 ; Flow velocity (U/V) , m/sec.
 <data/Flow2D-2.U=0.0>
 <data/Flow2D-2.V=0.0>
@@ -436,6 +422,14 @@
 ;----------------------------
 <data/NumRects=0>
 <data/NumCircles=0>
+
+<data/Circle1.Xstart=0.1>
+<data/Circle1.Ystart=0.0>
+<data/Circle1.X0=0.15>
+<data/Circle1.Y0=0.001>
+<data/Circle1.TurbulenceModel=0>
+<data/Circle1.Flow2D=2>
+
 <data/NumAirfoils=0>
 <data/NumSingleBounds=0>
 
@@ -452,50 +446,85 @@
 <data/SingleBound1.isReset=0>
 <data/SingleBound1.MaterialID=0>
 
+<table=SingleBound2.Points/2>
+0.0        0.1099999999
+1.49999999 0.1099999999
+<endtable>
+
+<data/SingleBound2.Cond=NT_FC_2D>
+<data/SingleBound2.Flow2D=1>
+<data/SingleBound2.TurbulenceModel=0>
+<data/SingleBound2.isReset=0>
+<data/SingleBound2.MaterialID=0>
+
 ;---- Contour objects -----------
 ; Number of contours
-<data/NumContour=1>
+<data/NumContour=2>
 
-; Nozzle divirgent part
+; Duct
 ; X/Y coordinates of bounds (m)
-<table=Contour1/5>
-0.0         0.3
-0.42499     0.3
-0.42499     0.08038475772933680272
-0.125       0.0
-0.0         0.0
+<table=Contour1/4>
+0.49999  0.0
+0.0      0.0
+0.0      0.15
+0.49999  0.15
 <endtable>
 
 ; Material ID
 <data/Contour1.MaterialID=0>
 
-<data/Contour1.Bound1.Cond=NT_D0Y_2D, CT_V_CONST_2D>
-<data/Contour1.Bound2.Cond=NT_D0X_2D>
+<data/Contour1.Bound1.Cond=NT_WNS_2D>
+<data/Contour1.Bound2.Cond=NT_FC_2D>
 <data/Contour1.Bound3.Cond=NT_WNS_2D>
-<data/Contour1.Bound4.Cond=NT_D0Y_2D, CT_V_CONST_2D>
-<data/Contour1.Bound5.Cond=NT_FC_2D>
+<data/Contour1.Bound4.Cond=NT_D0X_2D>
 
-<data/Contour1.Bound1.Flow2D=1>
+<data/Contour1.Bound1.Flow2D=2>
 <data/Contour1.Bound2.Flow2D=1>
 <data/Contour1.Bound3.Flow2D=2>
-<data/Contour1.Bound4.Flow2D=2>
-<data/Contour1.Bound5.Flow2D=1>
+<data/Contour1.Bound4.Flow2D=1>
 
 ; Turbulence model of bound
 <data/Contour1.Bound1.TurbulenceModel=0>
 <data/Contour1.Bound2.TurbulenceModel=0>
 <data/Contour1.Bound3.TurbulenceModel=0>
 <data/Contour1.Bound4.TurbulenceModel=0>
-<data/Contour1.Bound5.TurbulenceModel=0>
 
 ; Reset bounds flag state
 <data/Contour1.Bound1.isReset=0>
 <data/Contour1.Bound2.isReset=0>
 <data/Contour1.Bound3.isReset=0>
 <data/Contour1.Bound4.isReset=0>
-<data/Contour1.Bound5.isReset=0>
 
-;---- Area objects -------
+; Flameholder
+; X/Y coordinates of bounds (m)
+<table=Contour2/3>
+0.1          0.075
+0.1433       0.10
+0.1433       0.05
+<endtable>
+
+; Material ID
+<data/Contour2.MaterialID=0>
+
+<data/Contour2.Bound1.Cond=NT_WNS_2D>
+<data/Contour2.Bound2.Cond=NT_WNS_2D>
+<data/Contour2.Bound3.Cond=NT_WNS_2D>
+
+<data/Contour2.Bound1.Flow2D=2>
+<data/Contour2.Bound2.Flow2D=2>
+<data/Contour2.Bound3.Flow2D=2>
+
+; Turbulence model of bound
+<data/Contour2.Bound1.TurbulenceModel=0>
+<data/Contour2.Bound2.TurbulenceModel=0>
+<data/Contour2.Bound3.TurbulenceModel=0>
+
+; Reset bounds flag state
+<data/Contour2.Bound1.isReset=0>
+<data/Contour2.Bound2.isReset=0>
+<data/Contour2.Bound3.isReset=0>
+
+; -------
 ; Number of areas
 <data/NumArea=2>
 ;
@@ -520,11 +549,14 @@
 
 ;--- Area 2 ------
 <table=Area2/1>
-420   3
+250   150
 <endtable>
 ;
+; Type of area:
+;  0 - Solid
+;  1 - Gas
 <data/Area2.Type=0>
-
+;
 ; Material ID
 <data/Area2.MaterialID=1>
 
@@ -534,10 +566,10 @@
 <data/is_Cx_calc=0>
 <data/x_body=0.0>
 <data/y_body=0.0>
-<data/dx_body=0.0>
-<data/dy_body=0.0>
+<data/dx_body=0.5>
+<data/dy_body=0.25>
 <data/Cx_Flow_Index=1>
 
 <data/NumXCut=0>
 
-<end/Wedge>; End directive
+<end/FlameHolder>; End directive
