@@ -10,7 +10,7 @@ compressible multicomponent sub/trans/supersonic reacting gas flows.
 Basic features
 ==============
 
-  - BC of I, II and III type for any of the dependent variables;
+	- BC of I, II and III type for any of the dependent variables;
 	- no-slip BC on walls;
 	- multicomponent flow (4 base components);
 	- temperature dependence properties of components;
