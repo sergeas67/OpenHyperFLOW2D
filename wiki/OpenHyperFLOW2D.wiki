@@ -36,6 +36,7 @@
 
 ||  *Test Case*  || *Source*  ||  *Input data file*  ||
 || Oblique Shock || [http://www.aero.polimi.it/freecase/?OpenFOAM_%2B_Code_Aster:Aerodynamic_problems:Oblique_shock http://openhyperflow2d.googlecode.com/svn/branches/OpenHyperFLOW2D-Exp1/doc/ObliqueShock.png] || [http://openhyperflow2d.googlecode.com/svn/trunk/OpenHyperFLOW2D/TestCases/ObliqueShock.dat] ||
-|| Wedge || [http://openhyperflow2d.googlecode.com/svn/branches/OpenHyperFLOW2D-Exp1/doc/Wedge.png] || [http://openhyperflow2d.googlecode.com/svn/trunk/OpenHyperFLOW2D/TestCases/Wedge.dat] || 
+|| 15 deg. Wedge || <img src=http://openhyperflow2d.googlecode.com/svn/branches/OpenHyperFLOW2D-Exp1/doc/Wedge.png width=600> || [http://openhyperflow2d.googlecode.com/svn/trunk/OpenHyperFLOW2D/TestCases/Wedge.dat] ||
+|| Mach 3 supersonic flow over a forward-facing step || <img src=http://openhyperflow2d.googlecode.com/svn/branches/OpenHyperFLOW2D-Exp1/doc/Step-Mach.png width=600> || [http://openhyperflow2d.googlecode.com/svn/trunk/OpenHyperFLOW2D/TestCases/Step.dat] ||  
 
 *OpenHyperFLOW2D* it is open source clone of *HyperFLOW2D* (in-house CFD code) with reduced functionality, and can be used without restriction for educational and academic purpose. Reference at the publication is obligatory.
