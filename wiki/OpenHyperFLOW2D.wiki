@@ -2,7 +2,7 @@
 = Open Source CFD simulation package *OpenHyperFLOW2D* =
 
 ||[http://openhyperflow2d.googlecode.com/svn/trunk/OpenHyperFLOW2D/doc/OpenHyperFLOW2D-Logo.png] || Copyright (C)  1995-2013 by Serge A. Suchkov ||
-||  || Copyright policy: LGPL V3 || 
+||<g:plusone size="medium"></g:plusone>|| Copyright policy: LGPL V3 || 
 
 *OpenHyperFLOW2D* it is research CFD code for simulation 2D (flat/axisymmetrical) transient viscous compressible multicomponent sub/trans/supersonic reacting gas flows.
 
