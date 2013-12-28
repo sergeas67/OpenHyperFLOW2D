@@ -36,7 +36,7 @@ UArray<UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >*>*     SubmatrixArray;
 UArray<UMatrix2D< FlowNodeCore2D<double,NUM_COMPONENTS> >*>* CoreSubmatrixArray;
 UArray<XCut>*                                                XCutArray;
 
-double  makeZero;
+//double  makeZero;
 
 int     Nstep;
 double  ExitMonitorValue;
@@ -554,12 +554,11 @@ void DEEPS2D_Run(ofstream* f_stream
 #pragma omp parallel shared(f_stream,CoreSubmatrixArray, SubmatrixArray, chemical_reactions,Y_mix,sum_RMS, sum_iRMS, \
                             Cp,i_max,j_max,k_max,Tg,beta0,CurrentTimePart,DD,dx,dy,MaxX,MaxY,dt_min, dtmin,RMS,iRMS,DD_max,i_c,j_c,n_s) \
                      private(iter,j,k,n1,n2,n3,n4,N1,N2,N3,N4,n_n,m_m,pC,pJ,err_i,err_j,\
-                             beta,_beta,AddEq,dXX,dYY,DD_local,makeZero,AAA,StartXLocal,MaxXLocal,\
+                             beta,_beta,AddEq,dXX,dYY,DD_local,AAA,StartXLocal,MaxXLocal,\
                              dtdx,dtdy,dt)
 #endif //_OPENMP
                   iter = 0;
                   do {
-
                       FlowNode2D< double,NUM_COMPONENTS >* CurrentNode=NULL;
                       FlowNodeCore2D< double,NUM_COMPONENTS >* NextNode=NULL;
                       FlowNode2D< double,NUM_COMPONENTS >* UpNode=NULL;          // neast
@@ -820,7 +819,9 @@ void DEEPS2D_Run(ofstream* f_stream
                                             dy2_flag = 0;
                                         }
                                     }
+                                    
                                     if ( c_flag ) {
+                                        
                                         if ( dx_flag ) {
                                             dXX = CurrentNode->dSdx[k] = (RightNode->A[k]-LeftNode->A[k])*n_n_1;
                                         } else {
@@ -840,29 +841,25 @@ void DEEPS2D_Run(ofstream* f_stream
                                         if ( dy2_flag ) {
                                             dYY = (UpNode->dSdy[k]+DownNode->dSdy[k])*0.5;
                                         }
-
+                                        
+                                        /*
                                         if(((iter + last_iter) < (int)start_iter)
                                             && (k == 1 || k == 2 ))
                                            makeZero = 0.;
                                         else
                                            makeZero = 1.;
-
+                                        */
                                         if ( CurrentNode->FT ) {
                                             NextNode->S[k] = CurrentNode->S[k]*beta+_beta*(dxx*(LeftNode->S[k]+RightNode->S[k])+dyy*(UpNode->S[k]+DownNode->S[k]))*0.5
-                                                          - makeZero*(dtdx*dXX+dtdy*(dYY+CurrentNode->F[k]/(j+1))) + (CurrentNode->Src[k])*dt+CurrentNode->SrcAdd[k];
+                                                           - /*makeZero*/(dtdx*dXX+dtdy*(dYY+CurrentNode->F[k]/(j+1))) + (CurrentNode->Src[k])*dt+CurrentNode->SrcAdd[k];
                                         } else {
                                             NextNode->S[k] = CurrentNode->S[k]*beta+_beta*(dxx*(LeftNode->S[k]+RightNode->S[k])+dyy*(UpNode->S[k]+DownNode->S[k]))*0.5
-                                                          - makeZero*(dtdx*dXX+dtdy*dYY) + (CurrentNode->Src[k])*dt+CurrentNode->SrcAdd[k];
+                                                           - /*makeZero*/(dtdx*dXX+dtdy*dYY) + (CurrentNode->Src[k])*dt+CurrentNode->SrcAdd[k];
                                         }
-                                } else if ((CurrentNode->isTurbulenceCond2D(TCT_k_eps_Model_2D) && k == i2d_eps) ) {
-                                        if ( CurrentNode->isTurbulenceCond2D(TCT_eps_mud2kdx2_WALL_2D) ) {
-                                            NextNode->S[i2d_eps] = CurrentNode->mu*(RightNode->dSdx[i2d_k]-LeftNode->dSdx[i2d_k])/CurrentNode->S[i2d_Ro]/dx2*n_n_1; 
-                                        } else if ( CurrentNode->isTurbulenceCond2D(TCT_eps_mud2kdy2_WALL_2D) ) {
-                                            NextNode->S[i2d_eps] = CurrentNode->mu*(UpNode->dSdy[i2d_k]-DownNode->dSdy[i2d_k])/CurrentNode->S[i2d_Ro]/dy2*m_m_1;
-                                        }
-                                }
-                            }
-                    }
+                                
+                               }
+                         }
+                     }
                   }
                }
 #ifdef _OPENMP
@@ -969,7 +966,6 @@ void DEEPS2D_Run(ofstream* f_stream
                                         //SQRT() locally adopted blending factor function (SQRLABF) + most accurate & stable +
                                           CurrentNode->beta = min(beta_min,(beta_min*beta_min)/(beta_min+sqrt(DD_local[k])));
                                         } else if( bFF == BFF_SQRR) {
-                                        //SQRT() locally adopted blending factor function with relaxation (SQRLABFFR) + most stable +
                                           CurrentNode->beta = min((beta_min+CurrentNode->beta)*0.5,(beta_min*beta_min)/(beta_min+sqrt(DD_local[k]))); 
                                         }
 #ifdef _MPI
