@@ -121,16 +121,6 @@ enum     NodeType2D {
     NT_FARFIELD_2D   = NT_FC_2D | CT_NONREFLECTED_2D                 // Nonreflected far-field BC
 };
 
-enum RefinementDirection {
-     RD_NONE = 0,
-     RD_XU,  // 1
-     RD_XD,  // 2
-     RD_YU,  // 3
-     RD_YD,  // 4
-     RD_ZU,  // 5
-     RD_ZD   // 6
-};
-
 template <class T, int a>
 struct FlowNodeCore2D {
     T S[6+a];   // Ro, Ro*U, Ro*V, Ro*e,k*Ro, eps*Ro, Ro*Y1...Ro*.Yk;

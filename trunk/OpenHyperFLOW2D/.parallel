@@ -6,7 +6,7 @@
 # PARALLEL=MPI       - using MPI
 ######################################################
 ifeq ("${PARALLEL}","")
-PARALLEL=MPI
+PARALLEL=
 endif
 #######################################################
 # OpenMP
@@ -26,7 +26,7 @@ endif
 # MPIVEND=OpenMPI   - OpenMPI
 #######################################################
 ifeq (${PARALLEL},MPI)
-MPIVEND=INTEL
+MPIVEND=OpenMPI
 endif
 #######################################################
 # MVAPICH
@@ -85,8 +85,8 @@ MPIDIR   = /share/mpi/icc/openmpi-1.6.3
 endif
 
 ifeq ("${COMPILER}","GNU")
-MPIDIR   = /share/mpi/gcc/openmpi-1.6.3
-#MPIDIR   = /usr/lib64/mpi/gcc/openmpi
+#MPIDIR   = /share/mpi/gcc/openmpi-1.6.3
+MPIDIR   = /usr/lib64/mpi/gcc/openmpi
 endif
 
 MPIARCH   = LINUX

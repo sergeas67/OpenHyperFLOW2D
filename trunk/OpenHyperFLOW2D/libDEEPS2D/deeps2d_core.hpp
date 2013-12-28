@@ -70,6 +70,7 @@ enum BlendingFactorFunction {
      BFF_MIXED, // BFF_SQR + BFF_LG
      BFF_HYBRID, // BFF_SQR + BFF_MACH + BFF_LG
      BFF_SQR_PRESSURE, // BFF_SQR + pressure check
+     BFF_SR_LIMITED,
 };
 
 enum WRITE_MODE {
