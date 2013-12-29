@@ -107,6 +107,10 @@ Nozzle2D:
 	bin/OpenHyperFLOW2D.sh TestCases/Nozzle2D ${NUM_NODES}
 Step:
 	bin/OpenHyperFLOW2D.sh TestCases/Step ${NUM_NODES}
+	
+#	bin/OpenHyperFLOW2D.sh TestCases/Step-60x180 ${NUM_NODES}
+#	bin/OpenHyperFLOW2D.sh TestCases/Step-120x360 ${NUM_NODES}
+#	bin/OpenHyperFLOW2D.sh TestCases/Step-240x720 ${NUM_NODES}
 #
 $(TARGET_2D): local  Utl libexcept libflow objData libhyperflow libdeeps2d liboutcfd $(OBJECTS_2D)
 	$(CXXC) $(STATIC) $(CLFLAGS) $(OBJECTS_2D) $(OPTIONS) $(LLIBS_2D) -o $(TARGET_2D)

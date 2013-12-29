@@ -7,7 +7,7 @@
 *   Copyright (C)  1995-2013 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
 *                                                                              *
-*  deeps2d_core.cpp: OpenHyperFLOW2D solver core code....                      *
+*   deeps2d_core.cpp: OpenHyperFLOW2D solver core code....                     *
 *                                                                              *
 *  last update: 15/12/2013                                                     *
 ********************************************************************************/
@@ -722,6 +722,12 @@ void DEEPS2D_Run(ofstream* f_stream
 
                                 AddEq = SetTurbulenceModel(pJ,i,j);
 
+                                if (bFF == BFF_MACH || bFF == BFF_HYBRID) {
+                                //Mach number depended locally adapted blending factor function  (MLABFF)
+                                  A = sqrt(CurrentNode->k*CurrentNode->R*CurrentNode->Tg+1.e-30);
+                                  W = sqrt(CurrentNode->U*CurrentNode->U+CurrentNode->V*CurrentNode->V+1.e-30);
+                                  Mach = W/A;
+                                 }
 
                                 // Scan equation system ... k - number of equation
                                 for ( k=0;k<(FlowNode2D<double,NUM_COMPONENTS>::NumEq-AddEq);k++ ) {
@@ -961,10 +967,10 @@ void DEEPS2D_Run(ofstream* f_stream
                                         //LINEAR locally adopted blending factor function with relaxation (LLABFFR)
                                           CurrentNode->beta[k] = min((beta_min+CurrentNode->beta[k])*0.5,(beta_min*beta_min)/(beta_min+DD_local[k]));
                                         } else if( bFF == BFF_S) {
-                                          //SQUARE locally adopted blending factor function (SLABF)
+                                        //SQUARE locally adopted blending factor function (SLABF)
                                           CurrentNode->beta[k] = min(beta_min,(beta_min*beta_min)/(beta_min+DD_local[k]*DD_local[k]));
                                         } else if (bFF == BFF_SR) {
-                                          //SQUARE locally adopted blending factor function with relaxation (SLABFFR)
+                                        //SQUARE locally adopted blending factor function with relaxation (SLABFFR)
                                           CurrentNode->beta[k] = min((beta_min+CurrentNode->beta[k])*0.5,(beta_min*beta_min)/(beta_min+DD_local[k]*DD_local[k]));
                                         } else if( bFF == BFF_SQR) {
                                         //SQRT() locally adopted blending factor function (SQRLABF)
@@ -972,6 +978,24 @@ void DEEPS2D_Run(ofstream* f_stream
                                         } else if( bFF == BFF_SQRR) {
                                         //SQRT() locally adopted blending factor function with relaxation (SQRLABFFR)
                                           CurrentNode->beta[k] = min((beta_min+CurrentNode->beta[k])*0.5,(beta_min*beta_min)/(beta_min+sqrt(DD_local[k]))); 
+                                        } else if( bFF == BFF_LG ) {
+                                          double LGAF = sqrt(CurrentNode->dSdx[k]*CurrentNode->dSdx[k] +
+                                                             CurrentNode->dSdy[k]*CurrentNode->dSdy[k] + 1.0e-30) * (dx+dy)/CurrentNode->S[k];
+                                          CurrentNode->beta[k] = min(beta_min,(beta_min*beta_min)/(beta_min+LGAF));
+                                        } else if (bFF == BFF_MACH) {
+                                          //Mach number depended locally adapted blending factor function  (MLABFF)
+                                          CurrentNode->beta[k] = min(beta0,(beta_min*beta_min)/(beta_min+pow(DD_local[k],1.0/(1.0+Mach)))); // 1/(1+M) or 1/M ???
+                                        } else if (bFF == BFF_HYBRID) {
+                                          // Hybrid BFF
+                                          double LGAF = sqrt(CurrentNode->dSdx[k]*CurrentNode->dSdx[k] +
+                                                             CurrentNode->dSdy[k]*CurrentNode->dSdy[k] + 1.0e-30) * (dx+dy)/CurrentNode->S[k];
+                                          CurrentNode->beta[k] = min(beta_min,(beta_min*beta_min)/(beta_min+(LGAF+
+                                                                                              DD_local[k]*DD_local[k]+
+                                                                                              pow(DD_local[k],1.0/(1.0+Mach)))/3.));
+                                        } else if( bFF == BFF_MIXED ) {
+                                          double LGAF = sqrt(CurrentNode->dSdx[k]*CurrentNode->dSdx[k] +
+                                                             CurrentNode->dSdy[k]*CurrentNode->dSdy[k] + 1.0e-30) * (dx+dy)/CurrentNode->S[k];
+                                          CurrentNode->beta[k] = min(beta_min,(beta_min*beta_min)/(beta_min+(LGAF+DD_local[k]*DD_local[k])*0.5));
                                         } else if (bFF == BFF_SR_LIMITED) {
                                           //SQUARE LIMITED locally adopted blending factor function with relaxation (SLLABFFR)
                                           CurrentNode->beta[k] = min((beta_min+CurrentNode->beta[k])*0.5,beta_min/(1.0+DD_local[k]*DD_local[k]));
