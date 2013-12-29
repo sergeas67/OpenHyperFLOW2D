@@ -27,15 +27,15 @@
 <data/FlowType=0>
 
 ; -X- dimension of computation area
-<data/MaxX=300>
+<data/MaxX=750>
 ;
 ; -Y- dimension of computation area
-<data/MaxY=100>
+<data/MaxY=250>
 ;
 ; [dx] coordinate step, m
-<data/dx=0.01>
+<data/dx=0.004>
 ; [dy] coordinate step, m
-<data/dy=0.01>
+<data/dy=0.004>
 
 ;------------------------------------------------------------------;
 ; Computation parameters                                           ;
@@ -49,20 +49,20 @@
 ; 4 - Rho*E residual
 ; 5 - Time
 <data/MonitorNumber=5>
-<data/ExitMonitorValue=3.0>
+<data/ExitMonitorValue=2.0>
 
 ;Maximum time of calculation, s
 ; Courant number (for gas phase only)
-<data/CFL=0.1>
+<data/CFL=0.25>
 
 ; CFL scenario
 <table=CFL_Scenario/2>
-0       0.1
-200000  0.1
+0       0.25
+200000  0.25
 <endtable>
 
 ; Base blending factor
-<data/beta=0.9895>
+<data/beta=0.9885>
 
 ; Base blending factor scenario
 <table=beta_Scenario/4>
@@ -72,8 +72,10 @@
 5000    0.9875
 <endtable>
 
+<data/isRungeKutta=0>
+
 ; Maximum number of steps
-<data/Nmax=100>
+<data/Nmax=500>
 ; Every NOutStep-th step is displayed
 <data/NOutStep=100>
 <data/NSaveStep=1>
@@ -89,7 +91,7 @@
 ; 3 -  square BFF with relaxation       beta = (beta + beta0^2/(beta0 + | max_local_residual^2 |))/2
 ; 4 -  square root BFF                  beta = beta0^2/(beta0 + sqrt(| max_local_residual |))
 ; 5 -  square root  BFF with relaxation beta = (beta + beta0^2/(beta0 + sqrt(| max_local_residual |)))/2
-<data/BFF=5>
+<data/BFF=4>
 ;-------------------------------------------------
 ; Turbulence models
 ;-------------------------------------------------

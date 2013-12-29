@@ -819,9 +819,9 @@ void DEEPS2D_Run(ofstream* f_stream
                                             dy2_flag = 0;
                                         }
                                     }
-                                    
+
                                     if ( c_flag ) {
-                                        
+
                                         if ( dx_flag ) {
                                             dXX = CurrentNode->dSdx[k] = (RightNode->A[k]-LeftNode->A[k])*n_n_1;
                                         } else {
@@ -841,22 +841,14 @@ void DEEPS2D_Run(ofstream* f_stream
                                         if ( dy2_flag ) {
                                             dYY = (UpNode->dSdy[k]+DownNode->dSdy[k])*0.5;
                                         }
-                                        
-                                        /*
-                                        if(((iter + last_iter) < (int)start_iter)
-                                            && (k == 1 || k == 2 ))
-                                           makeZero = 0.;
-                                        else
-                                           makeZero = 1.;
-                                        */
+
                                         if ( CurrentNode->FT ) {
                                             NextNode->S[k] = CurrentNode->S[k]*beta+_beta*(dxx*(LeftNode->S[k]+RightNode->S[k])+dyy*(UpNode->S[k]+DownNode->S[k]))*0.5
-                                                           - /*makeZero*/(dtdx*dXX+dtdy*(dYY+CurrentNode->F[k]/(j+1))) + (CurrentNode->Src[k])*dt+CurrentNode->SrcAdd[k];
+                                                           - (dtdx*dXX+dtdy*(dYY+CurrentNode->F[k]/(j+1))) + (CurrentNode->Src[k])*dt+CurrentNode->SrcAdd[k];
                                         } else {
                                             NextNode->S[k] = CurrentNode->S[k]*beta+_beta*(dxx*(LeftNode->S[k]+RightNode->S[k])+dyy*(UpNode->S[k]+DownNode->S[k]))*0.5
-                                                           - /*makeZero*/(dtdx*dXX+dtdy*dYY) + (CurrentNode->Src[k])*dt+CurrentNode->SrcAdd[k];
+                                                           - (dtdx*dXX+dtdy*dYY) + (CurrentNode->Src[k])*dt+CurrentNode->SrcAdd[k];
                                         }
-                                
                                }
                          }
                      }

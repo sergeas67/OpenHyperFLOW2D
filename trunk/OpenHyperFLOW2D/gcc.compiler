@@ -60,7 +60,7 @@ OPTIMIZE   = -O$(OPTLEVEL) -ffast-math  -march=$(CPU) -funroll-loops -fprefetch-
              -fcse-skip-blocks -D_ALIGN=${ALIGN}  $(CPU_EXT)
 endif
 
-OPTIONS    =  $(STATIC) $(DEBUG) -D_DEBUG_$(DEBUGLEVEL) $(PARALLEL) $(OPTIMIZE) $(PROFILE) -Wall  -Wno-unused-parameter -W -D_UNIFORM_MESH_
+OPTIONS    =  $(STATIC) $(DEBUG) -D_DEBUG_$(DEBUGLEVEL) $(PARALLEL) $(OPTIMIZE) $(PROFILE) -Wall  -Wno-unused-parameter -W
 INCPATH    = -I .. -I .
 
 ifeq    ("$(OPENMP)","-D_OPEN_MP")

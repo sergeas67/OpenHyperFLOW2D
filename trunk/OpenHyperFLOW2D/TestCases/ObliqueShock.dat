@@ -49,7 +49,10 @@
 ; 4 - Rho*E residual
 ; 5 - Time
 <data/MonitorNumber=5>
-<data/ExitMonitorValue=0.02>
+<data/ExitMonitorValue=0.05>
+
+; is RK4 use ?
+<data/isRungeKutta=1>
 
 ;Maximum time of calculation, s
 ; Courant number (for gas phase only)
@@ -62,13 +65,13 @@
 <endtable>
 
 ; Base blending factor
-<data/beta=0.9895>
+<data/beta=0.9885>
 
 ; Base blending factor scenario
 <table=beta_Scenario/3>
 0       0.9855
-20000   0.9895
-100000  0.9895
+20000   0.9885
+100000  0.9885
 <endtable>
 
 ; Maximum number of steps
@@ -86,7 +89,11 @@
 ; 1 -  linear BFF with relaxation       beta = (beta + beta0^2/(beta0 + | max_local_residual |))/2
 ; 4 -  square root BFF                  beta = beta0^2/(beta0 + sqrt(| max_local_residual |))
 ; 5 -  square root  BFF with relaxation beta = (beta + beta0^2/(beta0 + sqrt(| max_local_residual |)))/2
+<<<<<<< .mine
+<data/BFF=4>
+=======
 <data/BFF=11>
+>>>>>>> .r36
 ;-------------------------------------------------
 ; Turbulence models
 ;-------------------------------------------------
