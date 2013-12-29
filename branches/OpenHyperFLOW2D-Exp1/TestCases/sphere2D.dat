@@ -51,6 +51,8 @@
 <data/MonitorNumber=5>
 <data/ExitMonitorValue=0.001>
 
+<data/isRungeKutta=1>
+
 ;Maximum time of calculation, s
 ; Courant number (for gas phase only)
 <data/CFL=0.1>
