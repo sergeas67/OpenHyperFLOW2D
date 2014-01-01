@@ -55,7 +55,7 @@ UStack<T>::~UStack() {;}
 template <class T>
 unsigned int UStack<T>::Push(T* pt)
 {
-    AddElement(pt);
+    UArray<T>::AddElement(pt);
     return GetStackSize();
 }
 
