@@ -6,7 +6,7 @@
 # PARALLEL=MPI       - using MPI
 ######################################################
 ifeq ("${PARALLEL}","")
-PARALLEL=
+PARALLEL=MPI
 endif
 #######################################################
 # OpenMP
@@ -62,6 +62,7 @@ MPILIB    = $(MPIDIR)/lib64
 MPIBIN    = $(MPIDIR)/bin64
 MPIARCH   = LINUX
 MPI       = -L $(MPILIB) -D_MPI -D_MPI_NB -D_IMPI_
+#
 PARALLEL_SUFFIX +=-MPI-NB
 endif
 #######################################################
@@ -91,12 +92,12 @@ endif
 
 MPIARCH   = LINUX
 #MPILIB32  = $(MPIDIR)/lib
-MPILIB64  = $(MPIDIR)/lib
+MPILIB64  = $(MPIDIR)/lib64
 MPILIB    = $(MPILIB64)
 MPIBIN    = $(MPIDIR)/bin
-MPI       = $(MPIINC) -L $(MPILIB) -D_MPI  -D_OMPI_
+MPI       = $(MPIINC) -L $(MPILIB) -D_MPI -D_OMPI_
 PARALLEL_SUFFIX +=-OMPI
-#  -NB -D_MPI_NB
+#  -NB  -D_MPI_NB
 endif
 
 #######################################################

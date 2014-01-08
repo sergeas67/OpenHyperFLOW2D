@@ -37,6 +37,11 @@ then
 SIMD=AVX
 fi
 
+if [ "$FLAG" == "avx2" ]
+then
+SIMD=AVX2
+fi
+
 
 done
 echo -e $SIMD

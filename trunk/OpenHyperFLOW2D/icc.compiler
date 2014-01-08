@@ -107,6 +107,13 @@ ALIGN2     = 32
 
 endif
 
+ifeq ("$(SIMD)","AVX2")
+
+CPU        = core-avx-i
+CPU_EXT    = -xCORE-AVX-I -opt-prefetch=4
+ALIGN2     = 32
+endif
+
 OPTLEVEL   = 3
 PICFLAGS   = -fPIC
 LLIBS      = -L $(ICC_PATH)/lib -Kc++eh -Krtti 
