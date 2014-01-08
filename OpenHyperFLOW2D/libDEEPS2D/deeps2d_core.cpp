@@ -565,6 +565,8 @@ void DEEPS2D_Run(ofstream* f_stream
                       FlowNode2D< double,NUM_COMPONENTS >* DownNode=NULL;        // nodes
                       FlowNode2D< double,NUM_COMPONENTS >* LeftNode=NULL;        // references
                       FlowNode2D< double,NUM_COMPONENTS >* RightNode=NULL;
+                      double beta_Scenario_Val = beta_Scenario->GetVal(iter+last_iter);
+                      double CFL_Scenario_Val  = CFL_Scenario->GetVal(iter+last_iter);
 #ifdef _MPI
 // MPI version
                   if(rank == 0 ) {
@@ -725,7 +727,7 @@ void DEEPS2D_Run(ofstream* f_stream
                                 _beta = 1. - beta;
 
                                 // Scan equation system ... k - number of equation
-                                for ( k=0;k<(FlowNode2D<double,NUM_COMPONENTS>::NumEq-AddEq);k++ ) {
+                                for (int k=0;k<(FlowNode2D<double,NUM_COMPONENTS>::NumEq-AddEq);k++ ) {
                                         int      c_flag = 0;
                                         int      dx_flag, dx2_flag;
                                         int      dy_flag, dy2_flag;
@@ -910,7 +912,7 @@ void DEEPS2D_Run(ofstream* f_stream
 
                               AddEq = SetTurbulenceModel(pJ,i,j);
 
-                              for ( k=0;k<(FlowNode2D<double,NUM_COMPONENTS>::NumEq-AddEq);k++ ) {
+                              for (int k=0;k<(FlowNode2D<double,NUM_COMPONENTS>::NumEq-AddEq);k++ ) {
 
                                   int c_flag = 0;
 
@@ -940,7 +942,7 @@ void DEEPS2D_Run(ofstream* f_stream
                                         else
                                            DD_local[k] = 0.0;
 
-                                        beta_min = min(beta0,beta_Scenario->GetVal(iter+last_iter));
+                                        beta_min = min(beta0,beta_Scenario_Val);
 
                                         if( bFF == BFF_L) {
                                         //LINEAR locally adopted blending factor function  (LLABFF)
@@ -995,7 +997,7 @@ void DEEPS2D_Run(ofstream* f_stream
 
                                     CurrentNode->droYdx[NUM_COMPONENTS]=CurrentNode->droYdy[NUM_COMPONENTS]=0.;
 
-                                    for ( k=4;k<FlowNode2D<double,NUM_COMPONENTS>::NumEq-2;k++ ) {
+                                    for (int k=4;k<FlowNode2D<double,NUM_COMPONENTS>::NumEq-2;k++ ) {
                                         if ( !CurrentNode->isCond2D(CT_dYdx_NULL_2D) ) {
                                             CurrentNode->droYdx[k-4]=(RightNode->S[k]-LeftNode->S[k])*dx_1*0.5;
                                             CurrentNode->droYdx[NUM_COMPONENTS]+=(RightNode->S[k]-LeftNode->S[k])*dx_1*0.5;
@@ -1116,7 +1118,7 @@ void DEEPS2D_Run(ofstream* f_stream
                                       isRun = 0;
                                       Abort_OpenHyperFLOW2D();
                                     }  else {
-                                            double CFL_min      = min(CFL,CFL_Scenario->GetVal(iter+last_iter));
+                                            double CFL_min      = min(CFL,CFL_Scenario_Val);
                                             AAA                 = sqrt(CurrentNode->k*CurrentNode->R*CurrentNode->Tg); 
                                             dt_min_local        = CFL_min*
                                                                   min(dx/(AAA+fabs(CurrentNode->U)),dy/(AAA+fabs(CurrentNode->V)));
