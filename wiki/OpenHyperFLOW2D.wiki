@@ -1,5 +1,5 @@
  
-= Open Source CFD simulation package *OpenHyperFLOW2D* =
+= Open-Source CFD simulation package *OpenHyperFLOW2D* =
 
 ||[http://openhyperflow2d.googlecode.com/svn/trunk/OpenHyperFLOW2D/doc/OpenHyperFLOW2D-Logo.png] || Copyright (C)  1995-2013 by Serge A. Suchkov ||
 ||<g:plusone size="medium"></g:plusone>|| Copyright policy: LGPL V3 || 
