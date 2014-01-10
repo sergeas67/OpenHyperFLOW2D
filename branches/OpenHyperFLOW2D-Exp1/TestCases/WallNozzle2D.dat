@@ -74,7 +74,7 @@
 ;Number of steps between sync points
 <data/Nmax=50000>
 ;Out each NOutStep step
-<data/NOutStep=100>
+<data/NOutStep=10>
 ; Save each NSaveStep sync point in to transient plot (tp-*) Tecplot file
 <data/NSaveStep=1>
 ; is output steps ?

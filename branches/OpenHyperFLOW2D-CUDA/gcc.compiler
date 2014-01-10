@@ -1,0 +1,68 @@
+######################################
+# GNU C/C++ compiler options
+######################################
+ifneq  ("$(MPI)","")
+
+# C compiler
+CC         = ${MPIDIR}/bin/mpicc
+# C++ compiler
+CXXC       = ${MPIDIR}/bin/mpicxx
+
+ifeq ("$(MPIVEND)","LAM")
+CXXC       = ${MPIDIR}/bin/mpic++
+else 
+ifeq ("$(MPIVEND)","MVAPICH")
+CXXC       = ${MPIDIR}/bin/mpicxx
+else
+ifeq ("$(MPIVEND)","OpenMPI")
+# C compiler
+CC         = ${MPIDIR}/bin/mpicc
+# C++ compiler
+CXXC       = ${MPIDIR}/bin/mpic++
+endif
+endif
+endif
+else
+
+# C compiler
+CC         = gcc
+# C++ compiler
+CXXC       = g++
+
+endif
+
+
+NOPROFILE  = -fomit-frame-pointer
+DEBUG      = -g
+PICFLAGS   = -fPIC
+#STATIC= -static
+
+ifeq ("$(SIMD)","AVX")
+ALIGN      = 32
+else
+ALIGN      = 16
+endif
+
+CPU        = native
+CPU_EXT    = -m64 -ftree-vectorize  -msse3 -msse2 -msse -mmmx -mfpmath=sse -mtune=$(CPU)
+
+CXXOPTIONS = -Wno-deprecated 
+COPTIONS   =
+
+OPTLEVEL   = 0
+
+ifeq     ($(OPTLEVEL),0)
+OPTIMIZE   = -O$(OPTLEVEL) -D_ALIGN=${ALIGN}
+else
+OPTIMIZE   = -O$(OPTLEVEL) -ffast-math  -march=$(CPU) -funroll-loops -fprefetch-loop-arrays \
+             -frerun-loop-opt -ffloat-store  -frerun-cse-after-loop -fschedule-insns2 -fno-strength-reduce -fexpensive-optimizations \
+             -fcse-follow-jumps -falign-loops=$(ALIGN) -falign-jumps=$(ALIGN) -falign-functions=$(ALIGN) -falign-labels=$(ALIGN)\
+             -fcse-skip-blocks -D_ALIGN=${ALIGN}  $(CPU_EXT)
+endif
+
+OPTIONS    =  $(STATIC) $(DEBUG) -D_DEBUG_$(DEBUGLEVEL) $(PARALLEL) $(OPTIMIZE) $(PROFILE) -Wall  -Wno-unused-parameter -Wno-unused-but-set-variable -W
+INCPATH    = -I .. -I .
+
+ifeq    ("$(OPENMP)","-D_OPEN_MP")
+OPTIONS    += -D_OPEN_MP -fopenmp
+endif

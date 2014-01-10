@@ -112,7 +112,11 @@ endif
 #######################################################
 
 ifneq ("$(MMAP)$(MPI)$(OPENMP)","")
-PARALLEL=$(MMAP) $(MPI) $(OPENMP)
+PARALLEL=$(MMAP) $(MPI) $(OPENMP) 
+endif
+
+ifneq ("$(MPI)","")
+PARALLEL += -D_PARALLEL_ONLY_
 endif
 
 LLIBS     = $(PARALLEL)

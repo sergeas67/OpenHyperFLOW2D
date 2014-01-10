@@ -1,0 +1,303 @@
+/*******************************************************************************
+*   OpenHyperFLOW2D                                                            *
+*                                                                              *
+*   Version  1.0.0                                                             *
+*   Copyright (C)  1995-2013 by Serge A. Suchkov                               *
+*   Copyright policy: LGPL V3                                                  *
+*                                                                              *
+*   last update: 15/12/2013                                                    *
+*******************************************************************************/
+#include "libExcept/except.hpp"
+#include "libOpenHyperFLOW2D/hyper_flow_bound_contour.hpp"
+// <------------- 2D --------------->           
+// Bound contour constructor
+BoundContour2D::BoundContour2D(char* Name, 
+                               UMatrix2D< FlowNode2D< double, NUM_COMPONENTS> >* fnm,
+#ifndef _UNIFORM_MESH_
+                               Mesh2D* p_mesh       //  nonuniform mesh
+                               double x=0.,
+                               double y=0.
+#else
+                               unsigned int x,
+                               unsigned int y
+#endif // _UNIFORM_MESH_
+                               ) {
+#ifdef _UNIFORM_MESH_
+    current_x=first_x=x;
+    current_y=first_y=y;
+#else
+    pMesh = p_mesh;
+    f_current_x=f_first_x=x;
+    f_current_y=f_first_y=y;
+#endif // _UNIFORM_MESH_
+    FlowNodeMatrixPtr=fnm;
+    isContourClosed=isActivateContour=0;
+    BoundContourName = Name; 
+}
+
+// Clear bound contour
+void BoundContour2D::ClearBoundContour() {
+    for (int i=0;i<GetNumBounds();i++) {
+        delete GetBound(i);
+    }
+    CleanArray();
+}
+// Bound Contour destructor
+BoundContour2D::~BoundContour2D() {
+    ClearBoundContour();
+}
+
+// Add bound in bound contour
+int BoundContour2D::AddBound2D(char* name,
+#ifdef _UNIFORM_MESH_
+                               unsigned int x,
+                               unsigned int y,
+#else
+                               double       x,
+                               double       y,
+#endif // _UNIFORM_MESH_
+                               ulong        bt,
+                               Flow*        pInFlow,
+                               Flow2D*      pInFlow2D,
+                               double*      Y,
+                               ulong        btt) {
+    Bound2D* TmpBound=NULL;
+    if (isActivateContour ||
+        isContourClosed)     return -1;
+    if (pInFlow)
+        TmpBound = new Bound2D(name,FlowNodeMatrixPtr,
+#ifdef _UNIFORM_MESH_
+                               current_x,current_y,
+#else
+                               f_current_x,f_current_y,
+#endif // _UNIFORM_MESH_
+                               x,y,bt,pInFlow,Y,btt);
+    else if (pInFlow2D)
+        TmpBound = new Bound2D(name,FlowNodeMatrixPtr,
+#ifdef _UNIFORM_MESH_
+                               current_x,current_y,
+#else
+                               f_current_x,f_current_y,
+#endif // _UNIFORM_MESH_
+                               x,y,bt,pInFlow2D,Y,btt);
+    else
+        TmpBound = new Bound2D(name,FlowNodeMatrixPtr,
+#ifdef _UNIFORM_MESH_
+                               current_x,current_y,
+#else
+                               f_current_x,f_current_y,
+#endif // _UNIFORM_MESH_
+                               x,y,bt,pInFlow,Y,btt);
+#ifdef _UNIFORM_MESH_
+    current_x = x;
+    current_y = y;
+#else
+    f_current_x = x;
+    f_current_y = y;
+#endif // _UNIFORM_MESH_
+    return AddElement(&TmpBound);
+}
+// To close a contour
+int BoundContour2D::CloseContour2D(char*    name,
+                                   ulong    bt,
+                                   Flow*    pInFlow,
+                                   Flow2D*  pInFlow2D,
+                                   double*  Y,
+                                   ulong    btt) {
+    Bound2D* TmpBound;
+    if (isActivateContour ||
+        isContourClosed)     return -1;
+    if (GetNumBounds()<2) return -1;
+
+    if (pInFlow)
+        TmpBound = new Bound2D(name,
+                              FlowNodeMatrixPtr,
+#ifdef _UNIFORM_MESH_
+                             current_x,current_y,
+                             first_x,first_y,
+#else
+                             pMesh,
+                             f_current_x,f_current_y,
+                             f_first_x,f_first_y,
+#endif // _UNIFORM_MESH_
+                             bt,pInFlow,Y,btt);
+    else if (pInFlow2D)
+      TmpBound = new Bound2D(name,
+                             FlowNodeMatrixPtr,
+#ifdef _UNIFORM_MESH_
+                             current_x,current_y,
+                             first_x,first_y,
+#else
+                             pMesh,
+                             f_current_x,f_current_y,
+                             f_first_x,f_first_y,
+#endif // _UNIFORM_MESH_
+                             bt,pInFlow2D,Y,btt);
+    else
+        TmpBound = new Bound2D(name,
+                               FlowNodeMatrixPtr,
+#ifdef _UNIFORM_MESH_
+                               current_x,current_y,
+                               first_x,first_y,
+#else
+                               pMesh,
+                               f_current_x,f_current_y,
+                               f_first_x,f_first_y,
+#endif // _UNIFORM_MESH_
+                               bt,pInFlow,Y,btt);
+#ifdef _UNIFORM_MESH_
+    current_x = first_x;
+    current_y = first_y;
+#else
+    f_current_x = f_first_x;
+    f_current_y = f_first_y;
+#endif // _UNIFORM_MESH_
+    isContourClosed=1;
+    return AddElement(&TmpBound);
+}
+// Insert bound in contour (closed contour too)
+int BoundContour2D::InsertBound2D(char* name,
+                                  unsigned int nb,
+                                  unsigned int x,
+                                  unsigned int y,
+                                  ulong    bt,
+                                  Flow*    pInFlow,
+                                  Flow2D*  pInFlow2D,
+                                  double*   Y,
+                                  ulong btt) {
+    return -1; // function not implemented now...
+}
+// Delete bound from contour
+int BoundContour2D::DelBound2D(int nb) {
+    Bound2D* RemovedBound;
+    Bound2D* NextBound;
+    int      nextIndex=0;
+
+    if (isActivateContour)     return -1;
+    if (nb < 0 || nb >= GetNumBounds()) return -1;
+
+    RemovedBound=GetBound(nb);
+
+    if (nb+1 == GetNumBounds())
+        if (isContourClosed) nextIndex=0;
+        else return -1;
+    else nextIndex=nb+1;
+
+    NextBound=GetBound(nextIndex);
+
+    NextBound->SetStartX(RemovedBound->GetStartX());
+    NextBound->SetStartY(RemovedBound->GetStartY());
+
+    delete RemovedBound;
+    return DelElement(nb);
+}
+// Set bounds in contour
+int BoundContour2D::SetBounds(int MaterialID) {
+    int i;
+    if (!isContourClosed) return -1;
+    for (i=0;i<GetNumBounds();i++) {
+        GetBound(i)->SetBound(MaterialID);
+        if (GetBound(i)->GetBoundState() == BND_ERR) {
+            throw(i);
+        }
+    }
+    isActivateContour=1;
+    return GetNumBounds();  
+}
+// Set bounds in contour and push result in to the array
+int BoundContour2D::SetBounds(UArray<FlowNode2D< double, NUM_COMPONENTS>* >* node_array,int MaterialID) {
+    int i;
+    if (!isContourClosed) return -1;
+    for (i=0;i<GetNumBounds();i++) {
+        GetBound(i)->SetBound(node_array,MaterialID);
+        if (GetBound(i)->GetBoundState() == BND_ERR) {
+            throw(i);
+        }
+    }
+    isActivateContour=1;
+    return GetNumBounds();  
+}
+
+#ifdef _UNIFORM_MESH_
+// Get current X coord (nodes)
+int    BoundContour2D::GetCurrentX() {
+    return current_x;
+}
+// Get current Y coord (nodes)
+int    BoundContour2D::GetCurrentY() {
+    return current_y;
+}
+// Set first bound X coord (nodes)
+void   BoundContour2D::SetFirstX(int x) {
+    first_x=x;
+}
+// Set first bound Y coord (nodes)
+void   BoundContour2D::SetFirstY(int y) {
+    first_y=y;
+}
+// Set current bound X coord (nodes)
+void   BoundContour2D::SetCurrentX(int x) {
+    current_x=x;
+}
+// Set current bound Y coord (nodes)
+void   BoundContour2D::SetCurrentY(int y) {
+    current_y=y;
+}
+    #endif // _UNIFORM_MESH_
+// Get current bound X coord (m)
+double BoundContour2D::GetCurrentFX() {
+    return f_current_x;
+}
+// Get current bound Y coord (m)
+double BoundContour2D::GetCurrentFY() {
+    return f_current_y;
+}
+// Set current bound X coord (m)
+void   BoundContour2D::SetCurrentFX(double x) {
+    f_current_x=x;
+}
+// Set current bound Y coord (m)
+void   BoundContour2D::SetCurrentFY(double y) {
+    f_current_y=y;
+}
+// Set first bound X coord (m)
+void   BoundContour2D::SetFirstFX(double x) {
+    f_first_x=x;
+}
+// Set first bound Y coord (m)
+void   BoundContour2D::SetFirstFY(double y) {
+    f_first_y=y;
+}
+// Get num bounds in contour
+int    BoundContour2D::GetNumBounds() {
+    return(int)GetNumElements();
+}
+// Get bound by index
+Bound2D* BoundContour2D::GetBound(int nb) {
+    return GetElement(nb);
+}
+// Is contour Closed
+int    BoundContour2D::IsContourClosed() {
+    return isContourClosed;
+}
+// Is contour activated
+int    BoundContour2D::IsContourActivate() {
+    return isActivateContour;
+}
+// Rotate bound contour
+int    BoundContour2D::RotateBoundContour2D(double x0, double y0, double angle) {
+    int i,a=1;
+    if (IsContourActivate()) return 0;
+
+    for (i=0;i<GetNumBounds();i++) {
+        a *= GetBound(i)->TestRotateBound2D(x0,y0,angle);
+    }
+    if (!a) return a;
+
+    for (i=0;i<GetNumBounds();i++) {
+        GetBound(i)->RotateBound2D(x0,y0,angle);
+    }
+    return a;
+}
+// <------------- 2D --------------->           
+

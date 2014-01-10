@@ -2061,11 +2061,11 @@ void ParallelRecalc_y_plus(ComputationalMatrix2D* pJ,
 
                              if(x == wx && y == wy ) {
                                  pJ->GetValue(i,j).y_plus = U_w*min((FlowNode2D<double,NUM_COMPONENTS>::dx),
-                                                                    (FlowNode2D<double,NUM_COMPONENTS>::dy))/pJ->GetValue(i,j).mu;
+                                                                    (FlowNode2D<double,NUM_COMPONENTS>::dy))*pJ->GetValue(i,j).S[i2d_Ro]/pJ->GetValue(i,j).mu;
                              } else {
                                  if(pJ->GetValue(i,j).l_min == min(pJ->GetValue(i,j).l_min,
                                                                    sqrt((x-wx)*(x-wx) + (y-wy)*(y-wy))))
-                                 pJ->GetValue(i,j).y_plus = U_w*pJ->GetValue(i,j).l_min/pJ->GetValue(i,j).mu;
+                                 pJ->GetValue(i,j).y_plus = U_w*pJ->GetValue(i,j).l_min*pJ->GetValue(i,j).S[i2d_Ro]/pJ->GetValue(i,j).mu;
                              }
                         }
                  }
@@ -2093,11 +2093,11 @@ void Recalc_y_plus(ComputationalMatrix2D* pJ, UArray< XY<int> >* WallNodes) {
                        if (pJ->GetValue(i,j).isCond2D(CT_NODE_IS_SET_2D) &&
                            !pJ->GetValue(i,j).isCond2D(CT_SOLID_2D)) {
                                if ( i == (int)iw && j == (int)jw) {
-                                     pJ->GetValue(i,j).y_plus = U_w*min(dx,dy)/pJ->GetValue(i,j).mu;
+                                     pJ->GetValue(i,j).y_plus = U_w*min(dx,dy)pJ->GetValue(i,j).S[i2d_Ro]/pJ->GetValue(i,j).mu;
                                } else { 
                                    if(pJ->GetValue(i,j).l_min == max(min(dx,dy),sqrt((i-iw)*(i-iw)*dx*dx + 
                                                                                      (j-jw)*(j-jw)*dy*dy)))
-                                      pJ->GetValue(i,j).y_plus = U_w*pJ->GetValue(i,j).l_min/pJ->GetValue(i,j).mu;
+                                      pJ->GetValue(i,j).y_plus = U_w*pJ->GetValue(i,j).l_min*pJ->GetValue(i,j).S[i2d_Ro]/pJ->GetValue(i,j).mu;
                                }
                          }
                        }

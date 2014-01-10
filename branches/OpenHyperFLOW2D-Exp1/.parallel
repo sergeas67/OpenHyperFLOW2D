@@ -62,6 +62,7 @@ MPILIB    = $(MPIDIR)/lib64
 MPIBIN    = $(MPIDIR)/bin64
 MPIARCH   = LINUX
 MPI       = -L $(MPILIB) -D_MPI -D_MPI_NB -D_IMPI_
+#
 PARALLEL_SUFFIX +=-MPI-NB
 endif
 #######################################################
@@ -85,18 +86,18 @@ MPIDIR   = /share/mpi/icc/openmpi-1.6.3
 endif
 
 ifeq ("${COMPILER}","GNU")
-MPIDIR   = /share/mpi/gcc/openmpi-1.6.3
-#MPIDIR   = /usr/lib64/mpi/gcc/openmpi
+#MPIDIR   = /share/mpi/gcc/openmpi-1.6.3
+MPIDIR   = /usr/lib64/mpi/gcc/openmpi
 endif
 
 MPIARCH   = LINUX
 #MPILIB32  = $(MPIDIR)/lib
-MPILIB64  = $(MPIDIR)/lib
+MPILIB64  = $(MPIDIR)/lib64
 MPILIB    = $(MPILIB64)
 MPIBIN    = $(MPIDIR)/bin
-MPI       = $(MPIINC) -L $(MPILIB) -D_MPI  -D_OMPI_
+MPI       = $(MPIINC) -L $(MPILIB) -D_MPI -D_OMPI_
 PARALLEL_SUFFIX +=-OMPI
-#  -NB -D_MPI_NB
+#  -NB  -D_MPI_NB
 endif
 
 #######################################################
@@ -111,7 +112,11 @@ endif
 #######################################################
 
 ifneq ("$(MMAP)$(MPI)$(OPENMP)","")
-PARALLEL=$(MMAP) $(MPI) $(OPENMP)
+PARALLEL=$(MMAP) $(MPI) $(OPENMP) 
+endif
+
+ifneq ("$(MPI)","")
+PARALLEL += -D_PARALLEL_ONLY_
 endif
 
 LLIBS     = $(PARALLEL)

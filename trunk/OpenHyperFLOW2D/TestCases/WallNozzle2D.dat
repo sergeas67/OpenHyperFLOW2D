@@ -74,7 +74,7 @@
 ;Number of steps between sync points
 <data/Nmax=50000>
 ;Out each NOutStep step
-<data/NOutStep=100>
+<data/NOutStep=10>
 ; Save each NSaveStep sync point in to transient plot (tp-*) Tecplot file
 <data/NSaveStep=1>
 ; is output steps ?
@@ -98,7 +98,7 @@
 ; 3 - One equation models
 ; 4 - Two equations models
 ; 5 - Smagorinsky model
-<data/TurbulenceModel=5>
+<data/TurbulenceModel=3>
 <data/isTurbulenceReset=1>
 <data/ZeroEqFactor=0>
 ;  Pr_t near wall
@@ -119,7 +119,7 @@
 ; 7 - Launder and Sharma, with Yap-correction k-eps model
 ; 8 - RNG k-eps model
 ; 9 - Spalart-Allmares model
-<data/TurbExtModel=5>
+<data/TurbExtModel=9>
 
 ;--------------------------------------------------
 ; Solid body surface temperature Ts0, K

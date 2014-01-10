@@ -1,0 +1,65 @@
+Minimum System Requirements
+===========================
+
+* CPU:           x86_64 compatible;
+* OS:            Linux x86_64 (tested on OpenSUSE 10+, SLES 10+, CentOS 6+, Scientific Linux 5+);
+* C++ compiler:  GNU C++ 4.1+ or Intel C++ 10+;
+
+Recommended System Requirements
+===============================
+
+The main (and most effective) version of OpenHyperFLOW2D is parallel MPI version.
+
+Recommended requirements for this version:
+
+* CPU: Multicore (4+) CPU with SIMD (SSE2+) instruction support (Intel Xeon or AMD Opteron);
+* Linux Cluster 10+ nodes;
+* Infiniband interconnect (SDR/DDR/FDR)
+* MPI2 library with Infiniband support (Intel MPI v3+, MVAPICH2 v1+, HP MPI).
+   OpenMPI also support but have some problem with non-bocking data exchange.
+* Latest Intel C++ compiler with support new SIMD features.
+* Multicore/multiprocessor workstations are also recommended to use parallel MPI version of
+  OpenHyperFLOW2D (OpenMP version is also available, but it has performance problems)
+
+
+Installation
+============
+
+1. Configure C++ compiler
+
+Edit '.compiler' file:
+
+If you are using GNU C++ compiler, select 'COMPILER=GNU', if you are using Intel C++ compiler,
+select 'COMPILER=Intel'. Should also specify a used set of SIMD instructions 'SIMD=...' (e.g. 'SIMD=AVX').
+For determining the top-end set of SIMD instructions for the current CPU use script get_SIMD.sh
+
+2. Configure parallel features
+
+Edit '.parallel' file:
+
+If you plan to use only the serial version OpenHyperFLOW2D specify an empty parameter 'PARALLEL='.
+If you want to use OpenMP version specify 'PARALLEL=OPEN_MP'. It should be noted that the current
+version OpenHyperFLOW2D has performance problems. If you are using a multicore/multiprocessor
+workstation or HPC cluster, it is recommended to use a parallel MPI version OpenHyperFLOW2D,
+in this case, specify 'PARALLEL=MPI'. If you chose the MPI version, you must also specify the
+vendor of MPI library 'MPIVEND = ...' (e.g. 'MPIVEND=INTEL' or 'MPIVEND=MVAPICH'). Additionally,
+you must specify the path to the MPI library in the section corresponding to the selected vendor
+(e.g. 'MPI2DIR=/opt/intel/impi/4.1.0')
+
+3. Build
+
+Run command 'make build' of 'make rebuild' for build OpenHyperFLOW2D
+
+4. Run Test Cases
+
+Run command 'make test' for run all test cases or run
+
+  'make ObliqueShock' for Oblique Shock test case
+
+  'make Wedge' for Wedge test case
+
+  'make sphere2d' for Sphere2D test case
+
+By default MPI parallel version of OpenHyperFLOW2D use only local machine.
+If you are using HPC cluster with several nodes you cat increase number of using nodes.
+Just change 'NUM_NODES' parameter in '.parallel' file

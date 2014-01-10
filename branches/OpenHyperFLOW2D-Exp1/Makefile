@@ -23,7 +23,7 @@ ARCH=`arch`
 VERSION     = $(CURRENT_VER)
 #-`basename $(CC)`-$(ARCH)-$(CPU)$(PARALLEL_SUFFIX)
 
-CFLAGS    =  $(OPTIONS) -D_UNIFORM_MESH_ -D_REMOVE_SWAPFILE_ -D_VER=${CURRENT_VER} \
+CFLAGS    =  $(OPTIONS)  -D_REMOVE_SWAPFILE_ -D_VER=${CURRENT_VER} \
              -D_TECPLOT_ -D_GNUPLOT_ -D_WRITE_LARGE_FILE_ -D_STREAM_COMPAT $(MODELS)
 #-DSRC_ADD
 LIBCFLAGS =
@@ -105,11 +105,10 @@ sphere2D:
 	bin/OpenHyperFLOW2D.sh TestCases/sphere2D ${NUM_NODES}
 Nozzle2D:
 	bin/OpenHyperFLOW2D.sh TestCases/Nozzle2D ${NUM_NODES}
+WallNozzle2D:
+	bin/OpenHyperFLOW2D.sh TestCases/WallNozzle2D ${NUM_NODES}
 Step:
 	bin/OpenHyperFLOW2D.sh TestCases/Step ${NUM_NODES}
-FlameHolder:
-	bin/OpenHyperFLOW2D.sh TestCases/FlameHolder ${NUM_NODES}
-	
 #
 $(TARGET_2D): local  Utl libexcept libflow objData libhyperflow libdeeps2d liboutcfd $(OBJECTS_2D)
 	$(CXXC) $(STATIC) $(CLFLAGS) $(OBJECTS_2D) $(OPTIONS) $(LLIBS_2D) -o $(TARGET_2D)

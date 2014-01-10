@@ -38,7 +38,8 @@ ulimit -s unlimited
 #LD_LIBRARY_PATH=${MPILIB} `cat ./.mpi`/mpirun -np ${NCORES} -hostfile .hosts ${HYPERFLOW2D} ${ProjectName}.dat
 
 # MPI 2
-LD_LIBRARY_PATH=${MPILIB} `cat ./.mpi`/mpiexec -n ${NCORES}  ${HYPERFLOW2D} ${ProjectName}.dat 1>  ${ProjectName}.out  2> ${ProjectName}.err
+LD_LIBRARY_PATH=${MPILIB} `cat ./.mpi`/mpiexec -n ${NCORES}  ${HYPERFLOW2D} ${ProjectName}.dat 
+#1>  ${ProjectName}.out  2> ${ProjectName}.err
 
 else
 if [ "$1" == "" ]
