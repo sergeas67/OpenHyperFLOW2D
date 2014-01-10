@@ -10,7 +10,9 @@
 *  last update: 15/12/2013                                                     *
 ********************************************************************************/
 #include "libDEEPS2D/deeps2d_core.hpp"
-
+#include <sys/time.h>
+#include <sys/timeb.h>
+timeval mark1, mark2;
 #ifdef _MPI
 int rank;
 int last_rank;
@@ -117,7 +119,8 @@ rank      = MPI::COMM_WORLD.Get_rank();
                Recalc_y_plus(J,WallNodes);                        // Calculate initial y+ value         
                SetInitBoundaryLayer(J,delta_bl);                  // Set Initial boundary layer profile
 #else
-               *o_stream << "\nParallel calc min distance to wall...OK" << endl;
+               *o_stream << "\nParallel calc min distance to wall..." << endl;
+               gettimeofday(&mark2,NULL);
 #endif //   _PARALLEL_ONLY_
                NumWallNodes = WallNodes->GetNumElements();
                
@@ -174,7 +177,7 @@ rank      = MPI::COMM_WORLD.Get_rank();
            TmpMaxX      = ArraySubmatrix->GetElement(0)->GetX();
            MaxY         = ArraySubmatrix->GetElement(0)->GetY();
            TmpSubmatrix = ArraySubmatrix->GetElement(0);
-      } else {
+        } else {
            MPI::COMM_WORLD.Recv(&MaxY,1,MPI::INT,0,tag_MaxY);
            MPI::COMM_WORLD.Recv(&TmpMaxX,1,MPI::INT,0,tag_MaxX);
            TmpSubmatrix = new UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >(TmpMaxX,MaxY);
@@ -192,13 +195,25 @@ rank      = MPI::COMM_WORLD.Get_rank();
            WallNodesUw_2D = new UArray<double>(NumWallNodes,-1);                                   // Create friction velosity array
            MPI::COMM_WORLD.Recv(&x0,1,MPI::DOUBLE,0,tag_X0);                                       // Recive x0 for submatrix
        }
-       MPI::COMM_WORLD.Barrier();
+        MPI::COMM_WORLD.Barrier();
+       
+       
        TmpCoreSubmatrix = new UMatrix2D< FlowNodeCore2D<double,NUM_COMPONENTS> >(TmpMaxX,MaxY);
-       MPI::COMM_WORLD.Barrier();
+     
      if(rank == 0) {
-           *o_stream << "\nStart computation...\n" << flush;
+         gettimeofday(&mark1,NULL);
+         *o_stream << "OK\n" << "Time: " << (double)(mark1.tv_sec-mark2.tv_sec)+(double)(mark1.tv_usec-mark2.tv_usec)*1.e-6 << " sec." << endl; 
+         *o_stream << "\nStart computation...\n" << flush;
+         
+         //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+         //DataSnapshot(OutFileName,WM_REWRITE);  //
+         //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+     
      }
-       DEEPS2D_Run((ofstream*)o_stream, 
+     MPI::COMM_WORLD.Barrier();
+     //Exit_OpenHyperFLOW2D();
+
+     DEEPS2D_Run((ofstream*)o_stream, 
                    TmpSubmatrix,
                    TmpCoreSubmatrix,
                    rank, last_rank);

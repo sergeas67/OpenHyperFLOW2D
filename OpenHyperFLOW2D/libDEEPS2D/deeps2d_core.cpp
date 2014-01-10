@@ -2023,11 +2023,11 @@ void ParallelRecalc_y_plus(ComputationalMatrix2D* pJ,
 
                              if(x == wx && y == wy ) {
                                  pJ->GetValue(i,j).y_plus = U_w*min((FlowNode2D<double,NUM_COMPONENTS>::dx),
-                                                                    (FlowNode2D<double,NUM_COMPONENTS>::dy))/pJ->GetValue(i,j).mu;
+                                                                    (FlowNode2D<double,NUM_COMPONENTS>::dy))*pJ->GetValue(i,j).S[i2d_Ro]/pJ->GetValue(i,j).mu;
                              } else {
                                  if(pJ->GetValue(i,j).l_min == min(pJ->GetValue(i,j).l_min,
                                                                    sqrt((x-wx)*(x-wx) + (y-wy)*(y-wy))))
-                                 pJ->GetValue(i,j).y_plus = U_w*pJ->GetValue(i,j).l_min/pJ->GetValue(i,j).mu;
+                                 pJ->GetValue(i,j).y_plus = U_w*pJ->GetValue(i,j).l_min*pJ->GetValue(i,j).S[i2d_Ro]/pJ->GetValue(i,j).mu;
                              }
                         }
                  }
@@ -2055,11 +2055,11 @@ void Recalc_y_plus(ComputationalMatrix2D* pJ, UArray< XY<int> >* WallNodes) {
                        if (pJ->GetValue(i,j).isCond2D(CT_NODE_IS_SET_2D) &&
                            !pJ->GetValue(i,j).isCond2D(CT_SOLID_2D)) {
                                if ( i == (int)iw && j == (int)jw) {
-                                     pJ->GetValue(i,j).y_plus = U_w*min(dx,dy)/pJ->GetValue(i,j).mu;
+                                     pJ->GetValue(i,j).y_plus = U_w*min(dx,dy)*pJ->GetValue(i,j).S[i2d_Ro]/pJ->GetValue(i,j).mu;
                                } else { 
                                    if(pJ->GetValue(i,j).l_min == max(min(dx,dy),sqrt((i-iw)*(i-iw)*dx*dx + 
                                                                                      (j-jw)*(j-jw)*dy*dy)))
-                                      pJ->GetValue(i,j).y_plus = U_w*pJ->GetValue(i,j).l_min/pJ->GetValue(i,j).mu;
+                                      pJ->GetValue(i,j).y_plus = U_w*pJ->GetValue(i,j).l_min*pJ->GetValue(i,j).S[i2d_Ro]/pJ->GetValue(i,j).mu;
                                }
                          }
                        }
@@ -2248,7 +2248,7 @@ void SaveRMSHeader(ofstream* OutputData) {
         else
           snprintf(YR,2,"Y");
 
-        snprintf(TechPlotTitle1,1024,"VARIABLES = X, %s, U, V, T, p, Rho, Y_fuel, Y_ox, Y_cp, Y_i, %s, Mach"
+        snprintf(TechPlotTitle1,1024,"VARIABLES = X, %s, U, V, T, p, Rho, Y_fuel, Y_ox, Y_cp, Y_i, %s, Mach, l_min"
                                      "\n",YR, RT); 
         snprintf(TechPlotTitle2,256,"ZONE T=\"Time: %g sec.\" I= %i J= %i F=POINT\n",GlobalTime, MaxX, MaxY);
 
@@ -2301,11 +2301,11 @@ void SaveRMSHeader(ofstream* OutputData) {
                 }
                 if(!J->GetValue(i,j).isCond2D(CT_SOLID_2D)) {
                     if( Mach > 1.e-30) 
-                      *OutputData << Mach  << "  ";  
+                      *OutputData << Mach  << "  " << J->GetValue(i,j).l_min;  
                     else
-                      *OutputData << "  0  ";
+                      *OutputData << "  0  0 ";
                 } else {
-                    *OutputData << "  0  ";
+                    *OutputData << "  0  0 ";
                 }
                 *OutputData <<  "\n" ;
             }

@@ -128,6 +128,7 @@ extern int                                   PrintFLAG;
 extern int                                   isVerboseOutput;
 extern unsigned int                          iter;
 extern SourceList2D*                         SrcList;
+extern char                                  OutFileName[255];
 // External functions
 extern const char*                           PrintTurbCond(int TM);
 extern void*                                 InitDEEPS2D(void*);
