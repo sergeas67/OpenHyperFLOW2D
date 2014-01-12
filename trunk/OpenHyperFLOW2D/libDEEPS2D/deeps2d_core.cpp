@@ -675,7 +675,7 @@ void DEEPS2D_Run(ofstream* f_stream
 #endif // _OPENMP
                     for (int i = StartXLocal;i<(int)MaxXLocal;i++ ) {
                        for (int j=0;j<(int)MaxY;j++ ) {
-
+                          
                           err_i = i;
                           err_j = j;
 
@@ -721,13 +721,15 @@ void DEEPS2D_Run(ofstream* f_stream
                                 LeftNode  = &(pJ->GetValue(N1,j));
 
 
-                                AddEq = SetTurbulenceModel(pJ,i,j);
+                                AddEq = SetTurbulenceModel(CurrentNode);
 
                                 beta  = CurrentNode->beta;
                                 _beta = 1. - beta;
+                                
+                                int Num_Eq =  (FlowNode2D<double,NUM_COMPONENTS>::NumEq-AddEq);
 
                                 // Scan equation system ... k - number of equation
-                                for (int k=0;k<(FlowNode2D<double,NUM_COMPONENTS>::NumEq-AddEq);k++ ) {
+                                for (int k=0;k<Num_Eq;k++ ) {
                                         int      c_flag = 0;
                                         int      dx_flag, dx2_flag;
                                         int      dy_flag, dy2_flag;
@@ -910,9 +912,11 @@ void DEEPS2D_Run(ofstream* f_stream
                               n_n_1 = 1./n_n;
                               m_m_1 = 1./m_m;
 
-                              AddEq = SetTurbulenceModel(pJ,i,j);
+                              AddEq = SetTurbulenceModel(CurrentNode);
+                              
+                              int Num_Eq =  (FlowNode2D<double,NUM_COMPONENTS>::NumEq-AddEq);
 
-                              for (int k=0;k<(FlowNode2D<double,NUM_COMPONENTS>::NumEq-AddEq);k++ ) {
+                              for (int k=0;k<Num_Eq;k++ ) {
 
                                   int c_flag = 0;
 
@@ -4167,14 +4171,13 @@ void* InitDEEPS2D(void* lpvParam)
 #endif  // _DEBUG_0
         return(NULL);
 };
-
-inline int SetTurbulenceModel(UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >* pJ, int i, int j) {
+inline int SetTurbulenceModel(FlowNode2D<double,NUM_COMPONENTS>* pJ) {
 int      AddEq = 2;
-       if (pJ->GetValue(i,j).isTurbulenceCond2D(TCT_Prandtl_Model_2D)) {
+       if (pJ->isTurbulenceCond2D(TCT_Prandtl_Model_2D)) {
            AddEq = 2;
-       } else if ( pJ->GetValue(i,j).isTurbulenceCond2D(TCT_k_eps_Model_2D)) {
+       } else if ( pJ->isTurbulenceCond2D(TCT_k_eps_Model_2D)) {
            AddEq = 0;
-       } else if ( pJ->GetValue(i,j).isTurbulenceCond2D(TCT_Spalart_Allmaras_Model_2D)) {
+       } else if ( pJ->isTurbulenceCond2D(TCT_Spalart_Allmaras_Model_2D)) {
            AddEq = 1;
        } else {
            AddEq = 2;
