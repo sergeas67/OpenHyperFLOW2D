@@ -144,7 +144,7 @@ extern void                                  LongMatrixRecv(int rank, void* dst,
 #endif // _IMPI_
 extern void SetInitialSources(UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >* pJ);
 extern void SetInitBoundaryLayer(ComputationalMatrix2D* pJ, double delta);
-extern int  SetTurbulenceModel(UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >* pJ, int i, int j);
+extern int  SetTurbulenceModel(FlowNode2D<double,NUM_COMPONENTS>* pJ);
 extern void DataSnapshot(char* filename, WRITE_MODE ioMode=WM_REWRITE);
 extern void CalcHeatOnWallSources(UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >* F, double dx, double dr, double dt, int rank, int last_rank);
 extern UArray< XY<int> >* ScanArea(ofstream* f_str,ComputationalMatrix2D* pJ ,int isPrint);
