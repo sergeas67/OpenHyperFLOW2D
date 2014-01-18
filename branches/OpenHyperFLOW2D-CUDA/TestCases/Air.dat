@@ -1,0 +1,45 @@
+;------------------------------------------
+;  Inert component (air) properties
+; ----------------------------------------
+; Heat of AIR formation, J/kg 
+<data/H_air=0.0>
+; Gas constant, J/(kg.K)
+<data/R_air=287.0>
+
+; Heat conductivity, Wt/(m.K), as function of temperature, K
+<table=lam_air/10>
+90.     0.015
+203.5   0.020
+300.    0.0267
+400.    0.0329
+1000.   0.070
+1500.   0.09269
+2000.   0.11521
+2500.   0.13565
+3000.   0.1551
+3500.   0.17341
+<endtable>
+; Viscosity, Pa.s, as function of temperature, K
+<table=mu_air/10>
+100.     7.68e-6
+203.5    13.66e-6
+300.     18.34e-6
+400.     22.5e-6
+1000.    48.5e-6
+1500.    53.698e-6
+2000.    64.73e-6
+2500.    74.847e-6
+3000.    84.288e-6
+3500.    93.149e-6
+<endtable>
+; Heat capacity, J/(kg.K), as function of temperature, K
+<table=Cp_air/8>
+203.5    1005.8
+300.     1005.5
+400.     1009.7
+1500.    1210.8
+2000.    1251.5
+2500.    1275.8
+3000.    1295.4
+3500.    1307.4
+<endtable>
