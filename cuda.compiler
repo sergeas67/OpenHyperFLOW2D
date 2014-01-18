@@ -1,0 +1,30 @@
+NVCC=/usr/local/cuda-5.5/bin/nvcc
+
+#NOPROFILE  = -fomit-frame-pointer
+CUDA_DEBUG      = 
+#-G
+#PICFLAGS   = -fPIC
+#STATIC= -static
+
+CUDA_ALIGN      = 16
+
+#CXXOPTIONS = 
+#COPTIONS   =
+
+CUDA_OPTLEVEL   = 3
+
+CUDA_OPTIMIZE   = -O$(CUDA_OPTLEVEL) -D_ALIGN=${CUDA_ALIGN}
+
+CUDA_OPTIONS    =  $(CUDA_DEBUG) -D_DEBUG_$(DEBUGLEVEL) $(CUDA_OPTIMIZE) -D_UNIFORM_MESH_  -D_CUDA_ 
+#-D_FIX_THREAD_BLOCK_
+
+CUDA_INCPATH    = -I .. -I .  -I  /usr/local/cuda-5.5/include -gencode arch=compute_30,code=sm_30  --ptxas-options=-v --maxrregcount 63
+
+ifeq   ("$(COMPILER)","Intel")
+intel:
+	@echo
+	@echo "		CUDA version of OpenHyperFLOW2D does not support Intel C++ compiler. Use GNU C++ compilers."
+	@echo
+	@exit
+endif
+
