@@ -68,7 +68,7 @@ int main( int argc, char **argv )
         if (argc < 2) {
             printf("OpenHyperFLOW2D/DEEPS solver v %'.2f ",ver);
             printf(" (parallel CUDA version)\n");
-            printf("Copyright (C) 1995-2013 by Serge A. Suchkov\nCopyright policy: LGPL V3\nUsage: %s [{input_data_file}]\n",argv[0]);
+            printf("Copyright (C) 1995-2014 by Serge A. Suchkov\nCopyright policy: LGPL V3\nUsage: %s [{input_data_file}]\n",argv[0]);
             printf("\n\t* Density-based 2D-Navier-Stokes solver for ");
 #ifdef _UNIFORM_MESH_
             printf("uniform cartesian mesh");
