@@ -30,9 +30,9 @@ int            TurbExtModel;
 int            err_i, err_j;
 int            turb_mod_name_index = 0;
 double         Ts0,A,W,Mach;
-//double         MemFullness=0.5;
 
-float*         dt_global;
+unsigned int* dt_min_host;
+unsigned int* dt_min_device;
 
 UArray< XY<int> >* GlobalSubmatrix;
 UArray< XY<int> >* WallNodes;
@@ -676,6 +676,7 @@ void DEEPS2D_Run(ofstream* f_stream,
     double   d_time;
     double   VCOMP;
     timeval  start, stop, mark1, mark2;
+    double   int2float_scale;
 #ifdef _RMS_
     double   max_RMS;
     int      k_max_RMS;
@@ -692,7 +693,6 @@ void DEEPS2D_Run(ofstream* f_stream,
     UMatrix2D<int>    iRMS(FlowNode2D<double,NUM_COMPONENTS>::NumEq,cudaArraySubmatrix->GetNumElements());
 #endif //_RMS_
     UMatrix2D<double> DD_max(FlowNode2D<double,NUM_COMPONENTS>::NumEq,cudaDimArray->GetNumElements());
-    float   dt_max = 1.0;
 
     isScan = 0;
     dyy    = dx/(dx+dy);
@@ -732,6 +732,8 @@ void DEEPS2D_Run(ofstream* f_stream,
                     cudaJ = cudaSubmatrix;
                     cudaC = cudaCoreSubmatrix;
 
+                    int2float_scale  = (float)(INT_MAX)/(256*dt);
+
              do {
 
                   gettimeofday(&mark2,NULL);
@@ -765,10 +767,13 @@ void DEEPS2D_Run(ofstream* f_stream,
                        }
 #endif // _RMS_
 
-                       dt  =  dtmin;
+                       unsigned int dtest_int = (unsigned int)(int2float_scale*10);
+#ifdef _DEVICE_MMAP_
+                       *dt_min_host = dtest_int;
+#else
+                       CopyHostToDevice(&dtest_int,dt_min_device,sizeof(unsigned int));
                        
-                       CopyHostToDevice(&dt_max,dt_global,sizeof(float));
-                       
+#endif //_DEVICE_MMAP_11 
 
 #pragma unroll
                        for(int ii=0;ii<n_s;ii++) {  // CUDA version
@@ -822,6 +827,7 @@ void DEEPS2D_Run(ofstream* f_stream,
                                                                                  dxx,dyy,dtdx,dtdy,dt,
                                                                                  FlowNode2D<double,NUM_COMPONENTS>::FT,
                                                                                  FlowNode2D<double,NUM_COMPONENTS>::NumEq-ConvertTurbMod(TurbMod)); 
+                       
                        CUDA_BRRIER("cuda_DEEPS2D_Stage1");
                        if(n_s > 1)
                           CopyDeviceToHost(cudaC,TmpCoreMatrixPtr,(sizeof(FlowNodeCore2D<double,NUM_COMPONENTS>))*(TmpMaxX*MaxY));
@@ -880,7 +886,7 @@ void DEEPS2D_Run(ofstream* f_stream,
                                                                                   FlowNode2D<double,NUM_COMPONENTS>::NumEq-ConvertTurbMod(TurbMod),
                                                                                   cudaHu,
                                                                                   FlowNode2D<double,NUM_COMPONENTS>::isSrcAdd,
-                                                                                  dt_global,
+                                                                                  dt_min_device, int2float_scale,
                                                                                   (TurbulenceExtendedModel)TurbExtModel);                                                                                                                  
                     
                         CUDA_BRRIER("cuda_DEEPS2D_Stage2");
@@ -888,8 +894,14 @@ void DEEPS2D_Run(ofstream* f_stream,
                                 CopyDeviceToHost(cudaJ,TmpMatrixPtr,(sizeof(FlowNode2D<double,NUM_COMPONENTS>))*(TmpMaxX*MaxY));
                             }
                    }
+#ifdef _DEVICE_MMAP_
+                   unsigned int  int2float = *dt_min_host;
+#else              
+                   unsigned int  int2float;
+                   CopyDeviceToHost(dt_min_device,&int2float,sizeof(unsigned int));
+#endif //_DEVICE_MMAP_ 
                    
-                   CopyDeviceToHost(dt_global,&dtmin,sizeof(float));
+                   dt  =  (float)(int2float)/int2float_scale;
 
                    if(dtmin == 0) {
                       *f_stream << "\nERROR: Computational unstability  on iteration " << iter+last_iter<< endl;
@@ -958,7 +970,6 @@ void DEEPS2D_Run(ofstream* f_stream,
   iter++;
 } while((int)iter < Nstep);
   
-  last_iter  += iter;
 
   if(n_s == 1){
     CopyDeviceToHost(cudaJ,pJ->GetMatrixPtr(),pJ->GetMatrixSize());

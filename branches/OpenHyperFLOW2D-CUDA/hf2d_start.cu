@@ -164,12 +164,30 @@ int main( int argc, char **argv )
                 
         CopyHostToDevice(FlowNode2D<double,NUM_COMPONENTS>::Hu,cudaHu,sizeof(double)*(NUM_COMPONENTS+1));
         
-        cudaState = cudaMalloc( (void**)&dt_global, sizeof(float));
+
+#ifdef _DEVICE_MMAP_
+        cudaState = cudaHostAlloc( (void**)&dt_min_host, sizeof(unsigned int), cudaHostAllocMapped ); // | cudaHostAllocWriteCombined  
 
         if(cudaState == cudaErrorMemoryAllocation) {
-           *o_stream << "\nError allocate GPU memory for dt_global. "<<  endl;
+           *o_stream << "\nError allocate GPU memory for dt_min" << endl;
            Exit_OpenHyperFLOW2D();
         }
+
+        cudaState = cudaHostGetDevicePointer( &dt_min_device, dt_min_host, 0 );
+
+        if(cudaState == cudaErrorMemoryAllocation) {
+           *o_stream << "\nError mapped GPU memory for dt_min" << endl;
+           Exit_OpenHyperFLOW2D();
+        }
+#else
+        cudaState = cudaMalloc( (void**)&dt_min_device, sizeof(unsigned int));
+
+        if(cudaState == cudaErrorMemoryAllocation) {
+           *o_stream << "\nError allocate GPU memory for dt_min "<<  endl;
+           Exit_OpenHyperFLOW2D();
+        }
+        
+#endif // _DEVICE_MMAP_
 
         // Scan area for seek wall nodes      
         WallNodes = GetWallNodes((ofstream*)o_stream,J,Data->GetIntVal((char*)"isVerboseOutput")); 
@@ -360,13 +378,19 @@ int main( int argc, char **argv )
                *o_stream << "\nError free WallNodes array from GPU memory." << endl;
                Exit_OpenHyperFLOW2D();
             }
-            
-            cudaState = cudaFree(dt_global);
+#ifdef _DEVICE_MMAP_
+            cudaState = cudaFreeHost(dt_min_host);
             if(cudaState != cudaSuccess ) {
-               *o_stream << "\nError free dt_global from GPU memory." << endl;
+               *o_stream << "\nError free dt_min from GPU memory." << endl;
                Exit_OpenHyperFLOW2D();
             }
-
+#else
+            cudaState = cudaFreeHost(dt_min_host);
+            if(cudaState != cudaSuccess ) {
+               *o_stream << "\nError free dt_min from GPU memory." << endl;
+               Exit_OpenHyperFLOW2D();
+            }
+#endif //_DEVICE_MMAP_ 
             //>>>>>>>>>>>>>>>>>>>>>>
             //DataSnapshot(OutFileName,WM_REWRITE);
             //>>>>>>>>>>>>>>>>>>>>>>

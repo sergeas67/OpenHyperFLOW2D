@@ -230,7 +230,8 @@ extern int                                   num_threads;
 extern int                                   num_blocks;
 extern ofstream*                             pOutputData;     // output data stream (file)
 //extern double                                MemFullness;
-extern float*                                dt_global;
+extern unsigned int*                         dt_min_host;
+extern unsigned int*                         dt_min_device;
 extern double*                               cudaHu;  
 extern UArray< FlowNode2D<double,NUM_COMPONENTS>* >*     cudaArraySubmatrix;
 extern UArray< FlowNodeCore2D<double,NUM_COMPONENTS>* >* cudaArrayCoreSubmatrix ;
@@ -347,7 +348,7 @@ cuda_DEEPS2D_Stage2(FlowNode2D<double,NUM_COMPONENTS>*     pLJ,
 #endif // _RMS_
                     double* _Hu,
                     int _isSrcAdd,
-                    float* dt_global,
+                    unsigned int* dt_global, double int2float_scale,
                     TurbulenceExtendedModel TurbExtModel );
 
 extern __global__ void 

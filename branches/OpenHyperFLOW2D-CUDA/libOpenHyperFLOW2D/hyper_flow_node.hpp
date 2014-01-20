@@ -355,7 +355,7 @@ FlowNode2D<T,a>::FlowNode2D(T  RO,
 
     Diff   =  (lam+FlowNodeTurbulence2D<T,a>::lam_t)/CP;
     
-    #pragma unroll
+    
     for(i=0;i<a;i++) {
         Y[i] = y[i];
         FlowNodeCore2D<T,a>::S[i+4] = Y[i]*FlowNodeCore2D<T,a>::S[i2d_Ro];
@@ -363,7 +363,7 @@ FlowNode2D<T,a>::FlowNode2D(T  RO,
 
     Tmp1 = FlowNodeCore2D<T,a>::S[i2d_Ro];
     
-    #pragma unroll
+    
     for(i=0;i<a;i++) {
         Tmp3+=Hu[i]*FlowNodeCore2D<T,a>::S[i+4];
         Tmp1-= FlowNodeCore2D<T,a>::S[i+4];
@@ -385,7 +385,7 @@ FlowNode2D<T,a>::FlowNode2D(T  RO,
     idYd=1;
 
     if(isCleanSources){
-        #pragma unroll
+        
         for(i=0;i<NumEq;i++)
             Src[i]=0;
     }
@@ -463,7 +463,7 @@ inline void FlowNode2D<T,a>::FillNode2D(int is_mu_t,
 
     Tmp1   = FlowNodeCore2D<T,a>::S[i2d_Ro];
 
-    #pragma unroll
+    
     for(i=0;i<a;i++) {
         Tmp3+= _Hu[i]*FlowNodeCore2D<T,a>::S[i+4];
         Tmp1-= FlowNodeCore2D<T,a>::S[i+4];
@@ -499,7 +499,7 @@ inline void FlowNode2D<T,a>::FillNode2D(int is_mu_t,
         U = Uw; // Gas move
         V = Vw; // together with wall
         
-        #pragma unroll
+        
         for(i=0;i<a;i++) {
             if(_isSrcAdd) {
                 SrcAdd[4+i] = SrcAdd[i2d_Ro]*Y[i];
@@ -510,7 +510,7 @@ inline void FlowNode2D<T,a>::FillNode2D(int is_mu_t,
         FlowNodeCore2D<T,a>::S[i2d_RoU] = U * FlowNodeCore2D<T,a>::S[i2d_Ro];
         FlowNodeCore2D<T,a>::S[i2d_RoV] = V * FlowNodeCore2D<T,a>::S[i2d_Ro];
     } else {
-        #pragma unroll
+        
         for(int i=0;i<NUM_EQ;i++)
             SrcAdd[i] = 0.;
     }
@@ -558,7 +558,7 @@ inline void FlowNode2D<T,a>::FillNode2D(int is_mu_t,
     B[i2d_RoV] = p + FlowNodeCore2D<T,a>::S[i2d_RoV]*V;
     B[i2d_RoE] = (FlowNodeCore2D<T,a>::S[i2d_RoE]+p)*V;
     
-    #pragma unroll
+    
     for(i = 4; i < 4+a; i++) {
         B[i]=FlowNodeCore2D<T,a>::S[i]*V;
         A[i]=FlowNodeCore2D<T,a>::S[i]*U;
@@ -569,7 +569,7 @@ inline void FlowNode2D<T,a>::FillNode2D(int is_mu_t,
         F[i2d_RoU] = _FT*A[i2d_RoV];
         F[i2d_RoV] = _FT*F[i2d_Ro]*V;
         F[i2d_RoE] = _FT*B[i2d_RoE]; 
-    #pragma unroll
+    
         for(i = 4; i < 4+a;i++)
             F[i]=_FT*B[i]; 
     }
@@ -582,7 +582,7 @@ inline void FlowNode2D<T,a>::FillNode2D(int is_mu_t,
 
     qx    = _lam*dTdx;
     qy    = _lam*dTdy;
-    #pragma unroll
+    
     for(i = 0; i < a+1; i++) {
         qx += Diff*(CP*Tg+_Hu[i])*droYdx[i];
         qy += Diff*(CP*Tg+_Hu[i])*droYdy[i];
@@ -606,7 +606,7 @@ inline void FlowNode2D<T,a>::FillNode2D(int is_mu_t,
     B[i2d_RoU] = B[i2d_RoU]-RY[i2d_RoU];
     B[i2d_RoV] = B[i2d_RoV]-RY[i2d_RoV];
     B[i2d_RoE] = B[i2d_RoE]-RY[i2d_RoE];
-    #pragma unroll
+    
     for(i = 4; i < 4+a; i++) {
 
         RX[i]=Diff*droYdx[i-4];
@@ -621,11 +621,11 @@ inline void FlowNode2D<T,a>::FillNode2D(int is_mu_t,
         F[i2d_RoU] -= RY[i2d_RoU];
         F[i2d_RoV] -= RY[i2d_RoV]+t00;
         F[i2d_RoE] -= RY[i2d_RoE];
-        #pragma unroll
+        
         for(i = 4; i < 4+a;i++)
             F[i]-=RY[i];
     } else {
-        #pragma unroll
+        
         for(int i=0;i<NUM_EQ;i++)
             F[i]=0.;
     }
@@ -1414,7 +1414,7 @@ inline void FlowNode2D<T,a>::FillNode2D(int is_mu_t,
     TurbModRANS2D(is_mu_t,is_init,tem,delta);
 
     Tmp1   = FlowNodeCore2D<T,a>::S[i2d_Ro];
-    #pragma unroll
+    
     for(i=0;i<a;i++) {
         Tmp3+=Hu[i]*FlowNodeCore2D<T,a>::S[i+4];
         Tmp1-= FlowNodeCore2D<T,a>::S[i+4];
@@ -1450,7 +1450,7 @@ inline void FlowNode2D<T,a>::FillNode2D(int is_mu_t,
         U = Uw; // Gas move
         V = Vw; // together with wall
         
-        #pragma unroll
+        
         for(i=0;i<a;i++) {
             if(FlowNode2D<T,a>::isSrcAdd) {
                 SrcAdd[4+i] = SrcAdd[i2d_Ro]*Y[i];
@@ -1461,7 +1461,7 @@ inline void FlowNode2D<T,a>::FillNode2D(int is_mu_t,
         FlowNodeCore2D<T,a>::S[i2d_RoU] = U * FlowNodeCore2D<T,a>::S[i2d_Ro];
         FlowNodeCore2D<T,a>::S[i2d_RoV] = V * FlowNodeCore2D<T,a>::S[i2d_Ro];
     } else {
-        #pragma unroll
+        
         for(int i=0;i<NumEq;i++)
             SrcAdd[i] = 0.;
     }
@@ -1501,7 +1501,7 @@ inline void FlowNode2D<T,a>::FillNode2D(int is_mu_t,
     B[i2d_RoU] = A[i2d_RoV];
     B[i2d_RoV] = p + FlowNodeCore2D<T,a>::S[i2d_RoV]*V;
     B[i2d_RoE] = (FlowNodeCore2D<T,a>::S[i2d_RoE]+p)*V;
-    #pragma unroll
+    
     for(i = 4; i < 4+a; i++) {
         B[i]=FlowNodeCore2D<T,a>::S[i]*V;
         A[i]=FlowNodeCore2D<T,a>::S[i]*U;
@@ -1512,7 +1512,7 @@ inline void FlowNode2D<T,a>::FillNode2D(int is_mu_t,
         F[i2d_RoU] = FT*A[i2d_RoV];
         F[i2d_RoV] = FT*F[i2d_Ro]*V;
         F[i2d_RoE] = FT*B[i2d_RoE]; 
-        #pragma unroll
+        
         for(i = 4; i < 4+a;i++)
             F[i]=FT*B[i]; 
     }
@@ -1524,7 +1524,7 @@ inline void FlowNode2D<T,a>::FillNode2D(int is_mu_t,
 
     qx    = _lam*dTdx;
     qy    = _lam*dTdy;
-    #pragma unroll
+    
     for(i = 0; i < a+1; i++) {
         qx += Diff*(CP*Tg+Hu[i])*droYdx[i];
         qy += Diff*(CP*Tg+Hu[i])*droYdy[i];
@@ -1548,7 +1548,7 @@ inline void FlowNode2D<T,a>::FillNode2D(int is_mu_t,
     B[i2d_RoV] = B[i2d_RoV]-RY[i2d_RoV];
     B[i2d_RoE] = B[i2d_RoE]-RY[i2d_RoE];
     
-    #pragma unroll
+    
     for(i = 4; i < 4+a; i++) {
 
         RX[i]=Diff*droYdx[i-4];
@@ -1563,11 +1563,11 @@ inline void FlowNode2D<T,a>::FillNode2D(int is_mu_t,
         F[i2d_RoU] -= RY[i2d_RoU];
         F[i2d_RoV] -= RY[i2d_RoV]+t00;
         F[i2d_RoE] -= RY[i2d_RoE];
-        #pragma unroll
+        
         for(i = 4; i < 4+a;i++)
             F[i]-=RY[i];
     } else {
-        #pragma unroll
+        
         for(int i=0;i<NumEq;i++)
             F[i]=0.;
     }
@@ -1944,7 +1944,7 @@ inline FlowNode2D<T,a>& FlowNode2D<T,a>::operator = (FlowNode2D<T,a>& fn) {
 
 template <class T, int a>
 inline FlowNode2D<T,a>& FlowNode2D<T,a>::operator = (FlowNodeCore2D<T,a>& fc) {
-    #pragma unroll
+    
     for(register int i=0;i<NumEq;i++) {
         FlowNodeCore2D<T,a>::S[i]=fc.FlowNodeCore2D<T,a>::S[i];
         FlowNodeCore2D<T,a>::dSdx[i]=fc.FlowNodeCore2D<T,a>::dSdx[i];
@@ -1970,12 +1970,12 @@ FlowNode2D<T,a>& FlowNode2D<T,a>::operator = (Flow& f) {
     mu   = f.mu;
     CP   = f.C;
     k = CP/(CP-R);
-    #pragma unroll
+    
     for(i=0;i<a;i++)
         FlowNodeCore2D<T,a>::S[i+4]=FlowNodeCore2D<T,a>::S[i2d_Ro]*Y[i];
 
     Tmp1 = FlowNodeCore2D<T,a>::S[i2d_Ro];
-    #pragma unroll
+    
     for(i=0;i<a;i++) {
         Tmp3+=Hu[i]*FlowNodeCore2D<T,a>::S[i+4];
         Tmp1-= FlowNodeCore2D<T,a>::S[i+4];
@@ -1984,7 +1984,7 @@ FlowNode2D<T,a>& FlowNode2D<T,a>::operator = (Flow& f) {
     Tmp3+=Hu[a]*Tmp1;
     FlowNodeCore2D<T,a>::S[i2d_Ro]  = p/R/Tg;
     FlowNodeCore2D<T,a>::S[i2d_RoE] = p/(k-1.)+FlowNodeCore2D<T,a>::S[i2d_Ro]*(f.Wg()*f.Wg())*0.5+Tmp3;
-    #pragma unroll
+    
     for(i=0;i<NumEq;i++)
         Src[i]=0;
 
@@ -2015,12 +2015,12 @@ FlowNode2D<T,a>& FlowNode2D<T,a>::operator = (Flow2D& f) {
     Diff   =  (lam+FlowNodeTurbulence2D<T,a>::lam_t)/CP;
 
     FlowNodeCore2D<T,a>::S[i2d_Ro] = f.Pg()/R/f.Tg();
-    #pragma unroll
+    
     for(i=0;i<a;i++)
         FlowNodeCore2D<T,a>::S[i+4] = Y[i]*FlowNodeCore2D<T,a>::S[i2d_Ro];
 
     Tmp1 = FlowNodeCore2D<T,a>::S[i2d_Ro];
-    #pragma unroll
+    
     for(i=0;i<a;i++) {
         Tmp3+=Hu[i]*FlowNodeCore2D<T,a>::S[i+4];
         Tmp1-= FlowNodeCore2D<T,a>::S[i+4];
@@ -2028,7 +2028,7 @@ FlowNode2D<T,a>& FlowNode2D<T,a>::operator = (Flow2D& f) {
 
     Tmp3+=Hu[a]*Tmp1;
     FlowNodeCore2D<T,a>::S[i2d_RoE] = p/(k-1)+FlowNodeCore2D<T,a>::S[i2d_Ro]*(f.U()*f.U()+f.V()*f.V())*0.5+Tmp3;
-    #pragma unroll
+    
     for(i=0;i<NumEq;i++)
         Src[i]=0;
 
@@ -2038,7 +2038,7 @@ FlowNode2D<T,a>& FlowNode2D<T,a>::operator = (Flow2D& f) {
 
 template <class T, int a>
 inline FlowNode2D<T,a>& FlowNode2D<T,a>::operator *= (T& m) {
-    #pragma unroll
+    
     for(register int i=i2d_RoU;i<i2d_RoE;i++) {
         FlowNodeCore2D<T,a>::S[i]=FlowNodeCore2D<T,a>::S[i]*m;
         FlowNodeCore2D<T,a>::dSdx[i]=FlowNodeCore2D<T,a>::dSdx[i]*m;

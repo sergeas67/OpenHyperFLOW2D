@@ -46,9 +46,10 @@ endif
 CPU        = native
 CPU_EXT    = -m64 -ftree-vectorize  -msse3 -msse2 -msse -mmmx -mfpmath=sse -mtune=$(CPU)
 
-CXXOPTIONS = 
+CXXOPTIONS = -Wno-deprecated   -Wall  -Wno-unused-parameter -Wno-unused-but-set-variable -W
+
 COPTIONS   =
-# -Wno-deprecated   -Wall  -Wno-unused-parameter -Wno-unused-but-set-variable -W
+
 OPTLEVEL   = 3
 
 ifeq     ($(OPTLEVEL),0)
