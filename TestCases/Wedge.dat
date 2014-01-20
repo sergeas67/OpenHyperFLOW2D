@@ -17,7 +17,7 @@
 <data/isOutHeatFluxY=0>
 ; is p* out ?
 <data/is_p_asterisk_out=0>
-<data/num_threads=512>
+
 ;--------------------------------------------------;
 ; General parameters                               ;
 ;--------------------------------------------------;
@@ -76,8 +76,8 @@
 ; Maximum number of steps
 <data/Nmax=25000>
 ; Every NOutStep-th step is displayed
-<data/NOutStep=100>
-<data/NSaveStep=4>
+<data/NOutStep=10>
+<data/NSaveStep=1>
 <data/isVerboseOutput=1>
 ; Initial time
 <data/InitTime=0.>

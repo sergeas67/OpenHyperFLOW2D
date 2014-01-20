@@ -11,3 +11,6 @@ endif
 
 # Calc RMS residuals for all variables
 #MODELS += -D_RMS_
+
+# Use GPU device mmaping
+#MODELS += -D_DEVICE_MMAP_

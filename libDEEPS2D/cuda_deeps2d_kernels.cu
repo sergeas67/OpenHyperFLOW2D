@@ -39,7 +39,7 @@ __device__ float fatomicMin(float *addr, float value) {
 
         float old = *addr, assumed;
 
-        if(old <= value) return old;
+        if(old >= value) return old;
 
         do {
                 assumed = old;
@@ -517,7 +517,7 @@ cuda_DEEPS2D_Stage2(FlowNode2D<double,NUM_COMPONENTS>*     pLJ,
 #endif // _RMS_
                     double* _Hu,
                     int _isSrcAdd,
-                    float* dt_global,
+                    unsigned int* dt_min_device, double int2float_scale,
                     TurbulenceExtendedModel TurbExtModel ) {
     
 
@@ -692,12 +692,11 @@ cuda_DEEPS2D_Stage2(FlowNode2D<double,NUM_COMPONENTS>*     pLJ,
               }
               
               if( CurrentNode->Tg < 0. ) {
-                  *dt_global = 0.0;  // Computational instability
+                  *dt_min_device = 0;  // Computational instability
               }  else {
                   double AAA          = sqrt(CurrentNode->k*CurrentNode->R*CurrentNode->Tg); 
-                  double dt_min_local = CFL0*min(dx_1*(AAA+fabs(CurrentNode->U)),dy_1*(AAA+fabs(CurrentNode->V)));
-                  //*dt_global = min(*dt_global,dt_min_local);
-                  fatomicMin(dt_global,dt_min_local);
+                  double dt_min_local = CFL0*min(1.0/(dx_1*(AAA+fabs(CurrentNode->U))),1.0/(dy_1*(AAA+fabs(CurrentNode->V))));
+                  atomicMin(dt_min_device,(unsigned int)(dt_min_local*int2float_scale));
               }
        }
      }
