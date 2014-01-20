@@ -29,7 +29,7 @@
 
  * Tecplot (ascii) 2D output format;
  * Save&Restart simulation state;
- * Serial&Parallel(OpenMP, MPI) version;
+ * Serial&Parallel(OpenMP, MPI, CUDA<sup>{{{*}}}</sup>) version;
 
 
 ==Test Cases:==
@@ -40,3 +40,5 @@
 || Mach 3 supersonic flow over a forward-facing step ||<wiki:video url="http://www.youtube.com/watch?v=S7BRdFXaG04"> ||[http://openhyperflow2d.googlecode.com/svn/trunk/OpenHyperFLOW2D/TestCases/Step.dat] ||  
 
 *OpenHyperFLOW2D* it is open source clone of *HyperFLOW2D* (in-house CFD code) with reduced functionality, and can be used without restriction for educational and academic purpose. Reference at the publication is obligatory.
+<hr>
+ <sup>{{{*}}}</sup> - Experimental *_OpenHyperFLOW2D-CUDA_* branch. Some 'trunk' features not available
