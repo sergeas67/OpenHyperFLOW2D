@@ -33,6 +33,8 @@ double         Ts0,A,W,Mach;
 
 unsigned int* dt_min_host;
 unsigned int* dt_min_device;
+int           NumStreams;
+
 
 UArray< XY<int> >* GlobalSubmatrix;
 UArray< XY<int> >* WallNodes;
@@ -658,6 +660,8 @@ void DEEPS2D_Run(ofstream* f_stream,
                  FlowNode2D<double,NUM_COMPONENTS>*                 cudaSubmatrix,    
                  FlowNodeCore2D<double,NUM_COMPONENTS>*             cudaCoreSubmatrix,
                  UArray< XY<int> >*                                 cudaDimArray,
+                 int num_mp,
+                 cudaStream_t *streams,
                  int max_thread_block) {
 
    // local variables
@@ -668,6 +672,9 @@ void DEEPS2D_Run(ofstream* f_stream,
     int      opt_thread_block_size[2];
     double   opt_round_trip[1];
     
+    int      num_cuda_threads;
+    int      num_cuda_blocks; 
+
     double   dtdx;
     double   dtdy;
     double   dyy;
@@ -705,7 +712,6 @@ void DEEPS2D_Run(ofstream* f_stream,
     dt_min = new double[cudaArraySubmatrix->GetNumElements()];
     i_c    = new int[cudaArraySubmatrix->GetNumElements()];
     j_c    = new int[cudaArraySubmatrix->GetNumElements()];
-
 
     for(int ii=0;ii<(int)cudaArraySubmatrix->GetNumElements();ii++) {
         dt_min[ii] = dtmin = dt;
@@ -783,8 +789,9 @@ void DEEPS2D_Run(ofstream* f_stream,
                        int r_Overlap;
                        int l_Overlap;
                        
-                       int num_cuda_threads = warp_size/current_div;
-                       int num_cuda_blocks  = (max_X*max_Y)/num_cuda_threads;
+                       num_cuda_threads = warp_size*num_mp/current_div;
+                       num_cuda_blocks  = (max_X*max_Y)/num_cuda_threads;
+                       
                        if(num_cuda_blocks*num_cuda_threads != max_X*max_Y)
                           num_cuda_blocks++;
                        
@@ -819,14 +826,28 @@ void DEEPS2D_Run(ofstream* f_stream,
                        
                        if(n_s > 1)
                           CopyHostToDevice(TmpMatrixPtr,cudaJ,(sizeof(FlowNode2D<double,NUM_COMPONENTS>))*(TmpMaxX*MaxY));
+                       
+                       int index_step = (max_X/num_mp);
 
-                       cuda_DEEPS2D_Stage1<<<num_cuda_blocks,num_cuda_threads>>>(cudaJ,cudaC,                      
-                                                                                 max_X,max_Y,                      
-                                                                                 (max_X-r_Overlap)*max_Y,
-                                                                                 l_Overlap*max_Y,
-                                                                                 dxx,dyy,dtdx,dtdy,dt,
-                                                                                 FlowNode2D<double,NUM_COMPONENTS>::FT,
-                                                                                 FlowNode2D<double,NUM_COMPONENTS>::NumEq-ConvertTurbMod(TurbMod)); 
+                       for (int jj=0;jj<num_mp;jj++) {
+
+                           int l_limit = (l_Overlap + jj*index_step)*max_Y;
+                           int r_limit;
+
+                           if(jj == num_mp - 1 ) {
+                               r_limit = (max_X-r_Overlap)*max_Y; 
+                           } else {
+                               r_limit = (index_step*(1 + jj) - r_Overlap)*max_Y;
+                           }
+                           
+                           cuda_DEEPS2D_Stage1<<<num_cuda_blocks,num_cuda_threads, 0 , streams[jj] >>>(cudaJ,cudaC,                      
+                                                                                                       max_X,max_Y,                      
+                                                                                                       r_limit,
+                                                                                                       l_limit,
+                                                                                                       dxx,dyy,dtdx,dtdy,dt,
+                                                                                                       FlowNode2D<double,NUM_COMPONENTS>::FT,
+                                                                                                       FlowNode2D<double,NUM_COMPONENTS>::NumEq-ConvertTurbMod(TurbMod)); 
+                       }
                        
                        CUDA_BRRIER("cuda_DEEPS2D_Stage1");
                        if(n_s > 1)
@@ -840,9 +861,10 @@ void DEEPS2D_Run(ofstream* f_stream,
                        int max_Y = cudaDimArray->GetElement(ii).GetY();
                        int r_Overlap;
                        int l_Overlap;
-
-                      int num_cuda_threads = warp_size/current_div;
-                       int num_cuda_blocks  = (max_X*max_Y)/num_cuda_threads;
+                       
+                       num_cuda_threads = min(max_num_threads,warp_size*num_mp/current_div);
+                       num_cuda_blocks  = (max_X*max_Y)/num_cuda_threads;
+                       
                        if(num_cuda_blocks*num_cuda_threads != max_X*max_Y)
                           num_cuda_blocks++;
                        
@@ -874,21 +896,36 @@ void DEEPS2D_Run(ofstream* f_stream,
                             CopyHostToDevice(TmpCoreMatrixPtr,cudaC,(sizeof(FlowNodeCore2D<double,NUM_COMPONENTS>))*(TmpMaxX*MaxY));
                         }
                         
-                        cuda_DEEPS2D_Stage2<<<num_cuda_blocks,num_cuda_threads>>>(cudaJ,cudaC,                                                                                             
-                                                                                  ii,max_X, max_Y,                                                                                    
-                                                                                  (max_X-r_Overlap)*max_Y,
-                                                                                  l_Overlap*max_Y,
-                                                                                  beta_Scenario->GetVal(iter+last_iter),beta0,     
-                                                                                  bFF, CFL_Scenario->GetVal(iter+last_iter),       
-                                                                                  NULL,noTurbCond,                                                                          
-                                                                                  SigW,SigF,dx_1,dy_1,delta_bl,                                                                                
-                                                                                  FlowNode2D<double,NUM_COMPONENTS>::FT,                                                            
-                                                                                  FlowNode2D<double,NUM_COMPONENTS>::NumEq-ConvertTurbMod(TurbMod),
-                                                                                  cudaHu,
-                                                                                  FlowNode2D<double,NUM_COMPONENTS>::isSrcAdd,
-                                                                                  dt_min_device, int2float_scale,
-                                                                                  (TurbulenceExtendedModel)TurbExtModel);                                                                                                                  
-                    
+                        int index_step = (max_X/num_mp);
+
+                        for (int jj=0;jj<num_mp;jj++) {
+
+                            int l_limit = (l_Overlap + jj*index_step)*max_Y;
+                            int r_limit;
+
+                            if(jj == num_mp - 1 ) {
+                                r_limit = (max_X-r_Overlap)*max_Y; 
+                            } else {
+                                r_limit = (index_step*(1 + jj) - r_Overlap)*max_Y;
+                            }
+                            
+                            cuda_DEEPS2D_Stage2<<<num_cuda_blocks,num_cuda_threads, 0, streams[jj]>>>(cudaJ,cudaC,                                                                                             
+                                                                                                     ii,
+                                                                                                     max_X,max_Y,                    
+                                                                                                     r_limit,    
+                                                                                                     l_limit,    
+                                                                                                     beta_Scenario->GetVal(iter+last_iter),beta0,     
+                                                                                                     bFF, CFL_Scenario->GetVal(iter+last_iter),       
+                                                                                                     NULL,noTurbCond,                                                                          
+                                                                                                     SigW,SigF,dx_1,dy_1,delta_bl,                                                                                
+                                                                                                     FlowNode2D<double,NUM_COMPONENTS>::FT,                                                            
+                                                                                                     FlowNode2D<double,NUM_COMPONENTS>::NumEq-ConvertTurbMod(TurbMod),
+                                                                                                     cudaHu,
+                                                                                                     FlowNode2D<double,NUM_COMPONENTS>::isSrcAdd,
+                                                                                                     dt_min_device, int2float_scale,
+                                                                                                     (TurbulenceExtendedModel)TurbExtModel);                                                                                                                  
+                        }
+                        
                         CUDA_BRRIER("cuda_DEEPS2D_Stage2");
                             if(n_s > 1){
                                 CopyDeviceToHost(cudaJ,TmpMatrixPtr,(sizeof(FlowNode2D<double,NUM_COMPONENTS>))*(TmpMaxX*MaxY));
@@ -964,7 +1001,10 @@ void DEEPS2D_Run(ofstream* f_stream,
              *f_stream << "Step No " << iter+last_iter << " maxRMS["<< k_max_RMS << "]="<< (double)(max_RMS*100.) \
                         <<  " % step_time=" << (double)d_time << " sec (" << (double)VCOMP <<" step/sec) dt="<< dt <<"\n" << flush;
 #else
-             *f_stream << "Step No " << iter+last_iter <<  "/" << Nstep <<" step_time=" << (double)d_time << " sec (" << (double)VCOMP <<" step/sec) dt="<< dt << " div=" << current_div <<" \n" << flush;
+             *f_stream << "Step No " << iter+last_iter <<  "/" << Nstep <<" step_time=" << (double)d_time << " sec (" << (double)VCOMP <<" step/sec) dt="<< dt <<
+              " blocks=" <<  num_cuda_blocks << " threads="  << num_cuda_threads << " div=" << current_div <<" \n"
+                 
+                 << flush;
 #endif // _RMS_
          }
   iter++;

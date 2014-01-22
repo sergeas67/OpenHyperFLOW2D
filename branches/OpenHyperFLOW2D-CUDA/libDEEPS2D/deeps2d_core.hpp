@@ -240,6 +240,8 @@ extern XY<int>*                                          cudaWallNodes;
 extern FlowNode2D<double,NUM_COMPONENTS>*                cudaSubmatrix;
 extern FlowNodeCore2D<double,NUM_COMPONENTS>*            cudaCoreSubmatrix;
 extern int                                               warp_size;
+extern int                                               NumStreams;
+extern int                                               max_num_threads;
 
 // External functions
 
@@ -301,7 +303,7 @@ extern void InitSharedData(InputData*, void*
 
 extern void DEEPS2D_Run(ofstream* o_stream 
 #ifdef _MPI
-                        ,UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >*     pJ,
+                        ,UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >*    pJ,
                         UMatrix2D< FlowNodeCore2D<double,NUM_COMPONENTS> >* pC,
                         int rank , int last_rank
 #endif // _MPI
@@ -314,7 +316,9 @@ extern void DEEPS2D_Run(ofstream* f_stream,
                         FlowNode2D<double,NUM_COMPONENTS>*                 cudaSubmatrix,    
                         FlowNodeCore2D<double,NUM_COMPONENTS>*             cudaCoreSubmatrix,
                         UArray< XY<int> >*                                 cudaDimArray,
-                        int max_thread_block);
+                        int                                                num_mp,
+                        cudaStream_t*                                      streams,
+                        int                                                max_thread_block);
 
 extern __global__  void  
 cuda_DEEPS2D_Stage1(FlowNode2D<double,NUM_COMPONENTS>*     pLJ,
