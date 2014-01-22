@@ -34,11 +34,22 @@ UArray< XY<int> >*                                cudaDimArray            = NULL
 XY<int>*                                          cudaWallNodes           = NULL;
 FlowNode2D<double,NUM_COMPONENTS>*                cudaSubmatrix           = NULL;
 FlowNodeCore2D<double,NUM_COMPONENTS>*            cudaCoreSubmatrix       = NULL;
+cudaStream_t*                                     streams                 = NULL;
 
 double*  cudaHu;
 double   x0;
 double   dx;
 double   dy;
+
+int num_gpus = 0;   // number of CUDA GPUs
+int max_num_threads = 0;
+int max_thread_block = 0;
+size_t max_gpu_memsize = 0;
+int  num_mp  = 0;
+
+size_t task_size;
+cudaError_t cudaState;
+
 
 UArray< double >*                                WallNodesUw_2D = NULL;
 int                                              NumWallNodes;
@@ -88,12 +99,6 @@ int main( int argc, char **argv )
             }
         }
 //------------------------- CUDA version ------------------------------------
-        int num_gpus = 0;   // number of CUDA GPUs
-        int max_num_threads = 0;
-        int max_thread_block = 0;
-        size_t max_gpu_memsize = 0;
-        size_t task_size;
-        cudaError_t cudaState;
 
         printf("\n\n\t");
         cudaGetDeviceCount(&num_gpus);
@@ -115,9 +120,11 @@ int main( int argc, char **argv )
             max_num_threads  = dprop.maxThreadsPerBlock;
             printf("\t   Max threads per block: %d:\n", max_num_threads);
             max_thread_block = dprop.maxThreadsDim[0];
-            printf("\t   Max block size: %d:\n", max_thread_block);
+            printf("\t   Max blocks count: %d:\n", max_thread_block);
             max_gpu_memsize = dprop.memPitch;
             printf("\t   Max GPU memory size: %d\n", max_gpu_memsize);
+            printf("\t   Number of  multiprocessors: %d\n",dprop.multiProcessorCount);
+            printf("\t   Is kernels concurrent: %d\n",dprop.concurrentKernels);
             warp_size = dprop.warpSize;
             printf("\t   Warp size: %d\n",warp_size);
             printf("\t   Enable timeout: %i\n\n",dprop.kernelExecTimeoutEnabled);
@@ -128,6 +135,8 @@ int main( int argc, char **argv )
         
         // Init shared data
         InitSharedData(Data,&chemical_reactions);        
+        
+        num_mp = max(1,NumStreams);
                                                                                              
         task_size = MaxX*MaxY*(sizeof(FlowNode2D<double,NUM_COMPONENTS>)+sizeof(FlowNodeCore2D<double,NUM_COMPONENTS>))*1.1; // +10% task size
 
@@ -350,15 +359,35 @@ int main( int argc, char **argv )
             gettimeofday(&mark1,NULL);
             *o_stream << "OK\n" << "Time: " << (double)(mark1.tv_sec-mark2.tv_sec)+(double)(mark1.tv_usec-mark2.tv_usec)*1.e-6 << " sec." << endl; 
             
+           cudaStream_t *streams = (cudaStream_t *) malloc(num_mp * sizeof(cudaStream_t));
+
+           for (int i = 0; i < num_mp; i++) {
+               cudaState = cudaStreamCreate(&(streams[i]));
+               if(cudaState != cudaSuccess ) {
+                  *o_stream << "\nError create stream no: "<< i << endl;
+                  printf("%s\n", cudaGetErrorString( cudaGetLastError() ) );
+                  Exit_OpenHyperFLOW2D();
+               }
+           }
+
             DEEPS2D_Run((ofstream*)o_stream,        // ofstream* o_stream,                                 
                         J,                          // UMatrix2D< FlowNode2D< double,NUM_COMPONENTS > >*  
                         C,
                         cudaSubmatrix,              // FlowNode2D< double,NUM_COMPONENTS >*     
                         cudaCoreSubmatrix,          // FlowNodeCore2D< double,NUM_COMPONENTS >*  
                         cudaDimArray,               // UArray< XY<int> >*                                  
+                        num_mp,
+                        streams,
                         max_thread_block);          // int max_thread_block                            
             
-            
+            for (int i = 0; i < num_mp; i++)  {   
+             cudaState = cudaStreamDestroy(streams[i]);
+             if(cudaState != cudaSuccess ) {
+                *o_stream << "\nError create stream no: "<< i << endl;
+                printf("%s\n", cudaGetErrorString( cudaGetLastError() ) );
+                Exit_OpenHyperFLOW2D();
+             }
+            }
             cudaState = cudaFree(cudaSubmatrix);
             
             if(cudaState != cudaSuccess ) {

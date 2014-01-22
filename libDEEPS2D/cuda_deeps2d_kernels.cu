@@ -21,103 +21,21 @@
 
 #include "libDEEPS2D/deeps2d_core.hpp"
 
-__device__ int floatToOrderedInt( float floatVal ) {
-
-int intVal = __float_as_int( floatVal );
-
-return (intVal >= 0 ) ? intVal : intVal ^ 0x7FFFFFFF;
-
-}
-
-__device__  float orderedIntToFloat( int intVal ) {
-
-return __int_as_float( (intVal >= 0) ? intVal : intVal ^ 0x7FFFFFFF );
-
-}
-
-__device__ float fatomicMin(float *addr, float value) {
-
-        float old = *addr, assumed;
-
-        if(old >= value) return old;
-
-        do {
-                assumed = old;
-                old = atomicCAS((unsigned int*)addr, __float_as_int(assumed), __float_as_int(value));
-
-        }while(old!=assumed);
-
-        return old;
-}
-
-__device__ float fatomicMax(float *addr, float value) {
-
-        float old = *addr, assumed;
-
-        if(old >= value) return old;
-
-        do {
-                assumed = old;
-                old = atomicCAS((unsigned int*)addr, __float_as_int(assumed), __float_as_int(value));
-
-        }while(old!=assumed);
-
-        return old;
-}
-
 void CUDA_BRRIER(char* KernelName) {
     cudaError_t cudaState = cudaDeviceSynchronize();    
     if(cudaState != cudaSuccess) {
         printf("\nError in %s kernel...\n",KernelName);
-        if(cudaState == cudaErrorMemoryAllocation) {
-           printf("Memory allocation error.\n");
-        } else if(cudaState == cudaErrorLaunchTimeout ) {
-          printf("Timeout.\n");
-        }else if(cudaState == cudaErrorLaunchOutOfResources) {
-          printf("Resources temporary insufficient.\n");
-        }else if(cudaState ==  cudaErrorInvalidConfiguration ) {
-          printf("Resources insufficient for this device\n");
-        }else if(cudaState == cudaErrorInvalidValue) {
-          printf("Invalid value.\n");
-        }else if(cudaState == cudaErrorInvalidHostPointer ) {
-          printf("Invalid host pointer.\n");
-        }else if(cudaState == cudaErrorInvalidDevicePointer) {
-          printf("Invalid device pointer.\n");
-        }else if(cudaState == cudaErrorNotReady) {
-          printf("Device not ready.\n");
-        }else if(cudaState == cudaErrorLaunchFailure) {
-          printf("Device illegal address.\n");
-        } else {
-         printf("Unknown error.\n");
-        }
+        printf("%s\n", cudaGetErrorString( cudaGetLastError() ) );
         Exit_OpenHyperFLOW2D();
     }
 }
 
 void CopyDeviceToDevice(void* src, void* dst, size_t length) {
-    //printf("CopyDeviceToDevice: src=%x dst=%x length=%x\n",src,dst,length);
     cudaError_t cudaState = cudaMemcpyAsync(dst, src, length,cudaMemcpyDeviceToDevice);
     if(cudaState != cudaSuccess) {
      printf("\nError copy device to device...\n");
-     if(cudaState == cudaErrorMemoryAllocation) {
-        printf("Memory allocation error.\n");
-     } else if(cudaState == cudaErrorLaunchTimeout ) {
-       printf("Timeout.\n");
-     }else if(cudaState == cudaErrorLaunchOutOfResources) {
-       printf("Resources temporary insufficient.\n");
-     }else if(cudaState ==  cudaErrorInvalidConfiguration ) {
-       printf("Resources insufficient for this device\n");
-     }else if(cudaState == cudaErrorInvalidValue) {
-       printf("Invalid value.\n");
-     }else if(cudaState == cudaErrorInvalidHostPointer ) {
-       printf("Invalid host pointer.\n");
-     }else if(cudaState == cudaErrorInvalidDevicePointer) {
-       printf("Invalid device pointer.\n");
-     }else if(cudaState == cudaErrorNotReady) {
-       printf("Device not ready.\n");
-     } else {
-      printf("Unknown error.\n");
-     }
+     printf("%s\n", cudaGetErrorString( cudaGetLastError() ) );
+
        Exit_OpenHyperFLOW2D();
     }
 }
@@ -126,25 +44,7 @@ void CopyHostToDevice(void* src, void* dst, size_t length) {
     cudaError_t cudaState = cudaMemcpyAsync(dst, src, length,cudaMemcpyHostToDevice);
     if(cudaState != cudaSuccess) {
      printf("\nError copy host to device...\n");
-     if(cudaState == cudaErrorMemoryAllocation) {
-        printf("Memory allocation error.\n");
-     } else if(cudaState == cudaErrorLaunchTimeout ) {
-       printf("Timeout.\n");
-     }else if(cudaState == cudaErrorLaunchOutOfResources) {
-       printf("Resources temporary insufficient.\n");
-     }else if(cudaState ==  cudaErrorInvalidConfiguration ) {
-       printf("Resources insufficient for this device\n");
-     }else if(cudaState == cudaErrorInvalidValue) {
-       printf("Invalid value.\n");
-     }else if(cudaState == cudaErrorInvalidHostPointer ) {
-       printf("Invalid host pointer.\n");
-     }else if(cudaState == cudaErrorInvalidDevicePointer) {
-       printf("Invalid device pointer.\n");
-     }else if(cudaState == cudaErrorNotReady) {
-       printf("Device not ready.\n");
-     } else {
-      printf("Unknown error.\n");
-     }
+     printf("%s\n", cudaGetErrorString( cudaGetLastError() ) );
        Exit_OpenHyperFLOW2D();
     }
 }
@@ -153,25 +53,7 @@ void CopyDeviceToHost(void* src, void* dst, size_t length) {
     cudaError_t cudaState = cudaMemcpyAsync(dst, src, length,cudaMemcpyDeviceToHost);
     if(cudaState != cudaSuccess) {
      printf("\nError copy device to host...\n");
-     if(cudaState == cudaErrorMemoryAllocation) {
-        printf("Memory allocation error.\n");
-     } else if(cudaState == cudaErrorLaunchTimeout ) {
-       printf("Timeout.\n");
-     }else if(cudaState == cudaErrorLaunchOutOfResources) {
-       printf("Resources temporary insufficient.\n");
-     }else if(cudaState ==  cudaErrorInvalidConfiguration ) {
-       printf("Resources insufficient for this device\n");
-     }else if(cudaState == cudaErrorInvalidValue) {
-       printf("Invalid value.\n");
-     }else if(cudaState == cudaErrorInvalidHostPointer ) {
-       printf("Invalid host pointer.\n");
-     }else if(cudaState == cudaErrorInvalidDevicePointer) {
-       printf("Invalid device pointer.\n");
-     }else if(cudaState == cudaErrorNotReady) {
-       printf("Device not ready.\n");
-     } else {
-      printf("Unknown error.\n");
-     }
+     printf("%s\n", cudaGetErrorString( cudaGetLastError() ) );
        Exit_OpenHyperFLOW2D();
     }
 }
