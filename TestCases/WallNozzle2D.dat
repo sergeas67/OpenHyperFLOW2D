@@ -17,6 +17,7 @@
 <data/isOutHeatFluxY=0>
 ; is p* out ?
 <data/is_p_asterisk_out=0>
+<data/NumStreams=4>
 ;--------------------------------------------------;
 ; General parameters                               ;
 ;--------------------------------------------------;
@@ -57,8 +58,8 @@
 ; CFL scenario
 <table=CFL_Scenario/3>
 0       0.01
-1000    0.1
-200000  0.1
+1000    0.05
+200000  0.05
 <endtable>
 
 ; Base blending factor
@@ -88,7 +89,7 @@
 ; 1 -  linear BFF with relaxation       beta = (beta + beta0^2/(beta0 + | max_local_residual |))/2
 ; 4 -  square root BFF                  beta = beta0^2/(beta0 + sqrt(| max_local_residual |))
 ; 5 -  square root  BFF with relaxation beta = (beta + beta0^2/(beta0 + sqrt(| max_local_residual |)))/2
-<data/BFF=5>
+<data/BFF=4>
 ;-------------------------------------------------
 ; Turbulence models
 ;-------------------------------------------------
@@ -119,7 +120,7 @@
 ; 7 - Launder and Sharma, with Yap-correction k-eps model
 ; 8 - RNG k-eps model
 ; 9 - Spalart-Allmares model
-<data/TurbExtModel=5>
+<data/TurbExtModel=9>
 
 ;--------------------------------------------------
 ; Solid body surface temperature Ts0, K
