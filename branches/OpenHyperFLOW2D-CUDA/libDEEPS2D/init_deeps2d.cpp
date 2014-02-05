@@ -41,13 +41,6 @@ void InitSharedData(InputData* _data,
                 Abort_OpenHyperFLOW2D();
             }
             
-            NumStreams = _data->GetIntVal((char*)"NumStreams");
-
-            if ( _data->GetDataError()==-1 ) {
-                Abort_OpenHyperFLOW2D();
-            }
-            
-            
             MaxX      = Data->GetIntVal((char*)"MaxX");          // X dimension of computation area
             
             if ( Data->GetDataError()==-1 ) {

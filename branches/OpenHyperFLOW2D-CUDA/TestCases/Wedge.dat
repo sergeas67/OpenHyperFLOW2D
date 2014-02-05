@@ -17,7 +17,7 @@
 <data/isOutHeatFluxY=0>
 ; is p* out ?
 <data/is_p_asterisk_out=0>
-
+<data/NumStreams=4>
 ;--------------------------------------------------;
 ; General parameters                               ;
 ;--------------------------------------------------;
@@ -57,10 +57,10 @@
 
 ; CFL scenario
 <table=CFL_Scenario/4>
-0       0.1
-1000    0.1
-20000   0.1
-200000  0.1
+0       0.01
+1000    0.05
+20000   0.05
+200000  0.08
 <endtable>
 
 ; Base blending factor

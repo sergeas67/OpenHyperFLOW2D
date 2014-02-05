@@ -131,8 +131,8 @@ AreaState GetAreaState() {
  char* GetAreaName() {return AreaName;}
 };
 
-void Abort_OpenHyperFLOW2D();
-void Exit_OpenHyperFLOW2D();
+void Abort_OpenHyperFLOW2D(int num_cuda_dev=1);
+void Exit_OpenHyperFLOW2D(int num_cuda_dev=1);
 
 // <------------- 2D --------------->           
 #endif // _hyper_flow_area_hpp_

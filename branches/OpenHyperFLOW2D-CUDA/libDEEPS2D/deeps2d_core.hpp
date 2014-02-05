@@ -21,6 +21,12 @@
 #define _PARALLEL_ONLY
 #endif //OPENMP
 
+#ifdef _CUDA_
+#include <cuda.h>
+#include <cuda_runtime.h>
+#include <cuda_runtime_api.h>
+#endif //_CUDA_
+
 #ifdef _NO_MMAP_SHARED_
 #ifndef _WRITE_LARGE_FILE_
 #define _WRITE_LARGE_FILE_
@@ -232,7 +238,10 @@ extern ofstream*                             pOutputData;     // output data str
 //extern double                                MemFullness;
 extern unsigned int*                         dt_min_host;
 extern unsigned int*                         dt_min_device;
+extern UArray< unsigned int* >*              dt_min_host_Array;
+extern UArray< unsigned int* >*              dt_min_device_Array;
 extern double*                               cudaHu;  
+extern UArray< double* >*                    cudaHuArray;  
 extern UArray< FlowNode2D<double,NUM_COMPONENTS>* >*     cudaArraySubmatrix;
 extern UArray< FlowNodeCore2D<double,NUM_COMPONENTS>* >* cudaArrayCoreSubmatrix ;
 extern UArray< XY<int> >*                                cudaDimArray;
@@ -240,18 +249,20 @@ extern XY<int>*                                          cudaWallNodes;
 extern FlowNode2D<double,NUM_COMPONENTS>*                cudaSubmatrix;
 extern FlowNodeCore2D<double,NUM_COMPONENTS>*            cudaCoreSubmatrix;
 extern int                                               warp_size;
-extern int                                               NumStreams;
 extern int                                               max_num_threads;
+extern int                                               num_gpus;  // number of CUDA GPUs
 
 // External functions
 
-//extern int   floatToOrderedInt(float);
-//extern float orderedIntToFloat(int);
+#ifdef _CUDA_
+extern void                                  CopyDeviceToHost(void* src, void* dst, size_t length, cudaStream_t stream=0);
+extern void                                  CopyHostToDevice(void* src, void* dst, size_t length, cudaStream_t stream=0);
+extern void                                  CopyDeviceToDevice(void* src, void* dst, size_t length, cudaStream_t stream=0);
+extern void                                  CopyDeviceToDeviceP2P(void* src, int src_dev,void* dst, int dst_dev,size_t length, cudaStream_t stream=0);
+extern void                                  SetP2PAccess(int dev1, int dev2);
+extern void                                  DisableP2PAccess(int dev1, int dev2);
 
-extern void CopyDeviceToHost(void* src, void* dst, size_t length);
-extern void CopyHostToDevice(void* src, void* dst, size_t length);
-extern void CopyDeviceToDevice(void* src, void* dst, size_t length);
-
+#endif //_CUDA_ 
 extern const char*                           PrintTurbCond(int TM);
 extern void*                                 InitDEEPS2D(void*);
 extern void                                  SaveData2D(ofstream* OutputData, int);
@@ -313,17 +324,18 @@ extern void DEEPS2D_Run(ofstream* o_stream
 extern void DEEPS2D_Run(ofstream* f_stream, 
                         UMatrix2D<FlowNode2D<double,NUM_COMPONENTS> >*     pJ,
                         UMatrix2D<FlowNodeCore2D<double,NUM_COMPONENTS> >* pC,
-                        FlowNode2D<double,NUM_COMPONENTS>*                 cudaSubmatrix,    
-                        FlowNodeCore2D<double,NUM_COMPONENTS>*             cudaCoreSubmatrix,
+                        UArray< FlowNode2D<double,NUM_COMPONENTS>* >*      cudaSubmatrix,
+                        UArray< FlowNodeCore2D<double,NUM_COMPONENTS>* >*  cudaCoreSubmatrix,
                         UArray< XY<int> >*                                 cudaDimArray,
                         int                                                num_mp,
-                        cudaStream_t*                                      streams,
+                        cudaStream_t*                                      cuda_streams,
+                        cudaEvent_t*                                       cuda_events,
                         int                                                max_thread_block);
 
 extern __global__  void  
 cuda_DEEPS2D_Stage1(FlowNode2D<double,NUM_COMPONENTS>*     pLJ,
                     FlowNodeCore2D<double,NUM_COMPONENTS>* pLC,
-                    int MAX_X, int MAX_Y,// int X0, 
+                    int MAX_X, int MAX_Y, 
                     unsigned long r_limit,
                     unsigned long l_limit,
                     double dxx, double dyy,
@@ -334,7 +346,7 @@ cuda_DEEPS2D_Stage1(FlowNode2D<double,NUM_COMPONENTS>*     pLJ,
 extern __global__  void 
 cuda_DEEPS2D_Stage2(FlowNode2D<double,NUM_COMPONENTS>*     pLJ,
                     FlowNodeCore2D<double,NUM_COMPONENTS>* pLC,
-                    int ii, int MAX_X, int MAX_Y, //int X0, 
+                    int MAX_X, int MAX_Y,
                     unsigned long r_limit,
                     unsigned long l_limit,
                     double beta_init, double  beta0, 
@@ -388,5 +400,5 @@ cuda_Recalc_y_plus(FlowNode2D<double,NUM_COMPONENTS>* pJ2D,
                    double _dy,
                    int max_y);
 
-extern void CUDA_BRRIER(char* KernelName);
+extern void CUDA_BARRIER(char* KernelName);
 #endif // _CUDA_

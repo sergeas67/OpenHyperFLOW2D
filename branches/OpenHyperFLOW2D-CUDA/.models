@@ -14,3 +14,6 @@ endif
 
 # Use GPU device mmaping
 #MODELS += -D_DEVICE_MMAP_
+
+# Use P2P access for multiGPU configs
+#MODELS += -D_P2P_ACCESS_

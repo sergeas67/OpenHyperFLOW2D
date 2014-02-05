@@ -13,7 +13,7 @@
 #include "libExcept/except.hpp"
 #include "libOpenHyperFLOW2D/hyper_flow_area.hpp"
 // <------------- 2D --------------->
-void Abort_OpenHyperFLOW2D() {
+void Abort_OpenHyperFLOW2D(int num_cuda_dev) {
 #ifdef _MPI
     printf("\nTask[%d] aborted.\n",MPI::COMM_WORLD.Get_rank());
     MPI::COMM_WORLD.Abort(0);
@@ -21,15 +21,25 @@ void Abort_OpenHyperFLOW2D() {
 #endif // _MPI
 
 #ifdef _CUDA_
-    cudaError_t cudaState = cudaDeviceReset();
-    if(cudaState != cudaSuccess ) {                                                                                  
-       *o_stream << "\nError reset CUDA device"<< endl;
+    for(int i=0; i< num_cuda_dev; i++) {
+        
+        cudaError_t cudaState = cudaSetDevice(i);
+
+        if(cudaState != cudaSuccess ) {
+           *o_stream << "\nError set CUDA device no "<< i << endl;
+        }
+
+        cudaState = cudaDeviceReset();
+
+        if(cudaState != cudaSuccess ) {
+           *o_stream << "\nError reset CUDA device"<< endl;
+        }
     }
-#endif //_CUDA_ 
+#endif //_CUDA_
     exit(0);
 }
 
-void Exit_OpenHyperFLOW2D() {
+void Exit_OpenHyperFLOW2D(int num_cuda_dev) {
 #ifdef _MPI
     printf("\nTask[%d] stopped.\n",MPI::COMM_WORLD.Get_rank());
     //MPI::COMM_WORLD.Abort(0);
@@ -37,11 +47,21 @@ void Exit_OpenHyperFLOW2D() {
 #endif // _MPI
 
 #ifdef _CUDA_
-    cudaError_t cudaState = cudaDeviceReset();
-    if(cudaState != cudaSuccess ) {                                                                                  
-       *o_stream << "\nError reset CUDA device"<< endl;
+    for(int i=0; i< num_cuda_dev; i++) {
+
+        cudaError_t cudaState = cudaSetDevice(i);
+
+        if(cudaState != cudaSuccess ) {
+           *o_stream << "\nError set CUDA device no "<< i << endl;
+        }
+
+        cudaState = cudaDeviceReset();
+
+        if(cudaState != cudaSuccess ) {
+           *o_stream << "\nError reset CUDA device"<< endl;
+        }
     }
-#endif //_CUDA_ 
+#endif //_CUDA_
     exit(0);
 };
 // Area constructor
