@@ -21,7 +21,7 @@ Basic features
 		* van Driest;
 		* Escudier;
 		* Klebanoff;
-  	* Smagorinsky-Lilly;
+		* Smagorinsky-Lilly;
 	    + One-equation models:
 		* Spalart-Allmaras model;
 	    + Two-equations models:
