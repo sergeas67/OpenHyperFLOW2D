@@ -15,12 +15,13 @@ Basic features
 	- multicomponent flow (4 base components)(-);
 	- temperature dependence properties of components(-);
 	- chemical reactions with infinity speed (Zeldovich model)(-);
-	- turbulence (RANS models):
+	- turbulence (RANS/URANS models):
 	    + Zero-equation models:
 		* Prandtl;
 		* van Driest;
 		* Escudier;
 		* Klebanoff;
+  	* Smagorinsky-Lilly;
 	    + One-equation models:
 		* Spalart-Allmaras model;
 	    + Two-equations models:
