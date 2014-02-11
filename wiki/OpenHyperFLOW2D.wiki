@@ -12,12 +12,13 @@
  * multicomponent flow (4 base components);
  * temperature dependence properties of components;
  * chemical reactions with infinity speed (_Zeldovich_ model);
- * turbulence (RANS models):
+ * turbulence (RANS/URANS models):
    * Zero-equation models:
      * _Prandtl_;
      * _van Driest_;
      * _Escudier_;
      * _Klebanoff_;
+     *_Smagorinsky-Lilly_;
    * One-equation models:
      * _Spalart-Allmaras_ model;
    * Two-equations models:
