@@ -18,7 +18,7 @@
      * _van Driest_;
      * _Escudier_;
      * _Klebanoff_;
-     *_Smagorinsky-Lilly_;
+     * _Smagorinsky-Lilly_;
    * One-equation models:
      * _Spalart-Allmaras_ model;
    * Two-equations models:
