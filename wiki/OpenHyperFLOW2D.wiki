@@ -42,4 +42,4 @@
 
 *OpenHyperFLOW2D* it is open source clone of *HyperFLOW2D* (in-house CFD code) with reduced functionality, and can be used without restriction for educational and academic purpose. Reference at the publication is obligatory.
 <hr>
- <sup>{{{*}}}</sup> - Experimental *_OpenHyperFLOW2D-CUDA_* branch. Some 'trunk' features not available
+ <sup>{{{*}}}</sup> - Experimental *_OpenHyperFLOW2D-CUDA_* branch.
