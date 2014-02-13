@@ -118,6 +118,8 @@ Step:
 	bin/OpenHyperFLOW2D.sh TestCases/Step ${NUM_NODES}
 FlameHolder:
 	bin/OpenHyperFLOW2D.sh TestCases/FlameHolder ${NUM_NODES}
+Cyl2D:
+	bin/OpenHyperFLOW2D.sh TestCases/Cyl2D ${NUM_NODES}
 	
 #
 $(TARGET_2D): local  Utl libexcept libflow objData libhyperflow libdeeps2d liboutcfd $(OBJECTS_2D)
@@ -157,6 +159,6 @@ debug:
 ifdef MPI
 	 /opt/intel/impi/4.1.0/bin64/mpiexec -n 32 ./ddd-mpi.sh ./$(TARGET_2D)  $(DATAFILE)
 else
-	 /usr/local/cuda-5.5/binCuda-gdb ./$(TARGET_2D)  $(DATAFILE)
+	 optirun --no-xorg  /usr/local/cuda-5.5/bin/cuda-gdb ./$(TARGET_2D)  $(DATAFILE)
 endif
 
