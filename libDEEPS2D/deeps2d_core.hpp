@@ -285,8 +285,13 @@ extern int SetTurbulenceModel(FlowNode2D<double,NUM_COMPONENTS>* pJ);
 extern void DataSnapshot(char* filename, WRITE_MODE ioMode=WM_REWRITE);
 extern void CalcHeatOnWallSources(UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >* F, double dx, double dr, double dt, int rank, int last_rank);
 extern UArray< XY<int> >* ScanArea(ofstream* f_str,ComputationalMatrix2D* pJ ,int isPrint);
-extern int CalcChemicalReactions(FlowNode2D<double,NUM_COMPONENTS>* CalcNode,
-                                 ChemicalReactionsModel cr_model, void* CRM_data);
+
+
+#ifdef _CUDA_
+ __host__ __device__
+#endif //_CUDA_ 
+int CalcChemicalReactions(FlowNode2D<double,NUM_COMPONENTS>* CalcNode,
+                          ChemicalReactionsModel cr_model, void* CRM_data);
 
 void RecalcWallFrictionVelocityArray2D(ComputationalMatrix2D* pJ,
                                        UArray<double>* WallFrictionVelocityArray2D,
@@ -321,12 +326,16 @@ extern void DEEPS2D_Run(ofstream* o_stream
                         );
 
 #ifdef _CUDA_
+extern  __host__ __device__ int LoadTable2GPU(Table* Src, Table*& Dst, int i_dev);
+
+
 extern void DEEPS2D_Run(ofstream* f_stream, 
                         UMatrix2D<FlowNode2D<double,NUM_COMPONENTS> >*     pJ,
                         UMatrix2D<FlowNodeCore2D<double,NUM_COMPONENTS> >* pC,
                         UArray< FlowNode2D<double,NUM_COMPONENTS>* >*      cudaSubmatrix,
                         UArray< FlowNodeCore2D<double,NUM_COMPONENTS>* >*  cudaCoreSubmatrix,
                         UArray< XY<int> >*                                 cudaDimArray,
+                        UArray< ChemicalReactionsModelData2D* >*           cudaCRM2D,
                         int                                                num_mp,
                         cudaStream_t*                                      cuda_streams,
                         cudaEvent_t*                                       cuda_events,
@@ -335,6 +344,8 @@ extern void DEEPS2D_Run(ofstream* f_stream,
 extern __global__  void  
 cuda_DEEPS2D_Stage1(FlowNode2D<double,NUM_COMPONENTS>*     pLJ,
                     FlowNodeCore2D<double,NUM_COMPONENTS>* pLC,
+                    ChemicalReactionsModelData2D* pCRMD,
+                    unsigned long int index_limit,
                     int MAX_X, int MAX_Y, 
                     unsigned long r_limit,
                     unsigned long l_limit,
@@ -346,12 +357,13 @@ cuda_DEEPS2D_Stage1(FlowNode2D<double,NUM_COMPONENTS>*     pLJ,
 extern __global__  void 
 cuda_DEEPS2D_Stage2(FlowNode2D<double,NUM_COMPONENTS>*     pLJ,
                     FlowNodeCore2D<double,NUM_COMPONENTS>* pLC,
+                    unsigned long int index_limit,
                     int MAX_X, int MAX_Y,
                     unsigned long r_limit,
                     unsigned long l_limit,
                     double beta_init, double  beta0, 
                     int b_FF, double CFL0,
-                    ChemicalReactionsModelData2D* pCRMD,
+                    //ChemicalReactionsModelData2D* pCRMD,
                     int noTurbCond,
                     double SigW, double SigF, double dx_1, double dy_1, double delta_bl,
                     FlowType _FT, int Num_Eq,

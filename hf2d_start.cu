@@ -33,10 +33,14 @@ UArray< FlowNode2D<double,NUM_COMPONENTS>* >*     cudaArraySubmatrix      = NULL
 UArray< FlowNodeCore2D<double,NUM_COMPONENTS>* >* cudaArrayCoreSubmatrix  = NULL;
 UArray< XY<int>  >*                               cudaDimArray            = NULL;
 UArray< XY<int>* >*                               cudaWallNodesArray      = NULL;
+UArray< ChemicalReactionsModelData2D* >*          cudaCRM2DArray          = NULL;
 
 XY<int>*                                          cudaWallNodes           = NULL;
 FlowNode2D<double,NUM_COMPONENTS>*                cudaSubmatrix           = NULL;
 FlowNodeCore2D<double,NUM_COMPONENTS>*            cudaCoreSubmatrix       = NULL;
+
+ChemicalReactionsModelData2D*                     cudaCRM2D               = NULL;
+
 
 double*           cudaHu;
 UArray<double*>*  cudaHuArray;
@@ -58,8 +62,9 @@ int                                              NumWallNodes;
 
 int main( int argc, char **argv )
 {
-    const  float   ver=_VER;
-    static char    inFile[256];
+    const  float                   ver=_VER;
+    char                           inFile[256];
+    ChemicalReactionsModelData2D   TmpCRM2D;
 
     FlowNode2D<double,NUM_COMPONENTS>* TmpMatrixPtr;
    // FlowNodeCore2D<double,NUM_COMPONENTS>* TmpCoreMatrixPtr;
@@ -143,11 +148,7 @@ int main( int argc, char **argv )
         dt_min_host_Array       =  new UArray<unsigned int*>();   
         dt_min_device_Array     =  new UArray<unsigned int*>();
         cudaWallNodesArray      =  new UArray< XY<int>* >();
-
-        // Load components properties
-        // TODO
-
-
+        cudaCRM2DArray          =  new UArray< ChemicalReactionsModelData2D* >();          
 
         // Init solver (run on host)
         InitDEEPS2D((void*)o_stream);
@@ -175,6 +176,46 @@ int main( int argc, char **argv )
               printf("%s\n", cudaGetErrorString( cudaGetLastError() ) );
               Exit_OpenHyperFLOW2D(num_gpus);
            }
+           
+           // Load components properties
+           LoadTable2GPU(chemical_reactions.Cp_OX,   TmpCRM2D.Cp_OX,   i);
+           LoadTable2GPU(chemical_reactions.Cp_Fuel, TmpCRM2D.Cp_Fuel, i);
+           LoadTable2GPU(chemical_reactions.Cp_cp,   TmpCRM2D.Cp_cp,   i);
+           LoadTable2GPU(chemical_reactions.Cp_air,  TmpCRM2D.Cp_air,  i);
+                                                     
+           LoadTable2GPU(chemical_reactions.lam_air, TmpCRM2D.lam_air, i);
+           LoadTable2GPU(chemical_reactions.lam_cp,  TmpCRM2D.lam_cp,  i);
+           LoadTable2GPU(chemical_reactions.lam_Fuel,TmpCRM2D.lam_Fuel,i);
+           LoadTable2GPU(chemical_reactions.lam_OX,  TmpCRM2D.lam_OX,  i);
+                                                     
+           LoadTable2GPU(chemical_reactions.mu_air,  TmpCRM2D.mu_air,  i);
+           LoadTable2GPU(chemical_reactions.mu_cp,   TmpCRM2D.mu_cp,   i);
+           LoadTable2GPU(chemical_reactions.mu_Fuel, TmpCRM2D.mu_Fuel, i);
+           LoadTable2GPU(chemical_reactions.mu_OX,   TmpCRM2D.mu_OX,   i);
+
+           TmpCRM2D.H_air  = chemical_reactions.H_air;
+           TmpCRM2D.H_cp   = chemical_reactions.H_cp;
+           TmpCRM2D.H_Fuel = chemical_reactions.H_Fuel;
+           TmpCRM2D.H_OX   = chemical_reactions.H_OX;
+           TmpCRM2D.H_OX   = chemical_reactions.H_OX;
+           
+           TmpCRM2D.R_air  = chemical_reactions.R_air;
+           TmpCRM2D.R_cp   = chemical_reactions.R_cp;
+           TmpCRM2D.R_Fuel = chemical_reactions.R_Fuel;
+           TmpCRM2D.R_OX   = chemical_reactions.R_OX;
+
+           TmpCRM2D.K0     = chemical_reactions.K0;
+           TmpCRM2D.Tf     = chemical_reactions.Tf;
+           TmpCRM2D.gamma  = chemical_reactions.gamma;
+           
+           if(cudaMalloc( (void**)&cudaCRM2D, sizeof(ChemicalReactionsModelData2D) ) == cudaErrorMemoryAllocation) {
+              *o_stream << "\nError allocate GPU memory for CRM2D on device no:" << i << endl;
+              Exit_OpenHyperFLOW2D(num_gpus);
+           }
+           
+           CopyHostToDevice(&TmpCRM2D,cudaCRM2D,sizeof(ChemicalReactionsModelData2D));
+           
+           cudaCRM2DArray->AddElement(&cudaCRM2D);
 
        }
 
@@ -202,7 +243,7 @@ int main( int argc, char **argv )
             cudaHuArray->AddElement(&cudaHu);
 
 #ifdef _DEVICE_MMAP_
-            cudaState = cudaHostAlloc( (void**)&dt_min_host, sizeof(unsigned int), cudaHostAllocMapped ); // | cudaHostAllocWriteCombined  
+            cudaState = cudaHostAlloc( (void**)&dt_min_host, sizeof(unsigned int), cudaHostAllocMapped ); // | cudaHostAllocWriteCombined  Src->n
 
             dt_min_host_Array->AddElement(&dt_min_host);  
 
@@ -431,6 +472,7 @@ int main( int argc, char **argv )
                    cudaArraySubmatrix,         // UArray< FlowNode2D< double,NUM_COMPONENTS >* >*
                    cudaArrayCoreSubmatrix,     // UArray< FlowNodeCore2D< double,NUM_COMPONENTS >* >*
                    cudaDimArray,               // UArray< XY<int> >*
+                   cudaCRM2DArray,
                    num_gpus,
                    cuda_streams,
                    cuda_events,

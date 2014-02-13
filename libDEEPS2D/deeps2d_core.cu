@@ -80,7 +80,7 @@ int     isOutHeatFluxY;
 int     is_p_asterisk_out;
 
 ChemicalReactionsModelData2D chemical_reactions;
-BlendingFactorFunction     bFF;
+BlendingFactorFunction       bFF;
 
 double* Y=NULL;
 double  Cp=0.;
@@ -657,7 +657,8 @@ void DEEPS2D_Run(ofstream* f_stream,
                  UArray< FlowNode2D<double,NUM_COMPONENTS>* >*      cudaSubmatrixArray,    
                  UArray< FlowNodeCore2D<double,NUM_COMPONENTS>* >*  cudaCoreSubmatrixArray,
                  UArray< XY<int> >*                                 cudaDimArray,
-                 int num_mp,
+                 UArray< ChemicalReactionsModelData2D* >*           cudaCRM2D,
+                 int num_mp,                                                  
                  cudaStream_t *cuda_streams,
                  cudaEvent_t  *cuda_events,
                  int max_thread_block) {
@@ -822,6 +823,8 @@ void DEEPS2D_Run(ofstream* f_stream,
                        dtdy = dt/dy;
 
                        cuda_DEEPS2D_Stage1<<<num_cuda_blocks,num_cuda_threads, 0, cuda_streams[ii]>>>(cudaJ,cudaC,
+                                                                                                      cudaCRM2D->GetElement(ii),
+                                                                                                      max_X*max_Y,
                                                                                                       max_X,max_Y,
                                                                                                       iX0 + max_X - r_Overlap,
                                                                                                       iX0 + l_Overlap,
@@ -874,12 +877,14 @@ void DEEPS2D_Run(ofstream* f_stream,
                         dt_min_device = dt_min_device_Array->GetElement(ii);
 
                         cuda_DEEPS2D_Stage2<<<num_cuda_blocks,num_cuda_threads, 0, cuda_streams[ii]>>>(cudaJ,cudaC,
+                                                                                                       max_X*max_Y,
                                                                                                        max_X,max_Y,
                                                                                                        iX0 + max_X - r_Overlap,
                                                                                                        iX0 + l_Overlap,
                                                                                                        beta_Scenario->GetVal(iter+last_iter),beta0,
                                                                                                        bFF, CFL_Scenario->GetVal(iter+last_iter),
-                                                                                                       NULL,noTurbCond,
+                                                                                                       //cudaCRM2D->GetElement(ii),
+                                                                                                       noTurbCond,
                                                                                                        SigW,SigF,dx_1,dy_1,delta_bl,
                                                                                                        FlowNode2D<double,NUM_COMPONENTS>::FT,
                                                                                                        FlowNode2D<double,NUM_COMPONENTS>::NumEq-ConvertTurbMod(TurbMod),
@@ -2448,7 +2453,7 @@ inline  void CalcHeatOnWallSources(UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> 
 
 
 #ifdef _CUDA_
- __host__ __device__
+ __host__ __device__ 
 #endif //_CUDA_ 
 inline int SetTurbulenceModel(FlowNode2D<double,NUM_COMPONENTS>* pJ) {
 int      AddEq = 2;
@@ -2464,91 +2469,6 @@ int      AddEq = 2;
  return AddEq;
 }
 
-#ifdef _CUDA_
- __host__ __device__
-#endif //_CUDA_ 
-inline int CalcChemicalReactions(FlowNode2D<double,NUM_COMPONENTS>* CalcNode,
-                                 ChemicalReactionsModel cr_model, void* CRM_data) {
-    ChemicalReactionsModelData2D* model_data = (ChemicalReactionsModelData2D*)CRM_data;
-    double   Y0,Yfu,Yox,Ycp,Yair;
-
-    Yfu  = CalcNode->S[i2d_Yfu]/CalcNode->S[0]; // Fuel
-    Yox  = CalcNode->S[i2d_Yox]/CalcNode->S[0]; // OX
-    Ycp  = CalcNode->S[i2d_Ycp]/CalcNode->S[0]; // cp
-    Yair = 1. - (Yfu+Yox+Ycp);                  // air
-
-    if(cr_model==CRM_ZELDOVICH) {
-//--- chemical reactions (Zeldovich model) -------------------------------------------------->
-      if ( !CalcNode->isCond2D(CT_Y_CONST_2D) ) {
-          Y0   = 1./(Yfu+Yox+Ycp+Yair);
-          Yfu  = Yfu*Y0;
-          Yox  = Yox*Y0;
-          Ycp  = Ycp*Y0;
-
-          if ( CalcNode->Tg > CalcNode->Tf ) {
-              if ( Yox > Yfu*model_data->K0 ) { // Yo2 > Yfuel
-                   Yox = Yox - Yfu*model_data->K0;
-                   Yfu = 0.;
-                   Ycp = 1.-Yox-Yair;
-              } else {                          // Yo2 < Yfuel
-                   Yfu = Yfu - Yox/model_data->K0;
-                   Yox = 0.;
-                   Ycp = 1. -Yfu-Yair;
-              }
-           }
-        }
-//--- chemical reactions (Zeldovich model) -------------------------------------------------->
-    }
-
-    CalcNode->R   = model_data->R_Fuel*Yfu+
-                            model_data->R_OX*Yox+
-                            model_data->R_cp*Ycp+
-                            model_data->R_air*Yair;
-    CalcNode->mu  = model_data->mu_Fuel->GetVal(CalcNode->Tg)*Yfu+
-                            model_data->mu_OX->GetVal(CalcNode->Tg)*Yox+
-                            model_data->mu_cp->GetVal(CalcNode->Tg)*Ycp+
-                            model_data->mu_air->GetVal(CalcNode->Tg)*Yair;
-    CalcNode->CP  = model_data->Cp_Fuel->GetVal(CalcNode->Tg)*Yfu+
-                            model_data->Cp_OX->GetVal(CalcNode->Tg)*Yox+
-                            model_data->Cp_cp->GetVal(CalcNode->Tg)*Ycp+
-                            model_data->Cp_air->GetVal(CalcNode->Tg)*Yair;
-    CalcNode->lam = model_data->lam_Fuel->GetVal(CalcNode->Tg)*Yfu+
-                            model_data->lam_OX->GetVal(CalcNode->Tg)*Yox+
-                            model_data->lam_cp->GetVal(CalcNode->Tg)*Ycp+
-                            model_data->lam_air->GetVal(CalcNode->Tg)*Yair;
-
-    if ( Yair<1.e-5 ) {
-         Yair =0.;
-      }
-    if ( Ycp<1.e-8 ) {
-         Ycp =0.;
-      }
-    if ( Yox<1.e-8 ) {
-         Yox =0.;
-      }
-    if ( Yfu<1.e-8 ) {
-         Yfu =0.;
-      }
-
-     Y0   = 1./(Yfu+Yox+Ycp+Yair);
-     Yfu  = Yfu*Y0;
-     Yox  = Yox*Y0;
-     Ycp  = Ycp*Y0;
-     Yair = Yair*Y0;
-
-
-    CalcNode->Y[0] = Yfu;
-    CalcNode->Y[1] = Yox;
-    CalcNode->Y[2] = Ycp;
-    CalcNode->Y[3] = Yair;
-
-    if ( !CalcNode->isCond2D(CT_Y_CONST_2D) ) {
-          CalcNode->S[i2d_Yfu] = fabs(Yfu*CalcNode->S[0]);
-          CalcNode->S[i2d_Yox] = fabs(Yox*CalcNode->S[0]);
-          CalcNode->S[i2d_Ycp] = fabs(Ycp*CalcNode->S[0]);
-     }
- return 1;
-}
 
 
 void SetMinDistanceToWall2D(ComputationalMatrix2D* pJ2D,
