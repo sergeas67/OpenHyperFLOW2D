@@ -10,11 +10,11 @@ compressible multicomponent sub/trans/supersonic reacting gas flows.
 Basic features
 ==============
 
-	- BC of I, II and III(-) type for any of the dependent variables;
+	- BC of I, II and III type for any of the dependent variables;
 	- no-slip BC on walls;
-	- multicomponent flow (4 base components)(-);
+	- multicomponent flow (4 base components);
 	- temperature dependence properties of components(-);
-	- chemical reactions with infinity speed (Zeldovich model)(-);
+	- chemical reactions with infinity speed (Zeldovich model);
 	- turbulence (RANS/URANS models):
 	    + Zero-equation models:
 		* Prandtl;
@@ -44,4 +44,3 @@ with reduced functionality, and can be used without restriction for educational
 and academic purpose. Reference at the publication is obligatory.
 
 ----------------------------------------------------------------------------------------
-(-) Temporary unavailable for this version
