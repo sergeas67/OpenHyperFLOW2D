@@ -197,7 +197,6 @@ int main( int argc, char **argv )
            TmpCRM2D.H_cp   = chemical_reactions.H_cp;
            TmpCRM2D.H_Fuel = chemical_reactions.H_Fuel;
            TmpCRM2D.H_OX   = chemical_reactions.H_OX;
-           TmpCRM2D.H_OX   = chemical_reactions.H_OX;
            
            TmpCRM2D.R_air  = chemical_reactions.R_air;
            TmpCRM2D.R_cp   = chemical_reactions.R_cp;
@@ -243,7 +242,7 @@ int main( int argc, char **argv )
             cudaHuArray->AddElement(&cudaHu);
 
 #ifdef _DEVICE_MMAP_
-            cudaState = cudaHostAlloc( (void**)&dt_min_host, sizeof(unsigned int), cudaHostAllocMapped ); // | cudaHostAllocWriteCombined  Src->n
+            cudaState = cudaHostAlloc( (void**)&dt_min_host, sizeof(unsigned int), cudaHostAllocMapped ); 
 
             dt_min_host_Array->AddElement(&dt_min_host);  
 

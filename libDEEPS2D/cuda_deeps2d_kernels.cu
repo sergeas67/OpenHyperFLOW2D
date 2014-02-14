@@ -18,12 +18,12 @@
 #include "libDEEPS2D/deeps2d_core.hpp"
 
 #ifdef _CUDA_
- __host__ __device__
+__host__
 #endif //_CUDA_ 
 int LoadTable2GPU(Table* Src, Table*& Dst, int i_dev)
 {
  Table* pTmpTable;
- pTmpTable = new Table(NULL,Src->n); // Src->GetName()
+ pTmpTable = new Table(NULL,0); // Src->GetName()
  
  pTmpTable->n = Src->n;
  
@@ -113,7 +113,7 @@ int cuda_CalcChemicalReactions(FlowNode2D<double,NUM_COMPONENTS>* CalcNode,
     Yair = 1. - (Yfu+Yox+Ycp);                  // air
 
     if(cr_model==CRM_ZELDOVICH) {
-//--- chemical reactions (Zeldovich model) --------- model_data->lam_air->----------------------------------------->
+//--- chemical reactions (Zeldovich model) -------------------------------------------------->
       if ( !CalcNode->isCond2D(CT_Y_CONST_2D) ) {
           Y0   = 1./(Yfu+Yox+Ycp+Yair);
           Yfu  = Yfu*Y0;
@@ -150,7 +150,7 @@ int cuda_CalcChemicalReactions(FlowNode2D<double,NUM_COMPONENTS>* CalcNode,
     CalcNode->lam = GetVal(model_data->lam_Fuel,CalcNode->Tg)*Yfu+
                     GetVal(model_data->lam_OX,CalcNode->Tg)*Yox+
                     GetVal(model_data->lam_cp,CalcNode->Tg)*Ycp+
-                    GetVal( model_data->lam_air,CalcNode->Tg)*Yair;
+                    GetVal(model_data->lam_air,CalcNode->Tg)*Yair;
 
     if ( Yair<1.e-5 ) {
          Yair =0.;
@@ -472,7 +472,7 @@ cuda_Recalc_y_plus(FlowNode2D<double,NUM_COMPONENTS>* pJ2D,
 __global__  void
 cuda_DEEPS2D_Stage1(FlowNode2D<double,NUM_COMPONENTS>*     pLJ,
                     FlowNodeCore2D<double,NUM_COMPONENTS>* pLC,
-                    ChemicalReactionsModelData2D* pCRMD,
+                    //ChemicalReactionsModelData2D* pCRMD,
                     unsigned long int index_limit,
                     int MAX_X, int MAX_Y,
                     unsigned long r_limit,
@@ -646,7 +646,7 @@ cuda_DEEPS2D_Stage1(FlowNode2D<double,NUM_COMPONENTS>*     pLJ,
                         }
                 }
             }
-            cuda_CalcChemicalReactions(CurrentNode,CRM_ZELDOVICH, (void*)(pCRMD));
+            //cuda_CalcChemicalReactions(CurrentNode,CRM_ZELDOVICH, (void*)(pCRMD));
           }
    }
 }
@@ -660,7 +660,7 @@ cuda_DEEPS2D_Stage2(FlowNode2D<double,NUM_COMPONENTS>*     pLJ,
                     unsigned long l_limit,
                     double beta_init, double  beta0, 
                     int b_FF, double CFL0,
-                    //ChemicalReactionsModelData2D* pCRMD,
+                    ChemicalReactionsModelData2D* pCRMD,
                     int noTurbCond,
                     double SigW, double SigF, double dx_1, double dy_1, double delta_bl,
                     FlowType _FT, int Num_Eq,
@@ -836,7 +836,7 @@ cuda_DEEPS2D_Stage2(FlowNode2D<double,NUM_COMPONENTS>*     pLJ,
               CurrentNode->dTdx=(RightNode->Tg-LeftNode->Tg)*dx_1xn_n_1;
               CurrentNode->dTdy=(UpNode->Tg-DownNode->Tg)*dy_1xm_m_1;
 
-              //cuda_CalcChemicalReactions(CurrentNode,CRM_ZELDOVICH, (void*)(pCRMD));
+              cuda_CalcChemicalReactions(CurrentNode,CRM_ZELDOVICH, (void*)(pCRMD));
 
               if(noTurbCond) {
                  CurrentNode->FillNode2D(0,1,SigW,SigF,TurbExtModel,delta_bl,1.0/dx_1,1.0/dy_1,_Hu,_isSrcAdd,_FT);
