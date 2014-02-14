@@ -1801,6 +1801,7 @@ Table::~Table() {
         delete[] Name;
     Name=NULL;
 }
+
 char*  Table::GetName() {
     return Name;
 }
@@ -1833,6 +1834,7 @@ double Table::GetVal(double _x ) {
     if ( _x <= x[0] ) {
         i = 1;
         goto EndGetVal;
+
     }
 
     //Аргумент больше максимального значения.

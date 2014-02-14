@@ -49,7 +49,7 @@
 ; 4 - Rho*E residual
 ; 5 - Time
 <data/MonitorNumber=5>
-<data/ExitMonitorValue=0.02>
+<data/ExitMonitorValue=0.002>
 
 ;Maximum time of calculation, s
 ; Courant number (for gas phase only)
@@ -72,7 +72,7 @@
 <endtable>
 
 ; Maximum number of steps
-<data/Nmax=25000>
+<data/Nmax=500>
 ; Every NOutStep-th step is displayed
 <data/NOutStep=10>
 <data/NSaveStep=4>
