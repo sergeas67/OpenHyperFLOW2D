@@ -107,6 +107,8 @@ Nozzle2D:
 	bin/OpenHyperFLOW2D.sh TestCases/Nozzle2D ${NUM_NODES}
 WallNozzle2D:
 	bin/OpenHyperFLOW2D.sh TestCases/WallNozzle2D ${NUM_NODES}
+RezNozzle2D:
+	bin/OpenHyperFLOW2D.sh TestCases/RezNozzle2D ${NUM_NODES}
 Step:
 	bin/OpenHyperFLOW2D.sh TestCases/Step ${NUM_NODES}
 #
