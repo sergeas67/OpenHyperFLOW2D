@@ -49,10 +49,7 @@
 ; 4 - Rho*E residual
 ; 5 - Time
 <data/MonitorNumber=5>
-<data/ExitMonitorValue=0.05>
-
-; is RK4 use ?
-<data/isRungeKutta=1>
+<data/ExitMonitorValue=0.02>
 
 ;Maximum time of calculation, s
 ; Courant number (for gas phase only)
@@ -65,13 +62,13 @@
 <endtable>
 
 ; Base blending factor
-<data/beta=0.9885>
+<data/beta=0.9895>
 
 ; Base blending factor scenario
 <table=beta_Scenario/3>
 0       0.9855
-20000   0.9885
-100000  0.9885
+20000   0.9895
+100000  0.9895
 <endtable>
 
 ; Maximum number of steps
