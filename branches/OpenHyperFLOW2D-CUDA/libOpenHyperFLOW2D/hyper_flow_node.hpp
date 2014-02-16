@@ -844,7 +844,7 @@ void  FlowNode2D<T,a>::TurbModRANS2D(int is_mu_t,
 
         if(FlowNodeTurbulence2D<T,a>::isTurbulenceCond2D(TCT_k_CONST_2D)) {
 #ifdef __ICC
-            __declspec(align(_ALIGN)) T TmpI = _I*sqrt(U*U+V*V+1.e-30);SolverMode
+            __declspec(align(_ALIGN)) T TmpI = _I*sqrt(U*U+V*V+1.e-30);
 #else
             T TmpI __attribute__ ((aligned (_ALIGN))) = _I*sqrt(U*U+V*V+1.e-30);
 #endif //__ICC
@@ -1084,7 +1084,7 @@ void  FlowNode2D<T,a>::TurbModRANS2D(int is_mu_t,
         T Rt __attribute__ ((aligned (_ALIGN)));
         T nu __attribute__ ((aligned (_ALIGN)));                         // turbulent Re
         T G __attribute__ ((aligned (_ALIGN)));
-        T L_k __attribute__ ((aligned (_ALIGN)));SolverMode
+        T L_k __attribute__ ((aligned (_ALIGN)));
         T L_eps __attribute__ ((aligned (_ALIGN)));
         T Mt __attribute__ ((aligned (_ALIGN))) =0;
 #endif // __ICC
@@ -1326,7 +1326,7 @@ void  FlowNode2D<T,a>::TurbModRANS2D(int is_mu_t,
                 A[i2d_nu_t]   = A[i2d_nu_t]  - RX[i2d_nu_t];
                 B[i2d_nu_t]   = B[i2d_nu_t]  - RY[i2d_nu_t];
 
-                Src[i2d_nu_t] = Cb1*(1.0 - ft2)*S_hat*FlowNodeCore2D<TSolverMode,a>::S[i2d_nu_t] - (Cw1*fw - Cb1/(_k*_k)*ft2)*(FlowNodeCore2D<T,a>::S[i2d_nu_t]/FlowNodeTurbulence2D<T,a>::l_min)*(FlowNodeCore2D<T,a>::S[i2d_nu_t]/FlowNodeTurbulence2D<T,a>::l_min) + (Cb2*Div_nu*Div_nu)/sig;      
+                Src[i2d_nu_t] = Cb1*(1.0 - ft2)*S_hat*FlowNodeCore2D<T,a>::S[i2d_nu_t] - (Cw1*fw - Cb1/(_k*_k)*ft2)*(FlowNodeCore2D<T,a>::S[i2d_nu_t]/FlowNodeTurbulence2D<T,a>::l_min)*(FlowNodeCore2D<T,a>::S[i2d_nu_t]/FlowNodeTurbulence2D<T,a>::l_min) + (Cb2*Div_nu*Div_nu)/sig;      
             }
             //Axisymmetric turbulence add-on
              TurbulenceAxisymmAddOn(is_init);
