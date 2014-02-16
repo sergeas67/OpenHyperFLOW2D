@@ -66,21 +66,21 @@ inline double GetVal(Table* t,
                      double _x ) {
     if ( !t )
         return 0.;
-    //Общее число значений в таблице
+    //ГЋГЎГ№ГҐГҐ Г·ГЁГ±Г«Г® Г§Г­Г Г·ГҐГ­ГЁГ© Гў ГІГ ГЎГ«ГЁГ¶ГҐ
     register int    i, _n = t->n;
     register double _y;
 
-    //В таблице - единственное значение.
+    //Г‚ ГІГ ГЎГ«ГЁГ¶ГҐ - ГҐГ¤ГЁГ­Г±ГІГўГҐГ­Г­Г®ГҐ Г§Г­Г Г·ГҐГ­ГЁГҐ.
     if ( _n == 1 )
         return( t->y[0] );
 
-    //Аргумент меньше минимального значения.
+    //ГЂГ°ГЈГіГ¬ГҐГ­ГІ Г¬ГҐГ­ГјГёГҐ Г¬ГЁГ­ГЁГ¬Г Г«ГјГ­Г®ГЈГ® Г§Г­Г Г·ГҐГ­ГЁГї.
     if ( _x <= t->x[0] ) {
         i = 1;
         goto EndGetVal;
     }
 
-    //Аргумент больше максимального значения.
+    //ГЂГ°ГЈГіГ¬ГҐГ­ГІ ГЎГ®Г«ГјГёГҐ Г¬Г ГЄГ±ГЁГ¬Г Г«ГјГ­Г®ГЈГ® Г§Г­Г Г·ГҐГ­ГЁГї.
     if ( _x >= t->x[t->n-1] ) {
         i = _n - 1;
         goto EndGetVal;
@@ -787,7 +787,7 @@ cuda_DEEPS2D_Stage2(FlowNode2D<double,NUM_COMPONENTS>*     pLJ,
                       if ( !CurrentNode->isTurbulenceCond2D((TurbulenceCondType2D)c_flag) )
                             CurrentNode->S[k]   =  NextNode->S[k];
                   }
-              }http://www.rbc.ru/
+              }
 
               CurrentNode->droYdx[NUM_COMPONENTS]=CurrentNode->droYdy[NUM_COMPONENTS]=0.;
 
