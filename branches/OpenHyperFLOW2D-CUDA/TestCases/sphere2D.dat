@@ -21,6 +21,11 @@
 ;--------------------------------------------------;
 ; General parameters                               ;
 ;--------------------------------------------------;
+; Problem Type
+; 0 - Euler
+; 1 - Navier-Stokes
+<data/ProblemType=1>
+
 ;FlowType
 ; 0 - FLAT
 ; 1 - AXISYMMETRIC

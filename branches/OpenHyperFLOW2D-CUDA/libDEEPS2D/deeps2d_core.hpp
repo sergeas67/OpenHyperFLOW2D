@@ -122,6 +122,7 @@ extern UArray< double >*     WallNodesUw_2D;
 extern int                   NumWallNodes;
 extern double                x0;
 // External variables
+extern SolverMode ProblemType;
 extern UArray< XY<int> >*                                           GlobalSubmatrix;
 extern UArray<UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >*>*     SubmatrixArray;
 extern UArray<UMatrix2D< FlowNodeCore2D<double,NUM_COMPONENTS> >*>* CoreSubmatrixArray;
@@ -183,6 +184,7 @@ extern ofstream*                             pInputData;        // Output data s
 extern ofstream*                             pHeatFlux_OutFile; // Output HeatFlux stream
 extern unsigned int                          iter;              // iteration number
 extern unsigned int                          last_ite;          // Global iteration number
+
 extern int                                   isStop;            // Stop flag
 extern InputData*                            Data;              // Object data loader
 extern UArray<Flow*>*                        FlowList;          // List of 'Flow' objects
@@ -261,7 +263,7 @@ extern void                                  CopyDeviceToDevice(void* src, void*
 extern void                                  CopyDeviceToDeviceP2P(void* src, int src_dev,void* dst, int dst_dev,size_t length, cudaStream_t stream=0);
 extern void                                  SetP2PAccess(int dev1, int dev2);
 extern void                                  DisableP2PAccess(int dev1, int dev2);
-
+ 
 #endif //_CUDA_ 
 extern const char*                           PrintTurbCond(int TM);
 extern void*                                 InitDEEPS2D(void*);
@@ -341,7 +343,6 @@ extern void DEEPS2D_Run(ofstream* f_stream,
 extern __global__  void  
 cuda_DEEPS2D_Stage1(FlowNode2D<double,NUM_COMPONENTS>*     pLJ,
                     FlowNodeCore2D<double,NUM_COMPONENTS>* pLC,
-                    //ChemicalReactionsModelData2D* pCRMD,
                     unsigned long int index_limit,
                     int MAX_X, int MAX_Y, 
                     unsigned long r_limit,
@@ -349,7 +350,7 @@ cuda_DEEPS2D_Stage1(FlowNode2D<double,NUM_COMPONENTS>*     pLJ,
                     double dxx, double dyy,
                     double dtdx, double dtdy,
                     double _dt,
-                    int _FT, int Num_Eq);
+                    int _FT, int Num_Eq, SolverMode pt);
 
 extern __global__  void 
 cuda_DEEPS2D_Stage2(FlowNode2D<double,NUM_COMPONENTS>*     pLJ,
@@ -374,7 +375,8 @@ cuda_DEEPS2D_Stage2(FlowNode2D<double,NUM_COMPONENTS>*     pLJ,
                     double* _Hu,
                     int _isSrcAdd,
                     unsigned int* dt_global, double int2float_scale,
-                    TurbulenceExtendedModel TurbExtModel );
+                    TurbulenceExtendedModel TurbExtModel, 
+                    SolverMode pt);
 
 extern __global__ void 
 cuda_SetInitBoundaryLayer(FlowNode2D<double,NUM_COMPONENTS>* pJ2D,
@@ -387,7 +389,8 @@ cuda_SetInitBoundaryLayer(FlowNode2D<double,NUM_COMPONENTS>* pJ2D,
                           double _dx, double _dy,
                           double* _Hu,
                           int _isSrcAdd,
-                          FlowType _FT);
+                          FlowType _FT,
+                          SolverMode sm);
 
 extern __global__ void
 cuda_SetMinDistanceToWall2D(FlowNode2D<double,NUM_COMPONENTS>* pJ2D,

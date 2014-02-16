@@ -18,9 +18,15 @@
 ; is p* out ?
 <data/is_p_asterisk_out=0>
 <data/NumStreams=1>
+
 ;------------------------------------------------------------------;
 ; General parameters                                               ;
 ;------------------------------------------------------------------;
+; Problem Type
+; 0 - Euler
+; 1 - Navier-Stokes
+<data/ProblemType=0>
+
 ;FlowType
 ; 0 - FLAT
 ; 1 - AXISYMMETRIC
@@ -492,7 +498,7 @@
 <data/Area1.Type=1>
 ;
 ; Flow index
-<data/Area1.Flow2D=2>
+<data/Area1.Flow2D=1>
 
 ; Turbulence model in area
 <data/Area1.TurbulenceModel=0>
