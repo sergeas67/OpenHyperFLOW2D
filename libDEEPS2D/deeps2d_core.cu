@@ -830,7 +830,8 @@ void DEEPS2D_Run(ofstream* f_stream,
                                                                                                       iX0 + l_Overlap,
                                                                                                       dxx,dyy,dtdx,dtdy,dt,
                                                                                                       FlowNode2D<double,NUM_COMPONENTS>::FT,
-                                                                                                      FlowNode2D<double,NUM_COMPONENTS>::NumEq-ConvertTurbMod(TurbMod));
+                                                                                                      FlowNode2D<double,NUM_COMPONENTS>::NumEq-ConvertTurbMod(TurbMod),
+                                                                                                      ProblemType);
                        iX0 += max_X;
                       }
                    CUDA_BARRIER("cuda_DEEPS2D_Stage1");
@@ -891,7 +892,8 @@ void DEEPS2D_Run(ofstream* f_stream,
                                                                                                        cudaHu,
                                                                                                        FlowNode2D<double,NUM_COMPONENTS>::isSrcAdd,
                                                                                                        dt_min_device, int2float_scale,
-                                                                                                       (TurbulenceExtendedModel)TurbExtModel);
+                                                                                                       (TurbulenceExtendedModel)TurbExtModel,
+                                                                                                       ProblemType);
                         iX0 += max_X;
                    }
 

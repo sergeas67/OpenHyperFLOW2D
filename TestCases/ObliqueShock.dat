@@ -21,6 +21,11 @@
 ;--------------------------------------------------;
 ; General parameters                               ;
 ;--------------------------------------------------;
+; Problem Type
+; 0 - Euler
+; 1 - Navier-Stokes
+<data/ProblemType=0>
+
 ;FlowType
 ; 0 - FLAT
 ; 1 - AXISYMMETRIC
@@ -49,7 +54,7 @@
 ; 4 - Rho*E residual
 ; 5 - Time
 <data/MonitorNumber=5>
-<data/ExitMonitorValue=0.002>
+<data/ExitMonitorValue=0.02>
 
 ;Maximum time of calculation, s
 ; Courant number (for gas phase only)
@@ -72,7 +77,7 @@
 <endtable>
 
 ; Maximum number of steps
-<data/Nmax=500>
+<data/Nmax=25000>
 ; Every NOutStep-th step is displayed
 <data/NOutStep=10>
 <data/NSaveStep=4>

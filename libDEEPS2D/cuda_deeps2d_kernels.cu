@@ -340,7 +340,8 @@ cuda_SetInitBoundaryLayer(FlowNode2D<double,NUM_COMPONENTS>* pJ2D,
                           double _dx, double _dy,
                           double* _Hu,
                           int _isSrcAdd,
-                          FlowType _FT) {
+                          FlowType _FT,
+                          SolverMode sm) {
 
     unsigned long int index = threadIdx.x + blockIdx.x * blockDim.x;
 
@@ -353,7 +354,7 @@ cuda_SetInitBoundaryLayer(FlowNode2D<double,NUM_COMPONENTS>* pJ2D,
                   if(CurrentNode->time == 0. &&  delta > 0.0  &&  CurrentNode->l_min <= delta) {
                      CurrentNode->S[i2d_RoU] = CurrentNode->S[i2d_RoU] * CurrentNode->l_min/delta;
                      CurrentNode->S[i2d_RoV] = CurrentNode->S[i2d_RoV] * CurrentNode->l_min/delta;
-                     CurrentNode->FillNode2D(0,1,sig_w,sig_f,etm,delta,_dx,_dy,_Hu,_isSrcAdd,_FT);
+                     CurrentNode->FillNode2D(0,1,sig_w,sig_f,etm,delta,_dx,_dy,_Hu,_isSrcAdd,sm,_FT);
                   }
 
                if(CurrentNode->CT != (ulong)(NT_FC_2D)) {
@@ -472,7 +473,6 @@ cuda_Recalc_y_plus(FlowNode2D<double,NUM_COMPONENTS>* pJ2D,
 __global__  void
 cuda_DEEPS2D_Stage1(FlowNode2D<double,NUM_COMPONENTS>*     pLJ,
                     FlowNodeCore2D<double,NUM_COMPONENTS>* pLC,
-                    //ChemicalReactionsModelData2D* pCRMD,
                     unsigned long int index_limit,
                     int MAX_X, int MAX_Y,
                     unsigned long r_limit,
@@ -480,7 +480,8 @@ cuda_DEEPS2D_Stage1(FlowNode2D<double,NUM_COMPONENTS>*     pLJ,
                     double dxx, double dyy,
                     double dtdx, double dtdy,
                     double _dt,
-                    int _FT, int Num_Eq) {
+                    int _FT, int Num_Eq,
+                    SolverMode sm) {
 
     size_t index = threadIdx.x + blockIdx.x * blockDim.x;
 
@@ -538,8 +539,9 @@ cuda_DEEPS2D_Stage1(FlowNode2D<double,NUM_COMPONENTS>*     pLJ,
                         dy_flag  = CT_dYdy_NULL_2D;
                         dx2_flag = CT_d2Ydx2_NULL_2D;
                         dy2_flag = CT_d2Ydy2_NULL_2D;
-                    } else if ((CurrentNode->isTurbulenceCond2D(TCT_k_eps_Model_2D) ||
-                                CurrentNode->isTurbulenceCond2D(TCT_Spalart_Allmaras_Model_2D))) { //
+                    } else if (sm == SM_NS &&
+                               ((CurrentNode->isTurbulenceCond2D(TCT_k_eps_Model_2D) ||
+                                CurrentNode->isTurbulenceCond2D(TCT_Spalart_Allmaras_Model_2D)))) { //
                       if( k == i2d_k) {
                           c_flag   = TCT_k_CONST_2D     << (k-4-NUM_COMPONENTS);
                           dx_flag  = TCT_dkdx_NULL_2D   << (k-4-NUM_COMPONENTS);
@@ -585,7 +587,8 @@ cuda_DEEPS2D_Stage1(FlowNode2D<double,NUM_COMPONENTS>*     pLJ,
                         } else {
                             dy2_flag = 0;
                         }
-                    } else if((CurrentNode->isTurbulenceCond2D(TCT_k_eps_Model_2D) ||
+                    } else if(sm == SM_NS &&
+                              (CurrentNode->isTurbulenceCond2D(TCT_k_eps_Model_2D) ||
                                CurrentNode->isTurbulenceCond2D(TCT_Spalart_Allmaras_Model_2D)) ) {
                         if ( CurrentNode->isTurbulenceCond2D((TurbulenceCondType2D)c_flag) )
                             c_flag  = 0;
@@ -646,8 +649,7 @@ cuda_DEEPS2D_Stage1(FlowNode2D<double,NUM_COMPONENTS>*     pLJ,
                         }
                 }
             }
-            //cuda_CalcChemicalReactions(CurrentNode,CRM_ZELDOVICH, (void*)(pCRMD));
-          }
+       }
    }
 }
 
@@ -674,7 +676,8 @@ cuda_DEEPS2D_Stage2(FlowNode2D<double,NUM_COMPONENTS>*     pLJ,
                     double* _Hu,
                     int _isSrcAdd,
                     unsigned int* dt_min_device, double int2float_scale,
-                    TurbulenceExtendedModel TurbExtModel ) {
+                    TurbulenceExtendedModel TurbExtModel, 
+                    SolverMode sm) {
 
 
     unsigned long int index = threadIdx.x + blockIdx.x * blockDim.x;
@@ -720,7 +723,8 @@ cuda_DEEPS2D_Stage2(FlowNode2D<double,NUM_COMPONENTS>*     pLJ,
                       c_flag  = CT_Ro_CONST_2D   << k;
                   else if (k<(4+NUM_COMPONENTS))  // 7 ?
                       c_flag  = CT_Y_CONST_2D;
-                  else if((CurrentNode->isTurbulenceCond2D(TCT_k_eps_Model_2D) ||
+                  else if(sm == SM_NS &&
+                          (CurrentNode->isTurbulenceCond2D(TCT_k_eps_Model_2D) ||
                            CurrentNode->isTurbulenceCond2D(TCT_Spalart_Allmaras_Model_2D) )) 
                       c_flag  = TCT_k_CONST_2D << (k-4-NUM_COMPONENTS); 
 
@@ -777,12 +781,13 @@ cuda_DEEPS2D_Stage2(FlowNode2D<double,NUM_COMPONENTS>*     pLJ,
                   if (k<(4+NUM_COMPONENTS)) {
                       if ( !CurrentNode->isCond2D((CondType2D)c_flag) )
                             CurrentNode->S[k]   = NextNode->S[k];
-                  } else if ((CurrentNode->isTurbulenceCond2D(TCT_k_eps_Model_2D) ||
+                  } else if (sm == SM_NS &&
+                             (CurrentNode->isTurbulenceCond2D(TCT_k_eps_Model_2D) ||
                               CurrentNode->isTurbulenceCond2D(TCT_Spalart_Allmaras_Model_2D)) ){
                       if ( !CurrentNode->isTurbulenceCond2D((TurbulenceCondType2D)c_flag) )
                             CurrentNode->S[k]   =  NextNode->S[k];
                   }
-              }
+              }http://www.rbc.ru/
 
               CurrentNode->droYdx[NUM_COMPONENTS]=CurrentNode->droYdy[NUM_COMPONENTS]=0.;
 
@@ -805,13 +810,13 @@ cuda_DEEPS2D_Stage2(FlowNode2D<double,NUM_COMPONENTS>*     pLJ,
                   CurrentNode->dUdy=(UpNode->U*n3-DownNode->U*n4)*dy_1xm_m_1;
                   CurrentNode->dVdy=(UpNode->V*n3-DownNode->V*n4)*dy_1xm_m_1;
 
-                  if(CurrentNode->isTurbulenceCond2D(TCT_k_eps_Model_2D)){
+                  if(sm == SM_NS && CurrentNode->isTurbulenceCond2D(TCT_k_eps_Model_2D)){
                     CurrentNode->dkdx   =(RightNode->S[i2d_k]*n1-LeftNode->S[i2d_k]*n2)*dx_1/CurrentNode->S[i2d_Ro]*n_n_1;
                     CurrentNode->depsdx =(RightNode->S[i2d_eps]*n1-LeftNode->S[i2d_eps]*n2)*dx_1/CurrentNode->S[i2d_Ro]*n_n_1;
 
                     CurrentNode->dkdy   =(UpNode->S[i2d_k]*n3-DownNode->S[i2d_k]*n4)*dy_1/CurrentNode->S[i2d_Ro]*m_m_1;
                     CurrentNode->depsdy =(UpNode->S[i2d_eps]*n3-DownNode->S[i2d_eps]*n4)*dy_1/CurrentNode->S[i2d_Ro]*m_m_1;
-                  } else if (CurrentNode->isTurbulenceCond2D(TCT_Spalart_Allmaras_Model_2D)) {
+                  } else if (sm == SM_NS && CurrentNode->isTurbulenceCond2D(TCT_Spalart_Allmaras_Model_2D)) {
                              CurrentNode->dkdx   =(RightNode->S[i2d_k]*n1-LeftNode->S[i2d_k]*n2)*dx_1/CurrentNode->S[i2d_Ro]*n_n_1;
                              CurrentNode->dkdy   =(UpNode->S[i2d_k]*n3-DownNode->S[i2d_k]*n4)*dy_1/CurrentNode->S[i2d_Ro]*m_m_1;
                   }
@@ -821,27 +826,27 @@ cuda_DEEPS2D_Stage2(FlowNode2D<double,NUM_COMPONENTS>*     pLJ,
 
                   CurrentNode->dUdy   =(UpNode->U-DownNode->U)*dy_1xm_m_1;
                   CurrentNode->dVdy   =(UpNode->V-DownNode->V)*dy_1xm_m_1;
-                  if(CurrentNode->isTurbulenceCond2D(TCT_k_eps_Model_2D)){
+                  if(sm == SM_NS && CurrentNode->isTurbulenceCond2D(TCT_k_eps_Model_2D)){
                     CurrentNode->dkdx   =(RightNode->S[i2d_k]-LeftNode->S[i2d_k])*dx_1/CurrentNode->S[i2d_Ro]*n_n_1;
                     CurrentNode->depsdx =(RightNode->S[i2d_eps]-LeftNode->S[i2d_eps])*dx_1/CurrentNode->S[i2d_Ro]*n_n_1;
 
                     CurrentNode->dkdy   =(UpNode->S[i2d_k]-DownNode->S[i2d_k])*dy_1/CurrentNode->S[i2d_Ro]*m_m_1;
                     CurrentNode->depsdy =(UpNode->S[i2d_eps]-DownNode->S[i2d_eps])*dy_1/CurrentNode->S[i2d_Ro]*m_m_1;
-                  } else if (CurrentNode->isTurbulenceCond2D(TCT_Spalart_Allmaras_Model_2D)) {
+                  } else if (sm == SM_NS && CurrentNode->isTurbulenceCond2D(TCT_Spalart_Allmaras_Model_2D)) {
                              CurrentNode->dkdx   =(RightNode->S[i2d_k]-LeftNode->S[i2d_k])*dx_1/CurrentNode->S[i2d_Ro]*n_n_1;
                              CurrentNode->dkdy   =(UpNode->S[i2d_k]-DownNode->S[i2d_k])*dy_1/CurrentNode->S[i2d_Ro]*m_m_1;
                   }
               }
-
+              
               CurrentNode->dTdx=(RightNode->Tg-LeftNode->Tg)*dx_1xn_n_1;
               CurrentNode->dTdy=(UpNode->Tg-DownNode->Tg)*dy_1xm_m_1;
 
               cuda_CalcChemicalReactions(CurrentNode,CRM_ZELDOVICH, (void*)(pCRMD));
 
               if(noTurbCond) {
-                 CurrentNode->FillNode2D(0,1,SigW,SigF,TurbExtModel,delta_bl,1.0/dx_1,1.0/dy_1,_Hu,_isSrcAdd,_FT);
+                 CurrentNode->FillNode2D(0,1,SigW,SigF,TurbExtModel,delta_bl,1.0/dx_1,1.0/dy_1,_Hu,_isSrcAdd,sm,_FT);
               } else {
-                 CurrentNode->FillNode2D(1,0,SigW,SigF,TurbExtModel,delta_bl,1.0/dx_1,1.0/dy_1,_Hu,_isSrcAdd,_FT);
+                 CurrentNode->FillNode2D(1,0,SigW,SigF,TurbExtModel,delta_bl,1.0/dx_1,1.0/dy_1,_Hu,_isSrcAdd,sm,_FT);
               }
 
               if( CurrentNode->Tg < 0. ) {

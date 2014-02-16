@@ -16,11 +16,11 @@
 #include <cuda_runtime.h>
 #include <cuda_runtime_api.h>
 
-
 #include <sys/time.h>
 #include <sys/timeb.h>
 #include "libDEEPS2D/deeps2d_core.hpp"
  
+SolverMode ProblemType;
 int rank;
 int last_rank;
 int warp_size = 0;
@@ -116,7 +116,7 @@ int main( int argc, char **argv )
         }
 
         printf("Number of CUDA devices:\t%d\n", num_gpus);
-        int num_dev;
+        //int num_dev;
         for (int i = 0; i < num_gpus; i++)
         {
          cudaDeviceProp dprop;
@@ -447,7 +447,8 @@ int main( int argc, char **argv )
                                                                                                 FlowNode2D<double,NUM_COMPONENTS>::dy,
                                                                                                 cudaHu,
                                                                                                 FlowNode2D<double,NUM_COMPONENTS>::isSrcAdd,
-                                                                                                FlowNode2D<double,NUM_COMPONENTS>::FT);
+                                                                                                FlowNode2D<double,NUM_COMPONENTS>::FT,
+                                                                                                ProblemType);
 
             CUDA_BARRIER("cuda_SetInitBoundaryLayer");
             *o_stream << "OK" << endl;

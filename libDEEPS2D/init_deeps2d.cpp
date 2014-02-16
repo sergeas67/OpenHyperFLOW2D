@@ -18,6 +18,7 @@
 #include <sys/timeb.h>
 #include <sys/file.h>
 
+
 /*  Init -DEEPS2D- solver */
 void InitSharedData(InputData* _data,
                     void* CRM_data
@@ -108,6 +109,11 @@ void InitSharedData(InputData* _data,
             if ( _data->GetDataError()==-1 ) {
                 Abort_OpenHyperFLOW2D();
             }
+            
+            ProblemType = (SolverMode)(_data->GetIntVal((char*)"ProblemType"));
+            if ( _data->GetDataError()==-1 ) {
+                Abort_OpenHyperFLOW2D();
+            }
 
             CFL  = _data->GetFloatVal((char*)"CFL");               // Courant number
             if ( _data->GetDataError()==-1 ) {
@@ -126,7 +132,8 @@ void InitSharedData(InputData* _data,
             if ( _data->GetDataError()==-1 ) {
                 Abort_OpenHyperFLOW2D();
             }
-            NOutStep  = _data->GetIntVal((char*)"NOutStep");      // Output step
+            NOutStep  = _data->GetIntVal((char*)"NOutStep");  
+    // Output step
             if ( NOutStep<=0 )     NOutStep=1;
 
             MonitorNumber = _data->GetIntVal((char*)"MonitorNumber");
