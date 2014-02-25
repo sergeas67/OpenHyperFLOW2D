@@ -1,4 +1,4 @@
-# OpenOpenHyperFLOW2D project (Version  1.0.0)
+# OpenOpenHyperFLOW2D project (Version  1.0.2)
 # Written by  Serge A. Suchkov (ss@e1.bmstu.ru)
 include   ../.version
 include   ../.compiler
