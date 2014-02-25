@@ -50,6 +50,12 @@
 <data/MonitorNumber=5>
 <data/ExitMonitorValue=0.01>
 
+<data/NumMonitorPoints=0>
+
+; Point 1
+<data/Point-1.X=0.05>
+<data/Point-1.Y=0.05>
+
 ; Courant number (for gas phase only)
 <data/CFL=0.15>
 
