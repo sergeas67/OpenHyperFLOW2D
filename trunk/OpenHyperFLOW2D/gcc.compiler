@@ -9,6 +9,13 @@ CC         = ${MPIDIR}/bin/mpicc
 CXXC       = ${MPIDIR}/bin/mpicxx
 
 ifeq ("$(MPIVEND)","LAM")
+# C compiler
+CC         = ${MPIDIR}/bin/mpicc
+# C++ compiler
+CXXC       = ${MPIDIR}/bin/mpic++
+endif
+
+ifeq ("$(MPIVEND)","LAM")
 CXXC       = ${MPIDIR}/bin/mpic++
 else 
 ifeq ("$(MPIVEND)","MVAPICH")
@@ -23,12 +30,17 @@ endif
 endif
 endif
 else
-
 # C compiler
 CC         = gcc
 # C++ compiler
 CXXC       = g++
+endif
 
+ifeq ("$(MPIVEND)","INTEL")
+# C compiler
+CC         = ${MPIDIR}/bin64/mpigcc
+# C++ compiler
+CXXC       = ${MPIDIR}/bin64/mpigxx
 endif
 
 

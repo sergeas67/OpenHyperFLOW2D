@@ -3,13 +3,13 @@
 *                                                                              *
 *   Transient, Density based Effective Explicit Parallel Solver (TDEEPS2D)     *
 *                                                                              *
-*   Version  1.0.0                                                             *
-*   Copyright (C)  1995-2013 by Serge A. Suchkov                               *
+*   Version  1.0.2                                                             *
+*   Copyright (C)  1995-2014 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
 *                                                                              *
 *  deeps2d_core.cpp: OpenHyperFLOW2D solver core code....                      *
 *                                                                              *
-*  last update: 15/12/2013                                                     *
+*  last update: 25/02/2014                                                     *
 ********************************************************************************/
 #include "deeps2d_core.hpp"
 
@@ -36,14 +36,13 @@ UArray<UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >*>*     SubmatrixArray;
 UArray<UMatrix2D< FlowNodeCore2D<double,NUM_COMPONENTS> >*>* CoreSubmatrixArray;
 UArray<XCut>*                                                XCutArray;
 
-//double  makeZero;
-
 int     Nstep;
 double  ExitMonitorValue;
 int     MonitorNumber;
 int     MonitorCondition; // 0 - equal
                           // 1 - less than
                           // 2 - great than
+UArray< MonitorPoint >*   MonitorPointsArray = NULL;
 
 unsigned int     AddSrcStartIter = 0;
 double  beta;
@@ -93,6 +92,7 @@ double Y_mix[4] ={0.,0.,0.,0.};  /* mixture */
 const  char*  RMS_Name[11] = {"Rho","Rho*U","Rho*V","Rho*E","Rho*Yfu","Rho*Yox","Rho*Ycp","Rho*k","Rho*eps","Rho*omega","nu_t"};
 int    useSwapFile=0;
 char   RMSFileName[255];
+char   MonitorsFileName[255];
 char   OldSwapFileName[255];
 void*  OldSwapData;
 u_long OldFileSizeGas;
@@ -117,6 +117,7 @@ int                                          EndFLAG    = 1;
 int                                          PrintFLAG;
 ofstream*                                    pInputData;      // Output data stream
 ofstream*                                    pRMS_OutFile;    // Output RMS stream
+ofstream*                                    pMonitors_OutFile;    // Output RMS stream
 ofstream*                                    pHeatFlux_OutFile; // Output HeatFlux stream
 unsigned int                                 iter = 0;        // iteration number
 unsigned int                                 last_iter=0;     // Global iteration number
@@ -152,6 +153,8 @@ void InitSharedData(InputData* _data,
                     ,int rank
 #endif //_MPI
                     ) {
+    int     NumMonitorPoints;           
+
             ChemicalReactionsModelData2D* model_data = (ChemicalReactionsModelData2D*)CRM_data;
 
             fd_g=0;
@@ -268,6 +271,66 @@ void InitSharedData(InputData* _data,
             ExitMonitorValue  = _data->GetFloatVal((char*)"ExitMonitorValue");   // Monitor value for exit
             if ( _data->GetDataError()==-1 ) {
                 Abort_OpenHyperFLOW2D();
+            }
+
+
+            NumMonitorPoints = _data->GetIntVal((char*)"NumMonitorPoints");
+            
+            if ( _data->GetDataError()==-1 ) {
+                Abort_OpenHyperFLOW2D();
+            }
+
+            if (NumMonitorPoints > 0 ) {
+#ifdef _MPI
+            if(rank==0) {
+#endif //_MPI
+                *(_data->GetMessageStream()) << "Read monitor points...\n" << flush;
+#ifdef _MPI
+            }
+#endif //_MPI
+                MonitorPointsArray = new UArray< MonitorPoint >(); 
+                MonitorPoint TmpPoint;
+                for (int i=0;i<NumMonitorPoints;i++) {
+                   char   point_str[256];
+                   double point_xy;
+                   snprintf(point_str,256,"Point-%i.X",i+1);
+                   point_xy =  _data->GetFloatVal(point_str);
+                   if ( _data->GetDataError()==-1 ) {
+                       Abort_OpenHyperFLOW2D();
+                   }
+                   TmpPoint.MonitorXY.SetX(point_xy);
+                   snprintf(point_str,256,"Point-%i.Y",i+1);
+                   point_xy =  _data->GetFloatVal(point_str);
+                   if ( _data->GetDataError()==-1 ) {
+                       Abort_OpenHyperFLOW2D();
+                   }
+                   TmpPoint.MonitorXY.SetY(point_xy);
+
+                   if(TmpPoint.MonitorXY.GetX() < 0.0 ||
+                      TmpPoint.MonitorXY.GetY() < 0.0 ||
+                      TmpPoint.MonitorXY.GetX() > MaxX*dx ||
+                      TmpPoint.MonitorXY.GetY() > MaxY*dy ) {
+                      *(_data->GetMessageStream()) << "Point no " << i+1 << " X=" << TmpPoint.MonitorXY.GetX() << "m Y=" << TmpPoint.MonitorXY.GetY() << " m out of domain...monitor ignored." << endl;
+                   } else {
+                       MonitorPointsArray->AddElement(&TmpPoint);
+#ifdef _MPI
+                  if(rank==0) {
+#endif //_MPI
+                    *(_data->GetMessageStream()) << "Point no " << i+1 << " X=" << TmpPoint.MonitorXY.GetX() << "m Y=" << TmpPoint.MonitorXY.GetY() << " m" << endl;
+#ifdef _MPI
+                  }
+#endif //_MPI
+                }
+               }
+#ifdef _MPI
+
+           if(rank==0) {
+#endif //_MPI
+                *(_data->GetMessageStream()) << "Load " << NumMonitorPoints << " monitor points...OK" << endl;
+#ifdef _MPI
+             }
+#endif //_MPI
+            
             }
 
             beta0 = beta  = _data->GetFloatVal((char*)"beta");     // Base blending factor.
@@ -393,12 +456,12 @@ void InitSharedData(InputData* _data,
             }
 
 #ifdef _UNIFORM_MESH_
-            FlowNode2D<double,NUM_COMPONENTS>::dx    = dx;
-            FlowNode2D<double,NUM_COMPONENTS>::dy    = dy;
+            FlowNode2D<double,NUM_COMPONENTS>::dx        = dx;
+            FlowNode2D<double,NUM_COMPONENTS>::dy        = dy;
 #endif //_UNIFORM_MESH_
-            FlowNode2D<double,NUM_COMPONENTS>::Hu[h_fu] = model_data->H_Fuel;
-            FlowNode2D<double,NUM_COMPONENTS>::Hu[h_ox] = model_data->H_OX;
-            FlowNode2D<double,NUM_COMPONENTS>::Hu[h_cp] = model_data->H_cp;
+            FlowNode2D<double,NUM_COMPONENTS>::Hu[h_fu]  = model_data->H_Fuel;
+            FlowNode2D<double,NUM_COMPONENTS>::Hu[h_ox]  = model_data->H_OX;
+            FlowNode2D<double,NUM_COMPONENTS>::Hu[h_cp]  = model_data->H_cp;
             FlowNode2D<double,NUM_COMPONENTS>::Hu[h_air] = model_data->H_air;
 };
 
@@ -417,7 +480,7 @@ void DEEPS2D_Run(ofstream* f_stream
 #ifdef _MPI
                 ,UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >*     pJ,
                  UMatrix2D< FlowNodeCore2D<double,NUM_COMPONENTS> >* pC,
-                 int rank, int last_rank
+                 int rank, int last_rank, double x0
 #endif //_MPI
                  ) {
 
@@ -497,16 +560,27 @@ void DEEPS2D_Run(ofstream* f_stream
     CutFile(RMSFileName);
     pRMS_OutFile = OpenData(RMSFileName);
     SaveRMSHeader(pRMS_OutFile);
+    if(MonitorPointsArray && MonitorPointsArray->GetNumElements() > 0) {
+        snprintf(MonitorsFileName,255,"Monitors-%s",OutFileName);
+        CutFile(MonitorsFileName);
+        pMonitors_OutFile = OpenData(MonitorsFileName);
+        SaveMonitorsHeader(pMonitors_OutFile, MonitorPointsArray);
+    }
 #else
     MPI::COMM_WORLD.Barrier();
     MPI::COMM_WORLD.Bcast(&dt,1,MPI::DOUBLE,0);
 
     if( rank == 0 ) {
-        char    RMSFileName[255];
         snprintf(RMSFileName,255,"RMS-%s",OutFileName);
         CutFile(RMSFileName);
         pRMS_OutFile = OpenData(RMSFileName);
         SaveRMSHeader(pRMS_OutFile);
+        if(MonitorPointsArray && MonitorPointsArray->GetNumElements() > 0) {
+            snprintf(MonitorsFileName,255,"Monitors-%s",OutFileName);
+            CutFile(MonitorsFileName);
+            pMonitors_OutFile = OpenData(MonitorsFileName);
+            SaveMonitorsHeader(pMonitors_OutFile, MonitorPointsArray);
+        }
     }
 
     for (int ii=0;(int)ii<last_rank+1;ii++)
@@ -541,7 +615,6 @@ void DEEPS2D_Run(ofstream* f_stream
                     
                  
              do {
-
                   gettimeofday(&mark2,NULL);
                   gettimeofday(&start,NULL);
                   if( AddSrcStartIter < iter + last_iter){
@@ -1226,19 +1299,7 @@ void DEEPS2D_Run(ofstream* f_stream
 #endif // _OPENMP
 
 #ifdef _MPI
-#ifdef _MPI_NB
-        if(rank < last_rank) {
-           HaloExchange[0].Wait();
-           HaloExchange[1].Wait();
-        }
-        if(rank > 0) {
-           HaloExchange[3].Wait();
-           HaloExchange[2].Wait();
-        }
-       // MPI::Request::Waitall(4, HaloExchange);
-#endif //_MPI_NB
-
-       if(rank > 0) {
+      if(rank > 0) {
 #ifdef _MPI_NB
            DD_Exchange[rank-1] = MPI::COMM_WORLD.Isend(&DD_max[rank],sizeof(Var_pack),MPI::BYTE,0,tag_DD);
 #else
@@ -1257,46 +1318,68 @@ void DEEPS2D_Run(ofstream* f_stream
        }
 
 #ifdef _MPI_NB
-       if(rank > 0) {
-          DD_Exchange[rank-1].Wait();
-       } else {
-         for(int ii=1;ii<last_rank+1;ii++) {
-          DD_Exchange[last_rank+ii].Wait();  
-         }
-       }
-       //MPI::Request::Waitall(2*(last_rank), DD_Exchange);
+        if(rank < last_rank) {
+           HaloExchange[0].Wait();
+           HaloExchange[1].Wait();
+        }
+        
+        if(rank > 0) {
+           HaloExchange[3].Wait();
+           HaloExchange[2].Wait();
+           DD_Exchange[rank-1].Wait();
+        } else {
+          for(int ii=1;ii<last_rank+1;ii++) 
+              DD_Exchange[last_rank+ii].Wait();  
+        }
 #endif //_MPI_NB
+       
+          if (MonitorPointsArray &&
+              iter/NOutStep*NOutStep == iter ) {
+              for(int ii=0;ii<(int)MonitorPointsArray->GetNumElements();ii++) {
+                  if(rank == MonitorPointsArray->GetElement(ii).rank) {
 
-       if(rank == 0) {
-           for(int ii=0,DD_max_var=0.;ii<last_rank+1;ii++) {
-               for (k=0;k<(int)(FlowNode2D<double,NUM_COMPONENTS>::NumEq);k++ ) {
-                  DD_max_var = max(DD_max[ii].DD[k].DD,DD_max_var);
-                  RMS[k] += DD_max[ii].DD[k].RMS;
-                  iRMS[k]+= DD_max[ii].DD[k].iRMS;
-                  if(DD_max[ii].DD[k].DD == DD_max_var) {
-                   i_max = DD_max[ii].DD[k].i;
-                   j_max = DD_max[ii].DD[k].j;
-                   k_max = k;
+                      int i_i = (MonitorPointsArray->GetElement(ii).MonitorXY.GetX() - x0)/FlowNode2D<double,NUM_COMPONENTS>::dx;
+                      int j_j = MonitorPointsArray->GetElement(ii).MonitorXY.GetY()/FlowNode2D<double,NUM_COMPONENTS>::dy;
+                      MonitorPointsArray->GetElement(ii).MonitorNode = pJ->GetValue(i_i,j_j);
+                  }
+                  MPI::COMM_WORLD.Bcast(&MonitorPointsArray->GetElement(ii).MonitorNode,
+                                        sizeof(FlowNode2D<double,NUM_COMPONENTS>),
+                                        MPI::BYTE,
+                                        MonitorPointsArray->GetElement(ii).rank);
+              }                                       
+          }
+
+        if(rank == 0) {
+            for(int ii=0,DD_max_var=0.;ii<last_rank+1;ii++) {
+                for (k=0;k<(int)(FlowNode2D<double,NUM_COMPONENTS>::NumEq);k++ ) {
+                   DD_max_var = max(DD_max[ii].DD[k].DD,DD_max_var);
+                   RMS[k] += DD_max[ii].DD[k].RMS;
+                   iRMS[k]+= DD_max[ii].DD[k].iRMS;
+                   if(DD_max[ii].DD[k].DD == DD_max_var) {
+                    i_max = DD_max[ii].DD[k].i;
+                    j_max = DD_max[ii].DD[k].j;
+                    k_max = k;
+                  }
+              }
+            }
+            
+            for (k=0;k<(int)(FlowNode2D<double,NUM_COMPONENTS>::NumEq);k++ ) {
+                 if(iRMS[k] > 0) {
+
+                  RMS[k] = sqrt(RMS[k]/iRMS[k]);
+
+                  if(MonitorNumber == 0 || MonitorNumber > 4) {
+                     max_RMS = max(RMS[k],max_RMS);
+                     if(max_RMS == RMS[k])
+                        k_max_RMS = k;
+                  } else {
+                     max_RMS = max(RMS[MonitorNumber-1],max_RMS);
+                     if(max_RMS == RMS[MonitorNumber-1])
+                        k_max_RMS = k;
+                  }
+
                  }
-             }
-           }
-               for (k=0;k<(int)(FlowNode2D<double,NUM_COMPONENTS>::NumEq);k++ ) {
-                    if(iRMS[k] > 0) {
-
-                     RMS[k] = sqrt(RMS[k]/iRMS[k]);
-
-                     if(MonitorNumber == 0 || MonitorNumber > 4) {
-                        max_RMS = max(RMS[k],max_RMS);
-                        if(max_RMS == RMS[k])
-                           k_max_RMS = k;
-                     } else {
-                        max_RMS = max(RMS[MonitorNumber-1],max_RMS);
-                        if(max_RMS == RMS[MonitorNumber-1])
-                           k_max_RMS = k;
-                     }
-
-                    }
-                   }
+                }
 #else
 #ifdef _OPENMP
  }
@@ -1328,8 +1411,26 @@ void DEEPS2D_Run(ofstream* f_stream
            }
 
          }
+
+        if (MonitorPointsArray &&
+            iter/NOutStep*NOutStep == iter ) {
+            for(int ii=0;ii<(int)MonitorPointsArray->GetNumElements();ii++) {
+                    int i_i = (MonitorPointsArray->GetElement(ii).MonitorXY.GetX()
+#ifdef _MPI
+                               - x0
+#endif //_MPI
+                               )/FlowNode2D<double,NUM_COMPONENTS>::dx;
+                    int j_j = MonitorPointsArray->GetElement(ii).MonitorXY.GetY()/FlowNode2D<double,NUM_COMPONENTS>::dy;
+                    MonitorPointsArray->GetElement(ii).MonitorNode = 
+#ifdef _MPI
+                        pJ->GetValue(i_i,j_j);
+#else
+                        J->GetValue(i_i,j_j);
+#endif //_MPI
+            }
+        }
 #endif // _MPI
-        CurrentTimePart += dt;
+         CurrentTimePart += dt;
          if ( isVerboseOutput && iter/NOutStep*NOutStep == iter ) {
              gettimeofday(&mark1,NULL);
              d_time = (double)(mark1.tv_sec-mark2.tv_sec)+(double)(mark1.tv_usec-mark2.tv_usec)*1.e-6; 
@@ -1345,6 +1446,11 @@ void DEEPS2D_Run(ofstream* f_stream
 #else
              sum_RMS);
 #endif // _MPI
+             
+             if(MonitorPointsArray && MonitorPointsArray->GetNumElements() > 0) {
+                SaveMonitors(pMonitors_OutFile,GlobalTime+CurrentTimePart,MonitorPointsArray);
+             }
+
 
              if(k_max_RMS == i2d_nu_t)
                 k_max_RMS +=turb_mod_name_index;
@@ -1360,9 +1466,9 @@ void DEEPS2D_Run(ofstream* f_stream
                         <<  " % step_time=" << (double)d_time << " sec (" << (double)VCOMP <<" step/sec) dt="<< dt <<"\n" << flush;
               f_stream->flush();
              }
-#ifndef _MPI
-#endif // _MPI
+//#ifdef _MPI
         }
+//#endif // _MPI
      iter++;
    } while((int)iter < Nstep);
 #ifdef _OPENMP
@@ -1425,19 +1531,13 @@ void DEEPS2D_Run(ofstream* f_stream
 #endif // _PARALLEL_RECALC_Y_PLUS_
 
 #ifdef _PARALLEL_RECALC_Y_PLUS_
-    ParallelRecalc_y_plus(pJ,WallNodes,WallNodesUw_2D,x0);
+        ParallelRecalc_y_plus(pJ,WallNodes,WallNodesUw_2D,x0);
 #endif // _PARALLEL_RECALC_Y_PLUS_
 
     if( rank == 0) {
+        *f_stream << "Recalc y+...";
 #ifndef _PARALLEL_RECALC_Y_PLUS_
          Recalc_y_plus(J,WallNodes);
-#endif // _PARALLEL_RECALC_Y_PLUS_
-#else
-#ifdef _PARALLEL_RECALC_Y_PLUS_
-    ParallelRecalc_y_plus(pJ,WallNodes,WallNodesUw_2D,x0);
-#else
-   *f_stream << "Recalc y+...";
-   Recalc_y_plus(J,WallNodes);
 #endif // _PARALLEL_RECALC_Y_PLUS_
 #endif //  _MPI
          
@@ -1582,17 +1682,19 @@ void DEEPS2D_Run(ofstream* f_stream
           }
 #pragma omp barrier
 #endif //  _OPENMP
-if(MonitorNumber < 5) {
-   if( max_RMS > ExitMonitorValue )
-     MonitorCondition = 1;
-   else
-     MonitorCondition = 0;
-} else {
-   if( GlobalTime <  ExitMonitorValue )
-     MonitorCondition = 1;
-   else
-     MonitorCondition = 0;
-}
+
+          if(MonitorNumber < 5) {
+              if( max_RMS > ExitMonitorValue )
+                MonitorCondition = 1;
+              else
+                MonitorCondition = 0;
+           } else {
+              if( GlobalTime <  ExitMonitorValue )
+                MonitorCondition = 1;
+              else
+                MonitorCondition = 0;
+           }
+
 }while( MonitorCondition );
 //---   Save  results ---
 #ifdef _MPI
@@ -1632,13 +1734,13 @@ if (rank == 0) {
 //--- End Save results ---
                 *f_stream << "\nResults saved in file \"" << OutFileName << "\".\n" << flush;
                 f_stream->flush();
-#ifdef _MPI
                 isRun = 0;
                 Exit_OpenHyperFLOW2D();
-              }
+#ifdef _MPI
+       }
 #endif //  _MPI
 #ifdef _DEBUG_0
-            }__except( UMatrix2D<double>*  m) {
+       }__except( UMatrix2D<double>*  m) {
                 *f_stream << "\n";
                 *f_stream << "Error in UMatrix2D<double> ("<< err_i << "," << err_j <<")." << "\n" << flush;
                 f_stream->flush();
@@ -2209,19 +2311,43 @@ void CutFile(char* cutFile) {
     pCutFile->close();
 }
 
+void SaveMonitorsHeader(ofstream* MonitorsFile,UArray< MonitorPoint >* MonitorPtArray) {
+    char  TecPlotTitle[1024]={'\0'};
+    char  MonitorStr[256];
+    snprintf(TecPlotTitle,1024,"#VARIABLES = Time");
+    
+    for (int i=0;i<(int)MonitorPtArray->GetNumElements();i++) {
+         // Point-%i.U, Point-%i.V, 
+         snprintf(MonitorStr,256,", Point-%i.p, Point-%i.T",i+1,i+1);
+         strcat(TecPlotTitle,MonitorStr);
+    }
+   *MonitorsFile << TecPlotTitle << endl;
+}
+
 void SaveRMSHeader(ofstream* OutputData) {
-        char  TechPlotTitle[1024];
+        char  TecPlotTitle[1024];
         char  TmpData[256]={'\0'};
 
         if(is_Cx_calc)
            snprintf(TmpData,256,", Cx(N), Cy(N), Fx(N), Fy(N)\n");
 
-        snprintf(TechPlotTitle,1024,"#VARIABLES = N, RMS_Ro(N), RMS_RoU(N), RMS_RoV(N), RMS_RoE(N), RMS_RoY_fu(N), RMS_RoY_ox(N), RMS_RoY_cp(N), RMS_k(N), RMS_eps(N)%s",TmpData);
+        snprintf(TecPlotTitle,1024,"#VARIABLES = N, RMS_Ro(N), RMS_RoU(N), RMS_RoV(N), RMS_RoE(N), RMS_RoY_fu(N), RMS_RoY_ox(N), RMS_RoY_cp(N), RMS_k(N), RMS_eps(N)%s",TmpData);
 
-        *OutputData <<  TechPlotTitle << endl;
+        *OutputData <<  TecPlotTitle << endl;
     }
 
-    void SaveRMS(ofstream* OutputData,unsigned int n, double* outRMS) {
+void SaveMonitors(ofstream* MonitorsFile, 
+                  double t, 
+                  UArray< MonitorPoint >* MonitorPtArray) {
+    *MonitorsFile  << t << " ";
+    for (int i=0;i<(int)MonitorPtArray->GetNumElements();i++) {
+        // MonitorPtArray->GetElement(i).MonitorNode.U << " " << MonitorPtArray->GetElement(i).MonitorNode.V << " " <<
+        *MonitorsFile << MonitorPtArray->GetElement(i).MonitorNode.p << " " << MonitorPtArray->GetElement(i).MonitorNode.Tg << " ";
+    }
+    *MonitorsFile << endl;
+}
+
+void SaveRMS(ofstream* OutputData,unsigned int n, double* outRMS) {
          *OutputData <<  n  << " ";
          for(int i=0;i<FlowNode2D<double,NUM_COMPONENTS>::NumEq;i++) {
              *OutputData <<  outRMS[i]  << " ";

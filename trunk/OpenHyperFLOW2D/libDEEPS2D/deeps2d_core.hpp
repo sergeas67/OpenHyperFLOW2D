@@ -3,13 +3,13 @@
 *                                                                              *
 *   Transient, Density based Effective Explicit Parallel Solver (T-DEEPS2D)    *
 *                                                                              *
-*   Version  1.0.0                                                             *
-*   Copyright (C)  1995-2013 by Serge A. Suchkov                               *
+*   Version  1.0.2                                                             *
+*   Copyright (C)  1995-2014 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
 *                                                                              *
 * Common function declarations file.                                           *
 *                                                                              *
-*  last update: 15/12/2013                                                     *
+*  last update: 25/02/2014                                                     *
 ********************************************************************************/
 #ifdef _MPI
 #include <mpi.h>
@@ -59,16 +59,16 @@
 #endif //ComputationalMatrix2D
 
 enum BlendingFactorFunction {
-     BFF_L,   // LINEAR locally adopted blending factor function (LLABF)
-     BFF_LR,  // LINEAR locally adopted blending factor function with relaxation (LLABFR)
-     BFF_S,   // SQUARE locally adopted blending factor function (SLABFR)
-     BFF_SR,  // SQUARE locally adopted blending factor function with relaxation (SLABFR)
-     BFF_SQR, // SQRT() locally adopted blending factor function (SRLABF)
-     BFF_SQRR,// SQRT() locally adopted blending factor function with relaxation (SRLABFR)
-     BFF_MACH,// Mach number depended locally adapted blending factor function (MLABF)
-     BFF_LG,  // Local gradient  adopted blending factor function (LGABF)
-     BFF_MIXED, // BFF_SQR + BFF_LG
-     BFF_HYBRID, // BFF_SQR + BFF_MACH + BFF_LG
+     BFF_L,            // LINEAR locally adopted blending factor function (LLABF)
+     BFF_LR,           // LINEAR locally adopted blending factor function with relaxation (LLABFR)
+     BFF_S,            // SQUARE locally adopted blending factor function (SLABFR)
+     BFF_SR,           // SQUARE locally adopted blending factor function with relaxation (SLABFR)
+     BFF_SQR,          // SQRT() locally adopted blending factor function (SRLABF)
+     BFF_SQRR,         // SQRT() locally adopted blending factor function with relaxation (SRLABFR)
+     BFF_MACH,         // Mach number depended locally adapted blending factor function (MLABF)
+     BFF_LG,           // Local gradient  adopted blending factor function (LGABF)
+     BFF_MIXED,        // BFF_SQR + BFF_LG
+     BFF_HYBRID,       // BFF_SQR + BFF_MACH + BFF_LG
      BFF_SQR_PRESSURE, // BFF_SQR + pressure check
      BFF_SR_LIMITED,
 };
@@ -89,7 +89,8 @@ enum data_tag {
     tag_NumWallNodes,
     tag_WallNodesArray,
     tag_WallFrictionVelocity,
-    tag_DD
+    tag_DD,
+    tag_MonitorPoint
 };
 
 struct DD_pack {
@@ -98,6 +99,18 @@ struct DD_pack {
           unsigned long  iRMS; // num involved nodes
           unsigned int   i,j;  // x,y -coordinates
 };
+
+struct MonitorPoint {
+       XY<double>  MonitorXY;
+       FlowNode2D<double,NUM_COMPONENTS>  MonitorNode;
+#ifdef _MPI
+       int rank;
+#ifdef _MPI_NB
+       MPI::Request MonitorReq[2];
+#endif //_MPI_NB
+#endif // _MPI
+};
+
 extern int    fd_g;
 extern int    fd_s;
 extern int    fd_l;
@@ -106,12 +119,13 @@ extern void*  SolidSwapData;
 extern void*  GasSwapData;
 extern UArray< UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >* >* ArraySubmatrix;
 extern ChemicalReactionsModelData2D chemical_reactions;
-extern UArray< XY<int> >* WallNodes;
+extern UArray< XY<int> >*           WallNodes;
+extern UArray< MonitorPoint >*      MonitorPointsArray;
 extern UArray< XY<int> >* GetWallNodes(ofstream* f_str, ComputationalMatrix2D* pJ, int isPrint);
 
 extern UArray< double >*     WallNodesUw_2D;
 extern int                   NumWallNodes;
-extern double                x0;
+//extern double                x0;
 // External variables
 extern UArray< XY<int> >*                                           GlobalSubmatrix;
 extern UArray<UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >*>*     SubmatrixArray;
@@ -135,7 +149,12 @@ extern void*                                 InitDEEPS2D(void*);
 extern void                                  SaveData2D(ofstream* OutputData, int);
 extern ofstream*                             OpenData(char* outputDataFile);
 extern void                                  SaveRMSHeader(ofstream* OutputData);
+extern void                                  SaveMonitorsHeader(ofstream* MonitorsFile,
+                                                                UArray< MonitorPoint >* MonitorPtArray);
 extern void                                  SaveRMS(ofstream* OutputData,unsigned int n, double* outRMS);
+extern void                                  SaveMonitors(ofstream* OutputData, 
+                                                          double t, 
+                                                          UArray< MonitorPoint >* MonitorPtArray);
 extern void                                  CutFile(char* cutFile);
 extern u_long                                SetWallNodes(ofstream* f_str, ComputationalMatrix2D* pJ);
 #ifdef _IMPI_
@@ -179,7 +198,7 @@ extern void DEEPS2D_Run(ofstream* o_stream
 #ifdef _MPI
                         ,UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >*     pJ,
                         UMatrix2D< FlowNodeCore2D<double,NUM_COMPONENTS> >* pC,
-                        int rank , int last_rank
+                        int rank , int last_rank, double x0
 #endif // _MPI
                         );
 

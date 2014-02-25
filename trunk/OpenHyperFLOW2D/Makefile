@@ -43,7 +43,7 @@ TARGET_2D    = $(TARGET_BASE)-$(VERSION)
 SOURCES_2D   = hf2d_start.cpp
 OBJECTS_2D   = hf2d_start.o
 HF2D_START   = $(OBJECTS_2D)
-DATAFILE     =
+DATAFILE     = CIAM-Resonator.dat
 SOURCE       = $(SOURCE_2D)
 OBJECTS      = $(OBJECTS_2D)
 
@@ -107,8 +107,8 @@ Nozzle2D:
 	bin/OpenHyperFLOW2D.sh TestCases/Nozzle2D ${NUM_NODES}
 WallNozzle2D:
 	bin/OpenHyperFLOW2D.sh TestCases/WallNozzle2D ${NUM_NODES}
-RezNozzle2D:
-	bin/OpenHyperFLOW2D.sh TestCases/RezNozzle2D ${NUM_NODES}
+CIAM-Resonator:
+	bin/OpenHyperFLOW2D.sh TestCases/CIAM-Resonator ${NUM_NODES}
 Step:
 	bin/OpenHyperFLOW2D.sh TestCases/Step ${NUM_NODES}
 #
@@ -144,10 +144,10 @@ run:
 	$(TARGET) $(DATAFILE)
 
 debug:
-	
+		
 ifdef MPI
-	 /opt/intel/impi/4.1.0/bin64/mpiexec -n 32 ./ddd-mpi.sh ./$(TARGET_2D)  $(DATAFILE)
+		/opt/intel/impi/4.1.0/bin64/mpiexec -np 4 ./ddd-mpi.sh ./$(TARGET_2D)  $(DATAFILE)
 else
-	 ddd ./$(TARGET_2D)  $(DATAFILE)
+		ddd  ./$(TARGET_2D)  $(DATAFILE)
 endif
 

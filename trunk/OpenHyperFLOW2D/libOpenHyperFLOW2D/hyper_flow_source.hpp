@@ -1,11 +1,11 @@
 /*******************************************************************************
 *   OpenHyperFLOW2D                                                            *
 *                                                                              *
-*   Version  1.0.0                                                             *
-*   Copyright (C)  1995-2013 by Serge A. Suchkov                               *
+*   Version  1.0.2                                                             *
+*   Copyright (C)  1995-2014 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
 *                                                                              *
-*   last update: 15/12/2013                                                    *
+*   last update: 25/02/2014                                                    *
 *******************************************************************************/
 #ifndef _hyper_flow_source_hpp_
 #define _hyper_flow_source_hpp_

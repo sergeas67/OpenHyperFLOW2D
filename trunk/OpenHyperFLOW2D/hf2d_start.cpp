@@ -1,13 +1,13 @@
 /*******************************************************************************
 *   OpenHyperFLOW2D                                                            *
 *                                                                              *
-*   Version  1.0.0                                                             *
-*   Copyright (C)  1995-2013 by Serge A. Suchkov                               *
+*   Version  1.0.2                                                             *
+*   Copyright (C)  1995-2014 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
 *                                                                              *
 *  hf2d_start.cpp: OpenHyperFLOW2D solver init code....                        *
 *                                                                              *
-*  last update: 15/12/2013                                                     *
+*  last update: 25/02/2014                                                     *
 ********************************************************************************/
 #include "libDEEPS2D/deeps2d_core.hpp"
 #include <sys/time.h>
@@ -62,7 +62,7 @@ int main( int argc, char **argv )
 #else
             printf("(parallel MPI version)\n");
 #endif // _MPI
-            printf("Copyright (C) 1995-2013 by Serge A. Suchkov\nCopyright policy: LGPL V3\nUsage: %s [{input_data_file}]\n",argv[0]);
+            printf("Copyright (C) 1995-2014 by Serge A. Suchkov\nCopyright policy: LGPL V3\nUsage: %s [{input_data_file}]\n",argv[0]);
 
             printf("\n\t* Density-based 2D-Navier-Stokes solver for ");
 #ifdef _UNIFORM_MESH_
@@ -101,7 +101,7 @@ rank      = MPI::COMM_WORLD.Get_rank();
 #ifdef _MPI
 //------------------------- MPI version ------------------------------------
 	    last_rank = MPI::COMM_WORLD.Get_size()-1;
-            if(last_rank == 0) {
+           if(last_rank == 0) {
 	       printf("At least 2 CPU should be used.\n Check mpiexec or mpirun parameters\n");
 	       Exit_OpenHyperFLOW2D();
 	    }
@@ -173,6 +173,14 @@ rank      = MPI::COMM_WORLD.Get_rank();
                                         MPI::BYTE,i,tag_WallNodesArray);
                    MPI::COMM_WORLD.Send(&x0,1,MPI::DOUBLE,i,tag_X0);                               // Send x0 for submatrix
                }
+               if(MonitorPointsArray) {
+                   for(int ii=0;ii<(int)MonitorPointsArray->GetNumElements();ii++) {
+                           if(MonitorPointsArray->GetElement(ii).MonitorXY.GetX() >= x0 &&
+                              MonitorPointsArray->GetElement(ii).MonitorXY.GetX() < x0 + FlowNode2D<double,NUM_COMPONENTS>::dx*TmpSubmatrix->GetX()) {
+                              MonitorPointsArray->GetElement(ii).rank = i; 
+                           }
+                   }
+               }
            }
            TmpMaxX      = ArraySubmatrix->GetElement(0)->GetX();
            MaxY         = ArraySubmatrix->GetElement(0)->GetY();
@@ -195,28 +203,39 @@ rank      = MPI::COMM_WORLD.Get_rank();
            WallNodesUw_2D = new UArray<double>(NumWallNodes,-1);                                   // Create friction velosity array
            MPI::COMM_WORLD.Recv(&x0,1,MPI::DOUBLE,0,tag_X0);                                       // Recive x0 for submatrix
        }
+        
+        if(MonitorPointsArray && 
+           MonitorPointsArray->GetNumElements() > 0) {
+            MPI::COMM_WORLD.Bcast(MonitorPointsArray->GetArrayPtr(),
+                                  MonitorPointsArray->GetNumElements()*sizeof(MonitorPoint),
+                                  MPI::BYTE,
+                                  0);
+        }
+        
         MPI::COMM_WORLD.Barrier();
        
        
-       TmpCoreSubmatrix = new UMatrix2D< FlowNodeCore2D<double,NUM_COMPONENTS> >(TmpMaxX,MaxY);
+        TmpCoreSubmatrix = new UMatrix2D< FlowNodeCore2D<double,NUM_COMPONENTS> >(TmpMaxX,MaxY);
      
-     if(rank == 0) {
-         gettimeofday(&mark1,NULL);
-         *o_stream << "OK\n" << "Time: " << (double)(mark1.tv_sec-mark2.tv_sec)+(double)(mark1.tv_usec-mark2.tv_usec)*1.e-6 << " sec." << endl; 
-         *o_stream << "\nStart computation...\n" << flush;
-         
-         //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-         //DataSnapshot(OutFileName,WM_REWRITE);  //
-         //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-     
-     }
-     MPI::COMM_WORLD.Barrier();
-     //Exit_OpenHyperFLOW2D();
+        if(rank == 0) {
+            gettimeofday(&mark1,NULL);
+            
+            *o_stream << "OK\n" << "Time: " << (double)(mark1.tv_sec-mark2.tv_sec)+(double)(mark1.tv_usec-mark2.tv_usec)*1.e-6 << " sec." << endl; 
+            *o_stream << "\nStart computation...\n" << flush;
+            
+            x0 = 0;
 
-     DEEPS2D_Run((ofstream*)o_stream, 
-                   TmpSubmatrix,
-                   TmpCoreSubmatrix,
-                   rank, last_rank);
+            //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+            //DataSnapshot(OutFileName,WM_REWRITE);  //
+            //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+     
+        }
+        MPI::COMM_WORLD.Barrier();
+
+        DEEPS2D_Run((ofstream*)o_stream, 
+                      TmpSubmatrix,
+                      TmpCoreSubmatrix,
+                      rank, last_rank, x0);
 //------------------------- MPI version ------------------------------------
 #else
 //---------------------- OpenMP/Single thread version ----------------------
