@@ -304,6 +304,7 @@ void InitSharedData(InputData* _data,
                    if ( _data->GetDataError()==-1 ) {
                        Abort_OpenHyperFLOW2D();
                    }
+                   
                    TmpPoint.MonitorXY.SetY(point_xy);
 
                    if(TmpPoint.MonitorXY.GetX() < 0.0 ||
@@ -1332,20 +1333,27 @@ void DEEPS2D_Run(ofstream* f_stream
               DD_Exchange[last_rank+ii].Wait();  
         }
 #endif //_MPI_NB
-       
+          
           if (MonitorPointsArray &&
               iter/NOutStep*NOutStep == iter ) {
-              for(int ii=0;ii<(int)MonitorPointsArray->GetNumElements();ii++) {
-                  if(rank == MonitorPointsArray->GetElement(ii).rank) {
+              for(int ii_monitor=0;ii_monitor<(int)MonitorPointsArray->GetNumElements();ii_monitor++) {
+                  if(rank == MonitorPointsArray->GetElement(ii_monitor).rank) {
 
-                      int i_i = (MonitorPointsArray->GetElement(ii).MonitorXY.GetX() - x0)/FlowNode2D<double,NUM_COMPONENTS>::dx;
-                      int j_j = MonitorPointsArray->GetElement(ii).MonitorXY.GetY()/FlowNode2D<double,NUM_COMPONENTS>::dy;
-                      MonitorPointsArray->GetElement(ii).MonitorNode = pJ->GetValue(i_i,j_j);
+                      int i_i = (MonitorPointsArray->GetElement(ii_monitor).MonitorXY.GetX() - x0)/FlowNode2D<double,NUM_COMPONENTS>::dx;
+                      int j_j = MonitorPointsArray->GetElement(ii_monitor).MonitorXY.GetY()/FlowNode2D<double,NUM_COMPONENTS>::dy;
+                      MonitorPointsArray->GetElement(ii_monitor).p  = pJ->GetValue(i_i,j_j).p;
+                      MonitorPointsArray->GetElement(ii_monitor).T  = pJ->GetValue(i_i,j_j).Tg;
                   }
-                  MPI::COMM_WORLD.Bcast(&MonitorPointsArray->GetElement(ii).MonitorNode,
-                                        sizeof(FlowNode2D<double,NUM_COMPONENTS>),
-                                        MPI::BYTE,
-                                        MonitorPointsArray->GetElement(ii).rank);
+                  
+                  MPI::COMM_WORLD.Bcast(&MonitorPointsArray->GetElement(ii_monitor).p,
+                                        sizeof(double),
+                                        MPI::DOUBLE,
+                                        MonitorPointsArray->GetElement(ii_monitor).rank);
+                  
+                  MPI::COMM_WORLD.Bcast(&MonitorPointsArray->GetElement(ii_monitor).T,
+                                        sizeof(double),
+                                        MPI::DOUBLE,
+                                        MonitorPointsArray->GetElement(ii_monitor).rank);
               }                                       
           }
 
@@ -1414,19 +1422,27 @@ void DEEPS2D_Run(ofstream* f_stream
 
         if (MonitorPointsArray &&
             iter/NOutStep*NOutStep == iter ) {
-            for(int ii=0;ii<(int)MonitorPointsArray->GetNumElements();ii++) {
-                    int i_i = (MonitorPointsArray->GetElement(ii).MonitorXY.GetX()
+            for(int ii_monitor=0;ii_monitor<(int)MonitorPointsArray->GetNumElements();ii_monitor++) {
+                    int i_i = (MonitorPointsArray->GetElement(ii_monitor).MonitorXY.GetX()
 #ifdef _MPI
                                - x0
 #endif //_MPI
                                )/FlowNode2D<double,NUM_COMPONENTS>::dx;
-                    int j_j = MonitorPointsArray->GetElement(ii).MonitorXY.GetY()/FlowNode2D<double,NUM_COMPONENTS>::dy;
-                    MonitorPointsArray->GetElement(ii).MonitorNode = 
+                    int j_j = MonitorPointsArray->GetElement(ii_monitor).MonitorXY.GetY()/FlowNode2D<double,NUM_COMPONENTS>::dy;
+                    
+                    MonitorPointsArray->GetElement(ii_monitor).p = 
 #ifdef _MPI
-                        pJ->GetValue(i_i,j_j);
+                        pJ->GetValue(i_i,j_j).p;
 #else
-                        J->GetValue(i_i,j_j);
+                        J->GetValue(i_i,j_j).p;
 #endif //_MPI
+                        MonitorPointsArray->GetElement(ii_monitor).T = 
+#ifdef _MPI
+                        pJ->GetValue(i_i,j_j).Tg;
+#else
+                        J->GetValue(i_i,j_j).Tg;
+#endif //_MPI
+            
             }
         }
 #endif // _MPI
@@ -2342,7 +2358,7 @@ void SaveMonitors(ofstream* MonitorsFile,
     *MonitorsFile  << t << " ";
     for (int i=0;i<(int)MonitorPtArray->GetNumElements();i++) {
         // MonitorPtArray->GetElement(i).MonitorNode.U << " " << MonitorPtArray->GetElement(i).MonitorNode.V << " " <<
-        *MonitorsFile << MonitorPtArray->GetElement(i).MonitorNode.p << " " << MonitorPtArray->GetElement(i).MonitorNode.Tg << " ";
+        *MonitorsFile << MonitorPtArray->GetElement(i).p << " " << MonitorPtArray->GetElement(i).T << " ";
     }
     *MonitorsFile << endl;
 }

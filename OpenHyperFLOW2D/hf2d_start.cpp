@@ -173,11 +173,12 @@ rank      = MPI::COMM_WORLD.Get_rank();
                                         MPI::BYTE,i,tag_WallNodesArray);
                    MPI::COMM_WORLD.Send(&x0,1,MPI::DOUBLE,i,tag_X0);                               // Send x0 for submatrix
                }
+               
                if(MonitorPointsArray) {
-                   for(int ii=0;ii<(int)MonitorPointsArray->GetNumElements();ii++) {
-                           if(MonitorPointsArray->GetElement(ii).MonitorXY.GetX() >= x0 &&
-                              MonitorPointsArray->GetElement(ii).MonitorXY.GetX() < x0 + FlowNode2D<double,NUM_COMPONENTS>::dx*TmpSubmatrix->GetX()) {
-                              MonitorPointsArray->GetElement(ii).rank = i; 
+                   for(int ii_monitor=0;ii_monitor<(int)MonitorPointsArray->GetNumElements();ii_monitor++) {
+                           if(MonitorPointsArray->GetElement(ii_monitor).MonitorXY.GetX() >= x0 &&
+                              MonitorPointsArray->GetElement(ii_monitor).MonitorXY.GetX() < x0 + FlowNode2D<double,NUM_COMPONENTS>::dx*TmpSubmatrix->GetX()) {
+                              MonitorPointsArray->GetElement(ii_monitor).rank = i; 
                            }
                    }
                }
@@ -206,10 +207,12 @@ rank      = MPI::COMM_WORLD.Get_rank();
         
         if(MonitorPointsArray && 
            MonitorPointsArray->GetNumElements() > 0) {
-            MPI::COMM_WORLD.Bcast(MonitorPointsArray->GetArrayPtr(),
-                                  MonitorPointsArray->GetNumElements()*sizeof(MonitorPoint),
-                                  MPI::BYTE,
-                                  0);
+                   for(int ii_monitor=0;ii_monitor<(int)MonitorPointsArray->GetNumElements();ii_monitor++) {
+                       MPI::COMM_WORLD.Bcast(&MonitorPointsArray->GetElement(ii_monitor).rank,
+                                             sizeof(int),
+                                             MPI::INT,
+                                             0);
+                   }
         }
         
         MPI::COMM_WORLD.Barrier();
