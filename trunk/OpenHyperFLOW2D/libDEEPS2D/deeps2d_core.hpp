@@ -102,12 +102,10 @@ struct DD_pack {
 
 struct MonitorPoint {
        XY<double>  MonitorXY;
-       FlowNode2D<double,NUM_COMPONENTS>  MonitorNode;
+       double      p;
+       double      T;
 #ifdef _MPI
-       int rank;
-#ifdef _MPI_NB
-       MPI::Request MonitorReq[2];
-#endif //_MPI_NB
+       int         rank;
 #endif // _MPI
 };
 
