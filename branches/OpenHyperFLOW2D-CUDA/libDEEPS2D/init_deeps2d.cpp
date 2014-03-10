@@ -150,6 +150,46 @@ void InitSharedData(InputData* _data,
                 Abort_OpenHyperFLOW2D();
             }
 
+            int NumMonitorPoints = _data->GetIntVal((char*)"NumMonitorPoints");
+            
+            if ( _data->GetDataError()==-1 ) {
+                Abort_OpenHyperFLOW2D();
+            }
+
+            if (NumMonitorPoints > 0 ) {
+                *(_data->GetMessageStream()) << "Read monitor points...\n" << flush;
+                MonitorPointsArray = new UArray< MonitorPoint >(); 
+                MonitorPoint TmpPoint;
+                for (int i=0;i<NumMonitorPoints;i++) {
+                   char   point_str[256];
+                   double point_xy;
+                   snprintf(point_str,256,"Point-%i.X",i+1);
+                   point_xy =  _data->GetFloatVal(point_str);
+                   if ( _data->GetDataError()==-1 ) {
+                       Abort_OpenHyperFLOW2D();
+                   }
+                   TmpPoint.MonitorXY.SetX(point_xy);
+                   snprintf(point_str,256,"Point-%i.Y",i+1);
+                   point_xy =  _data->GetFloatVal(point_str);
+                   if ( _data->GetDataError()==-1 ) {
+                       Abort_OpenHyperFLOW2D();
+                   }
+                   
+                   TmpPoint.MonitorXY.SetY(point_xy);
+
+                   if(TmpPoint.MonitorXY.GetX() < 0.0 ||
+                      TmpPoint.MonitorXY.GetY() < 0.0 ||
+                      TmpPoint.MonitorXY.GetX() > MaxX*dx ||
+                      TmpPoint.MonitorXY.GetY() > MaxY*dy ) {
+                      *(_data->GetMessageStream()) << "Point no " << i+1 << " X=" << TmpPoint.MonitorXY.GetX() << "m Y=" << TmpPoint.MonitorXY.GetY() << " m out of domain...monitor ignored." << endl;
+                   } else {
+                       MonitorPointsArray->AddElement(&TmpPoint);
+                    *(_data->GetMessageStream()) << "Point no " << i+1 << " X=" << TmpPoint.MonitorXY.GetX() << "m Y=" << TmpPoint.MonitorXY.GetY() << " m" << endl;
+                }
+               }
+                *(_data->GetMessageStream()) << "Load " << NumMonitorPoints << " monitor points...OK" << endl;
+            }
+            
             beta0  = _data->GetFloatVal((char*)"beta");                         // Base blending factor.
             if ( _data->GetDataError()==-1 ) {
                 Abort_OpenHyperFLOW2D();
@@ -2381,6 +2421,30 @@ void CutFile(char* cutFile) {
     pCutFile = new ofstream();
     pCutFile->open(cutFile, ios::trunc);
     pCutFile->close();
+}
+
+void SaveMonitorsHeader(ofstream* MonitorsFile,UArray< MonitorPoint >* MonitorPtArray) {
+    char  TecPlotTitle[1024]={'\0'};
+    char  MonitorStr[256];
+    snprintf(TecPlotTitle,1024,"#VARIABLES = Time");
+    
+    for (int i=0;i<(int)MonitorPtArray->GetNumElements();i++) {
+         // Point-%i.U, Point-%i.V, 
+         snprintf(MonitorStr,256,", Point-%i.p, Point-%i.T",i+1,i+1);
+         strcat(TecPlotTitle,MonitorStr);
+    }
+   *MonitorsFile << TecPlotTitle << endl;
+}
+
+void SaveMonitors(ofstream* MonitorsFile, 
+                  double t, 
+                  UArray< MonitorPoint >* MonitorPtArray) {
+    *MonitorsFile  << t << " ";
+    for (int i=0;i<(int)MonitorPtArray->GetNumElements();i++) {
+        // MonitorPtArray->GetElement(i).MonitorNode.U << " " << MonitorPtArray->GetElement(i).MonitorNode.V << " " <<
+        *MonitorsFile << MonitorPtArray->GetElement(i).p << " " << MonitorPtArray->GetElement(i).T << " ";
+    }
+    *MonitorsFile << endl;
 }
 #ifdef _RMS_
 void SaveRMSHeader(ofstream* OutputData) {

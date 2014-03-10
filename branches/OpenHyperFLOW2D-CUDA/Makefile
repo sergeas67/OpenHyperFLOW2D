@@ -120,6 +120,8 @@ FlameHolder:
 	bin/OpenHyperFLOW2D.sh TestCases/FlameHolder ${NUM_NODES}
 Cyl2D:
 	bin/OpenHyperFLOW2D.sh TestCases/Cyl2D ${NUM_NODES}
+CIAM-Resonator:
+	bin/OpenHyperFLOW2D.sh TestCases/CIAM-Resonator ${NUM_NODES}
 	
 #
 $(TARGET_2D): local  Utl libexcept libflow objData libhyperflow libdeeps2d liboutcfd $(OBJECTS_2D)
