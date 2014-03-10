@@ -23,8 +23,7 @@ __host__
 int LoadTable2GPU(Table* Src, Table*& Dst, int i_dev)
 {
  Table* pTmpTable;
- pTmpTable = new Table(NULL,0); // Src->GetName()
- 
+ pTmpTable = new Table(NULL,0); 
  pTmpTable->n = Src->n;
  
  if(cudaSetDevice(i_dev) != cudaSuccess ) {

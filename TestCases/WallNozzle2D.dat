@@ -56,6 +56,13 @@
 <data/MonitorNumber=5>
 <data/ExitMonitorValue=0.01>
 
+; Monitor points
+<data/NumMonitorPoints=0>
+
+; Point 1
+<data/Point-1.X=0.0>
+<data/Point-1.Y=0.0>;
+
 ;Maximum time of calculation, s
 ; Courant number (for gas phase only)
 <data/CFL=0.1>

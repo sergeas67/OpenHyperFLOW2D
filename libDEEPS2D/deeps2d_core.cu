@@ -103,6 +103,10 @@ const  char*  RMS_Name[11] = {"Rho","Rho*U","Rho*V","Rho*E","Rho*Yfu","Rho*Yox",
 char          RMSFileName[255];
 ofstream*     pRMS_OutFile;      // Output RMS stream
 #endif //_RMS_
+
+char          MonitorsFileName[255];
+ofstream*     pMonitors_OutFile; // Output Monitors stream
+
 int    useSwapFile=0;
 char   OldSwapFileName[255];
 void*  OldSwapData;
@@ -126,19 +130,19 @@ void*                                        GasSwapData;
 int                                          TurbMod    = 0;
 int                                          EndFLAG    = 1;
 int                                          PrintFLAG;
-ofstream*                                    pInputData;      // Output data stream
+ofstream*                                    pInputData;        // Output data stream
 ofstream*                                    pHeatFlux_OutFile; // Output HeatFlux stream
-unsigned int                                 iter = 0;        // iteration number
-unsigned int                                 last_iter=0;     // Global iteration number
-int                                          isStop=0;        // Stop flag
-InputData*                                   Data=NULL;       // Object data loader
-UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >*  J=NULL;      // Main computation area
-UMatrix2D< FlowNodeCore2D<double,NUM_COMPONENTS> >*  C=NULL;      // Main computation area
-UArray<Flow*>*                               FlowList=NULL;   // List of 'Flow' objects
-UArray<Flow2D*>*                             Flow2DList=NULL; // List of 'Flow2D' objects
-UArray<Bound2D*>                             SingleBoundsList;// Single Bounds List;
+unsigned int                                 iter = 0;          // iteration number
+unsigned int                                 last_iter=0;       // Global iteration number
+int                                          isStop=0;          // Stop flag
+InputData*                                   Data=NULL;         // Object data loader
+UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >*  J=NULL;        // Main computation area
+UMatrix2D< FlowNodeCore2D<double,NUM_COMPONENTS> >*  C=NULL;    // Main computation area
+UArray<Flow*>*                               FlowList=NULL;     // List of 'Flow' objects
+UArray<Flow2D*>*                             Flow2DList=NULL;   // List of 'Flow2D' objects
+UArray<Bound2D*>                             SingleBoundsList;  // Single Bounds List;
 
-double                                       dt;              // time step
+double                                       dt;                // time step
 double*                                      RoUx=NULL;
 double*                                      RoVy=NULL;
 double                                       GlobalTime=0.;
@@ -722,6 +726,12 @@ void DEEPS2D_Run(ofstream* f_stream,
     pRMS_OutFile = OpenData(RMSFileName);
     SaveRMSHeader(pRMS_OutFile);
 #endif // _RMS_
+    if(MonitorPointsArray && MonitorPointsArray->GetNumElements() > 0) {
+        snprintf(MonitorsFileName,255,"Monitors-%s",OutFileName);
+        CutFile(MonitorsFileName);
+        pMonitors_OutFile = OpenData(MonitorsFileName);
+        SaveMonitorsHeader(pMonitors_OutFile, MonitorPointsArray);
+    }
 
 #ifdef _DEBUG_0
          ___try {
@@ -894,6 +904,18 @@ void DEEPS2D_Run(ofstream* f_stream,
                                                                                                        dt_min_device, int2float_scale,
                                                                                                        (TurbulenceExtendedModel)TurbExtModel,
                                                                                                        ProblemType);
+                        if (MonitorPointsArray &&
+                            iter/NOutStep*NOutStep == iter ) {
+                            for(int ii_monitor=0;ii_monitor<(int)MonitorPointsArray->GetNumElements();ii_monitor++) {
+                                if(ii == MonitorPointsArray->GetElement(ii_monitor).rank) {
+                                    int i_i = MonitorPointsArray->GetElement(ii_monitor).MonitorXY.GetX()/FlowNode2D<double,NUM_COMPONENTS>::dx - iX0;
+                                    int j_j = MonitorPointsArray->GetElement(ii_monitor).MonitorXY.GetY()/FlowNode2D<double,NUM_COMPONENTS>::dy;
+                                    CopyDeviceToHost(&cudaJ[i_i*max_Y + j_j].p,&MonitorPointsArray->GetElement(ii_monitor).p,sizeof(double),cuda_streams[ii]);
+                                    CopyDeviceToHost(&cudaJ[i_i*max_Y + j_j].Tg,&MonitorPointsArray->GetElement(ii_monitor).T,sizeof(double),cuda_streams[ii]);
+                                }
+                            }                                       
+                        }
+                        
                         iX0 += max_X;
                    }
 
@@ -903,6 +925,9 @@ void DEEPS2D_Run(ofstream* f_stream,
 
                        int r_Overlap;
                        int l_Overlap;
+                       
+                       int max_X;
+                       int max_Y;
 
                        if(cudaSetDevice(ii) != cudaSuccess ) {
                           *f_stream << "\nError set CUDA device no: "<< ii << endl;
@@ -935,8 +960,8 @@ void DEEPS2D_Run(ofstream* f_stream,
 // --- Halo exchange ---
                         if(r_Overlap > 0) {
 
-                            int max_X = cudaDimArray->GetElement(ii).GetX();
-                            int max_Y = cudaDimArray->GetElement(ii).GetY();
+                            max_X = cudaDimArray->GetElement(ii).GetX();
+                            max_Y = cudaDimArray->GetElement(ii).GetY();
 
                             cudaJ = cudaSubmatrixArray->GetElement(ii);
                             size_t cuda_HalloSize = pJ->GetColSize();
@@ -1037,7 +1062,10 @@ void DEEPS2D_Run(ofstream* f_stream,
                  
                  << flush;
 #endif // _RMS_
-         }
+             if(MonitorPointsArray && MonitorPointsArray->GetNumElements() > 0) {
+                SaveMonitors(pMonitors_OutFile,GlobalTime+CurrentTimePart,MonitorPointsArray);
+             }
+        }
   iter++;
 } while((int)iter < Nstep);
   

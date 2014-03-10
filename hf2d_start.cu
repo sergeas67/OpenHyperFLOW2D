@@ -34,19 +34,18 @@ UArray< FlowNodeCore2D<double,NUM_COMPONENTS>* >* cudaArrayCoreSubmatrix  = NULL
 UArray< XY<int>  >*                               cudaDimArray            = NULL;
 UArray< XY<int>* >*                               cudaWallNodesArray      = NULL;
 UArray< ChemicalReactionsModelData2D* >*          cudaCRM2DArray          = NULL;
-
 XY<int>*                                          cudaWallNodes           = NULL;
 FlowNode2D<double,NUM_COMPONENTS>*                cudaSubmatrix           = NULL;
 FlowNodeCore2D<double,NUM_COMPONENTS>*            cudaCoreSubmatrix       = NULL;
-
 ChemicalReactionsModelData2D*                     cudaCRM2D               = NULL;
 
+UArray< MonitorPoint >*                           MonitorPointsArray      = NULL;
 
-double*           cudaHu;
-UArray<double*>*  cudaHuArray;
-double            x0;
-double            dx;
-double            dy;
+double*                                           cudaHu;
+UArray<double*>*                                  cudaHuArray;
+double                                            x0;
+double                                            dx;
+double                                            dy;
 
 int num_gpus = 0;   // number of CUDA GPUs
 int max_num_threads = 0;
@@ -57,8 +56,34 @@ size_t task_size;
 cudaError_t cudaState;
 
 
-UArray< double >*                                WallNodesUw_2D = NULL;
-int                                              NumWallNodes;
+UArray< double >*                                 WallNodesUw_2D = NULL;
+int                                               NumWallNodes;
+                                                 
+/*                                               
+double GPUConf {                                 
+
+}
+
+struct NodeConfig {
+ char*  HostName;
+ int    numCPUcores;
+ UArray<double> GPUrate;
+};
+
+UArray<NodeConfig*>* clusterArray = NULL;
+
+int CalibrateNodes(UArray<NodeConfig*>* CA, int rank) {
+
+NodeConfig TmpNConf;  
+    
+ if (rank == 0) {
+  
+ } else {
+ 
+ }
+
+}
+*/
 
 int main( int argc, char **argv )
 {
@@ -67,10 +92,9 @@ int main( int argc, char **argv )
     ChemicalReactionsModelData2D   TmpCRM2D;
 
     FlowNode2D<double,NUM_COMPONENTS>* TmpMatrixPtr;
-   // FlowNodeCore2D<double,NUM_COMPONENTS>* TmpCoreMatrixPtr;
+    FlowNodeCore2D<double,NUM_COMPONENTS>* TmpCoreMatrixPtr;
 
     int TmpMaxX;
-    
     
     ostream*     o_stream = &cout;
 #ifdef    _DEBUG_0
@@ -459,7 +483,16 @@ int main( int argc, char **argv )
             TmpDim.SetXY(TmpMaxX,MaxY);
             cudaDimArray->AddElement(&TmpDim);
             o_stream->flush();
-       }
+            if(MonitorPointsArray) {
+                for(int ii_monitor=0;ii_monitor<(int)MonitorPointsArray->GetNumElements();ii_monitor++) {
+                        if(MonitorPointsArray->GetElement(ii_monitor).MonitorXY.GetX() >= x0 &&
+                           MonitorPointsArray->GetElement(ii_monitor).MonitorXY.GetX() < x0 + FlowNode2D<double,NUM_COMPONENTS>::dx*TmpMaxX) {
+                           MonitorPointsArray->GetElement(ii_monitor).rank = i; 
+                        }
+                }
+            }
+       
+        }
 
         gettimeofday(&mark1,NULL);
         *o_stream << "OK\n" << "Time: " << (double)(mark1.tv_sec-mark2.tv_sec)+(double)(mark1.tv_usec-mark2.tv_usec)*1.e-6 << " sec." << endl; 

@@ -107,6 +107,13 @@ struct DD_pack {
 };
 #endif // _MPI_
 
+struct MonitorPoint {
+       XY<double>  MonitorXY;
+       double      p;
+       double      T;
+       int         rank;
+};
+
 extern int    fd_g;
 extern int    fd_s;
 extern int    fd_l;
@@ -115,6 +122,7 @@ extern void*  SolidSwapData;
 extern void*  GasSwapData;
 extern UArray< UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >* >* ArraySubmatrix;
 extern ChemicalReactionsModelData2D chemical_reactions;
+extern UArray< MonitorPoint >*      MonitorPointsArray;
 extern UArray< XY<int> >* WallNodes;
 extern UArray< XY<int> >* GetWallNodes(ofstream* f_str, ComputationalMatrix2D* pJ, int isPrint);
 
@@ -271,6 +279,11 @@ extern void                                  SaveData2D(ofstream* OutputData, in
 extern ofstream*                             OpenData(char* outputDataFile);
 extern void                                  SaveRMSHeader(ofstream* OutputData);
 extern void                                  SaveRMS(ofstream* OutputData,unsigned int n, double* outRMS);
+extern void                                  SaveMonitorsHeader(ofstream* MonitorsFile,
+                                                                UArray< MonitorPoint >* MonitorPtArray);
+extern void                                  SaveMonitors(ofstream* OutputData, 
+                                                          double t, 
+                                                          UArray< MonitorPoint >* MonitorPtArray);
 extern void                                  CutFile(char* cutFile);
 extern u_long                                SetWallNodes(ofstream* f_str, ComputationalMatrix2D* pJ);
 #ifdef _IMPI_
