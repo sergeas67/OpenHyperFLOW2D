@@ -383,12 +383,13 @@ void   Flow::CorrectFlow(double T, double p, double ref_val, FixedValue fv) {
        double res_p = 1.0, res_t = 1.0;
        int iter=0;
        do {
-           res_p = fabs((p0-p/PF())/p0);
-           res_t = fabs((t0-T/TAU())/t0);
+           MACH(ref_val/Asound());
            t0 = T/TAU();
            p0 = p/PF();
+           res_p = fabs((p0-p/PF())/p0);
+           res_t = fabs((t0-T/TAU())/t0);
            Wg(ref_val);
            iter++;
-         } while ((res_p > 0.001 || res_t > 0.001) && iter < 100);
+         } while ((res_p > 0.0001 || res_t > 0.0001) && iter < 100);
     }
 }
