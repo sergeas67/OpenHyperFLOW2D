@@ -153,9 +153,8 @@ void InitSharedData(InputData* _data,
                     ,int rank
 #endif //_MPI
                     ) {
-    int     NumMonitorPoints;           
-
-            ChemicalReactionsModelData2D* model_data = (ChemicalReactionsModelData2D*)CRM_data;
+            
+    ChemicalReactionsModelData2D* model_data = (ChemicalReactionsModelData2D*)CRM_data;
 
             fd_g=0;
             GasSwapData         = NULL;
@@ -274,7 +273,7 @@ void InitSharedData(InputData* _data,
             }
 
 
-            NumMonitorPoints = _data->GetIntVal((char*)"NumMonitorPoints");
+            int NumMonitorPoints = _data->GetIntVal((char*)"NumMonitorPoints");
             
             if ( _data->GetDataError()==-1 ) {
                 Abort_OpenHyperFLOW2D();
@@ -2891,7 +2890,13 @@ void* InitDEEPS2D(void* lpvParam)
                 TmpFlow2D->CorrectFlow(Tg,Pg,sqrt(Ug*Ug+Vg*Vg+1.e-30),FV_VELOCITY);
 
                 Flow2DList->AddElement(&TmpFlow2D);
-                *f_stream << "Add object \"Flow2D-" << i+1 <<  "\"...OK\n" << flush;
+                *f_stream << "Add object \"Flow2D-" << i+1 << " Mach=" << TmpFlow2D->MACH()
+                                                           << " W=" << TmpFlow2D->Wg() 
+                                                           << " T=" << TmpFlow2D->Tg() 
+                                                           << " p=" << TmpFlow2D->Pg() 
+                                                           << " p*=" << TmpFlow2D->P0()
+                                                           << " T*=" << TmpFlow2D->T0() << "\"...OK\n" << flush;
+                
                 f_stream->flush(); 
             }
 

@@ -147,9 +147,9 @@ extern void*                                 InitDEEPS2D(void*);
 extern void                                  SaveData2D(ofstream* OutputData, int);
 extern ofstream*                             OpenData(char* outputDataFile);
 extern void                                  SaveRMSHeader(ofstream* OutputData);
+extern void                                  SaveRMS(ofstream* OutputData,unsigned int n, double* outRMS);
 extern void                                  SaveMonitorsHeader(ofstream* MonitorsFile,
                                                                 UArray< MonitorPoint >* MonitorPtArray);
-extern void                                  SaveRMS(ofstream* OutputData,unsigned int n, double* outRMS);
 extern void                                  SaveMonitors(ofstream* OutputData, 
                                                           double t, 
                                                           UArray< MonitorPoint >* MonitorPtArray);
