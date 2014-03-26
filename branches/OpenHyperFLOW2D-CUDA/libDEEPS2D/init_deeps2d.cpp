@@ -593,7 +593,12 @@ void* InitDEEPS2D(void* lpvParam)
                 TmpFlow2D->CorrectFlow(Tg,Pg,sqrt(Ug*Ug+Vg*Vg+1.e-30),FV_VELOCITY);
 
                 Flow2DList->AddElement(&TmpFlow2D);
-                *f_stream << "Add object \"Flow2D-" << i+1 <<  "\"...OK\n" << flush;
+                *f_stream << "Add object \"Flow2D-" << i+1 << " Mach=" << TmpFlow2D->MACH()
+                                                           << " W=" << TmpFlow2D->Wg() 
+                                                           << " T=" << TmpFlow2D->Tg() 
+                                                           << " p=" << TmpFlow2D->Pg() 
+                                                           << " p*=" << TmpFlow2D->P0()
+                                                           << " T*=" << TmpFlow2D->T0() << "\"...OK\n" << flush;
                 f_stream->flush(); 
             }
 
