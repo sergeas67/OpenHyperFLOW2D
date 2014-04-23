@@ -390,6 +390,6 @@ void   Flow::CorrectFlow(double T, double p, double ref_val, FixedValue fv) {
            res_t = fabs((t0-T/TAU())/t0);
            Wg(ref_val);
            iter++;
-         } while ((res_p > 0.0001 || res_t > 0.0001) && iter < 100);
+         } while ((res_p > 0.0001 || res_t > 0.0001) && iter < 1000);
     }
 }

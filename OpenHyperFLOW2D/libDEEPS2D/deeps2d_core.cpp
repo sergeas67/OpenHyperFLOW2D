@@ -55,11 +55,15 @@ double  DD_max_var;
 #endif // OPEN_MP
 
 //------------------------------------------
-// Cx,Cy
+// Cx,Cy,Cd,Cv
 //------------------------------------------
-int     is_Cx_calc;
+int     is_Cx_calc,is_Cd_calc;
+double  p_ambient;
 double  x0_body,y0_body,dx_body,dy_body;
+double  x0_nozzle,y0_nozzle,dy_nozzle;
+
 int     Cx_Flow_index;
+int     Cd_Flow_index;
 int     SigmaFi_Flow_index;
 //------------------------------------------
 int     NOutStep;
@@ -1051,7 +1055,7 @@ void DEEPS2D_Run(ofstream* f_stream
                                               }
 
 #else
-                                        RMS(k,ii) += DD_local[k];
+                                        RMS(k,ii) += DD_local[k]*DD_local[k];
                                         iRMS(k,ii)++;
                                         DD_max(k,ii) = max(DD_max(k,ii),DD_local[k]);
 
@@ -1403,7 +1407,7 @@ void DEEPS2D_Run(ofstream* f_stream
            }
 
            if(sum_iRMS[k] != 0)
-              sum_RMS[k] = sum_RMS[k]/sum_iRMS[k];
+              sum_RMS[k] = sqrt(sum_RMS[k]/sum_iRMS[k]);
            else
               sum_RMS[k] = 0;
 
@@ -2344,7 +2348,10 @@ void SaveRMSHeader(ofstream* OutputData) {
         char  TmpData[256]={'\0'};
 
         if(is_Cx_calc)
-           snprintf(TmpData,256,", Cx(N), Cy(N), Fx(N), Fy(N)\n");
+           snprintf(TmpData,256,", Cx(N), Cy(N), Fx(N), Fy(N)");
+
+        if(is_Cd_calc)
+           snprintf(TmpData,256,", Cd(N), Cv(N)");
 
         snprintf(TecPlotTitle,1024,"#VARIABLES = N, RMS_Ro(N), RMS_RoU(N), RMS_RoV(N), RMS_RoE(N), RMS_RoY_fu(N), RMS_RoY_ox(N), RMS_RoY_cp(N), RMS_k(N), RMS_eps(N)%s",TmpData);
 
@@ -2365,12 +2372,16 @@ void SaveMonitors(ofstream* MonitorsFile,
 void SaveRMS(ofstream* OutputData,unsigned int n, double* outRMS) {
          *OutputData <<  n  << " ";
          for(int i=0;i<FlowNode2D<double,NUM_COMPONENTS>::NumEq;i++) {
-             *OutputData <<  outRMS[i]  << " ";
+             *OutputData <<  outRMS[i]  << flush;
          }
 
         if(is_Cx_calc) {
           *OutputData << Calc_Cx_2D(J,x0_body,y0_body,dx_body,dy_body,Flow2DList->GetElement(Cx_Flow_index-1)) << " " <<  Calc_Cy_2D(J,x0_body,y0_body,dx_body,dy_body,Flow2DList->GetElement(Cx_Flow_index-1)) << " ";
           *OutputData << CalcXForce2D(J,x0_body,y0_body,dx_body,dy_body) << " " <<  CalcYForce2D(J,x0_body,y0_body,dx_body,dy_body);
+        }
+        
+        if(is_Cd_calc) {
+          *OutputData << " " << Calc_Cd(J,x0_nozzle,y0_nozzle,dy_nozzle,Flow2DList->GetElement(Cd_Flow_index-1)) << " " <<  Calc_Cv(J,x0_nozzle,y0_nozzle,dy_nozzle,p_ambient,Flow2DList->GetElement(Cd_Flow_index-1)) << " ";
         }
 
         *OutputData << endl;
@@ -2887,16 +2898,33 @@ void* InitDEEPS2D(void* lpvParam)
                 }
 
                 TmpFlow2D = new Flow2D(lam,mu,Cp,Tg,Pg,Rg,Ug,Vg);
-                TmpFlow2D->CorrectFlow(Tg,Pg,sqrt(Ug*Ug+Vg*Vg+1.e-30),FV_VELOCITY);
+                snprintf(FlowStr,256,"Flow2D-%i.Mode",i+1); 
+                int FlowMode = Data->GetIntVal(FlowStr);
+                if ( Data->GetDataError()==-1 ) {
+                    Abort_OpenHyperFLOW2D();
+                }
+                // 0 - static p, T
+                // 1 - total p*, T*
+                // 3 - Mach
+                if(FlowMode == 0) {
+                    TmpFlow2D->CorrectFlow(Tg,Pg,sqrt(Ug*Ug+Vg*Vg+1.e-30),FV_VELOCITY);
+                
+                } if(FlowMode == 3) {
+                    snprintf(FlowStr,256,"Flow2D-%i.Mach",i+1);
+                    double Mach = Data->GetFloatVal(FlowStr);
+                    if ( Data->GetDataError()==-1 ) {
+                        Abort_OpenHyperFLOW2D();
+                    }
+                    TmpFlow2D->CorrectFlow(Tg,Pg,Mach,FV_MACH);
+                }
 
                 Flow2DList->AddElement(&TmpFlow2D);
-                *f_stream << "Add object \"Flow2D-" << i+1 << " Mach=" << TmpFlow2D->MACH()
+                *f_stream << "Add object \"Flow2D-" << i+1 << "\" Mach=" << TmpFlow2D->MACH()
                                                            << " W=" << TmpFlow2D->Wg() 
-                                                           << " T=" << TmpFlow2D->Tg() 
-                                                           << " p=" << TmpFlow2D->Pg() 
-                                                           << " p*=" << TmpFlow2D->P0()
-                                                           << " T*=" << TmpFlow2D->T0() << "\"...OK\n" << flush;
-                
+                                                           << " m/sec T=" << TmpFlow2D->Tg() 
+                                                           << " K p=" << TmpFlow2D->Pg() 
+                                                           << " Pa p*=" << TmpFlow2D->P0()
+                                                           << " Pa T*=" << TmpFlow2D->T0() << " K...OK\n" << flush;
                 f_stream->flush(); 
             }
 
@@ -3420,6 +3448,9 @@ void* InitDEEPS2D(void* lpvParam)
                                 TmpCT = (CondType2D)(TmpCT | NT_FC_2D);
                             if ( strstr(BoundStr,"NT_S_2D") )
                                 TmpCT = (CondType2D)(TmpCT | NT_S_2D);
+                            if ( strstr(BoundStr,"NT_FALSE_2D") )
+                                TmpCT = (CondType2D)(TmpCT | CT_NODE_IS_SET_2D);
+
 
                             if ( TmpCT==CT_NO_COND_2D  &&  TmpTurbulenceCT == 0) {
                                 *f_stream << "\n";
@@ -3682,10 +3713,10 @@ void* InitDEEPS2D(void* lpvParam)
             }
             /* -- if use swapfile */
 
-            //Cx,Cy calc
+            //Cx,Cy,Cd,Cv calc
             is_Cx_calc = Data->GetIntVal((char*)"is_Cx_calc");
             if(Data->GetDataError()==-1) Abort_OpenHyperFLOW2D();
-
+            
             if (is_Cx_calc) {
              x0_body=Data->GetFloatVal((char*)"x_body");
              if(Data->GetDataError()==-1) Abort_OpenHyperFLOW2D();
@@ -3697,6 +3728,23 @@ void* InitDEEPS2D(void* lpvParam)
              if(Data->GetDataError()==-1) Abort_OpenHyperFLOW2D();
              Cx_Flow_index = Data->GetIntVal((char*)"Cx_Flow_Index");
             }
+            
+            is_Cd_calc = Data->GetIntVal((char*)"is_Cd_calc");
+            if(Data->GetDataError()==-1) Abort_OpenHyperFLOW2D();
+            
+            if (is_Cd_calc) {
+             x0_nozzle=Data->GetFloatVal((char*)"x_nozzle");
+             if(Data->GetDataError()==-1) Abort_OpenHyperFLOW2D();
+             y0_nozzle=Data->GetFloatVal((char*)"y_nozzle");
+             if(Data->GetDataError()==-1) Abort_OpenHyperFLOW2D();
+             dy_nozzle=Data->GetFloatVal((char*)"dy_nozzle");
+             if(Data->GetDataError()==-1) Abort_OpenHyperFLOW2D();
+             Cd_Flow_index = Data->GetIntVal((char*)"Cd_Flow_Index");
+             if(Data->GetDataError()==-1) Abort_OpenHyperFLOW2D();
+             p_ambient = Data->GetFloatVal((char*)"p_ambient");
+             if(Data->GetDataError()==-1) Abort_OpenHyperFLOW2D();
+            }
+
             //Set bound Primitives
             // Rects
                 double        Xstart,Ystart,X_0,Y_0;
