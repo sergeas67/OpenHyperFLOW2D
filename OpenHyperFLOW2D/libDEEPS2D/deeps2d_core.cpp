@@ -1377,7 +1377,7 @@ void DEEPS2D_Run(ofstream* f_stream
             for (k=0;k<(int)(FlowNode2D<double,NUM_COMPONENTS>::NumEq);k++ ) {
                  if(iRMS[k] > 0) {
 
-                  RMS[k] = sqrt(RMS[k]/iRMS[k]);
+                  RMS[k] = sqrt(RMS[k])/iRMS[k];
 
                   if(MonitorNumber == 0 || MonitorNumber > 4) {
                      max_RMS = max(RMS[k],max_RMS);
@@ -1407,7 +1407,7 @@ void DEEPS2D_Run(ofstream* f_stream
            }
 
            if(sum_iRMS[k] != 0)
-              sum_RMS[k] = sqrt(sum_RMS[k]/sum_iRMS[k]);
+              sum_RMS[k] = sqrt(sum_RMS[k])/sum_iRMS[k];
            else
               sum_RMS[k] = 0;
 
