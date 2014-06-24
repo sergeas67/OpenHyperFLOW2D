@@ -675,9 +675,15 @@ void DEEPS2D_Run(ofstream* f_stream
 //#pragma omp single
 #endif //_OPENMP
                    {
-                       max_RMS = 0.5 * ExitMonitorValue;
-                       k_max_RMS = -1;
-                       for ( k=0;k<(int)FlowNode2D<double,NUM_COMPONENTS>::NumEq;k++ ) {
+
+                    if(MonitorNumber < 5)
+                      max_RMS =  0.5*ExitMonitorValue;
+                    else
+                      max_RMS = 0.;
+
+                    k_max_RMS = -1;
+
+                    for ( k=0;k<(int)FlowNode2D<double,NUM_COMPONENTS>::NumEq;k++ ) {
                            for(int ii=0;ii<(int)SubmatrixArray->GetNumElements();ii++) {
                                sum_RMS[k]  = RMS(k,ii)  = 0.;    // Clean sum residual
                                sum_iRMS[k] = iRMS(k,ii) = 0;     // num involved nodes
@@ -1347,17 +1353,17 @@ void DEEPS2D_Run(ofstream* f_stream
                       MonitorPointsArray->GetElement(ii_monitor).p  = pJ->GetValue(i_i,j_j).p;
                       MonitorPointsArray->GetElement(ii_monitor).T  = pJ->GetValue(i_i,j_j).Tg;
                   }
-                  
+
                   MPI::COMM_WORLD.Bcast(&MonitorPointsArray->GetElement(ii_monitor).p,
                                         sizeof(double),
                                         MPI::DOUBLE,
                                         MonitorPointsArray->GetElement(ii_monitor).rank);
-                  
+
                   MPI::COMM_WORLD.Bcast(&MonitorPointsArray->GetElement(ii_monitor).T,
                                         sizeof(double),
                                         MPI::DOUBLE,
                                         MonitorPointsArray->GetElement(ii_monitor).rank);
-              }                                       
+              }
           }
 
         if(rank == 0) {
