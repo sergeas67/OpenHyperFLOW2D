@@ -96,7 +96,7 @@
 ; 3 -  square BFF with relaxation       beta = (beta + beta0^2/(beta0 + | max_local_residual^2 |))/2
 ; 4 -  square root BFF                  beta = beta0^2/(beta0 + sqrt(| max_local_residual |))
 ; 5 -  square root  BFF with relaxation beta = (beta + beta0^2/(beta0 + sqrt(| max_local_residual |)))/2
-<data/BFF=5>
+<data/BFF=4>
 ;-------------------------------------------------
 ; Turbulence models
 ;-------------------------------------------------
@@ -501,7 +501,7 @@
 <data/Area1.Type=1>
 ;
 ; Flow index
-<data/Area1.Flow2D=2>
+<data/Area1.Flow2D=1>
 
 ; Turbulence model in area
 <data/Area1.TurbulenceModel=0>
