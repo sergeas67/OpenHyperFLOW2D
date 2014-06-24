@@ -29,7 +29,7 @@ INCPATH                = -I ../
 
 TARGET    +=  $(TARGET_LIBS_DEEPS2D)
 
-LLIBS     += -L ../lib -lflow2d -lobj_data -lutl2d -lexcept -lhf2d
+LLIBS     += -L ../lib -lhf2d -lflow2d -lobj_data -lutl2d -lexcept
 
 #include ../.make
 all:  $(TARGET)
@@ -38,6 +38,7 @@ all:  $(TARGET)
 	
 .cpp.o:
 	$(CXXC) -c  $(INCPATH) $(CXXOPTIONS) $(CFLAGS) $<
+	
 $(TARGET_LIBS_DEEPS2D): $(OBJECTS_LIBS_DEEPS2D)
 	ar -r $(TARGET_LIBS_DEEPS2D) $(OBJECTS_LIBS_DEEPS2D)
 clean:
