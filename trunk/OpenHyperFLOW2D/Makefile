@@ -1,7 +1,7 @@
 ###################################################
 # Makefile for OpenOpenHyperFLOW2D project        #
 ###################################################
-SHELL     = /bin/sh
+SHELL     = /bin/bash
 DATE      = date +%d-%b-%Y
 #Version
 include   .version
@@ -36,7 +36,7 @@ CLFLAGS   +=
 
 # Libs
 #
-LLIBS_2D     += $(STATIC) -L ./lib -lDEEPS2D -lexcept -lobj_data -lutl2d  -lhf2d -lflow2d -lOutCFD
+LLIBS_2D     += $(STATIC) -L ./lib  -lDEEPS2D -lexcept -lobj_data -lutl2d  -lhf2d -lflow2d -lOutCFD
 	
 TARGET_BASE  = OpenHyperFLOW2D
 TARGET_2D    = $(TARGET_BASE)-$(VERSION)
@@ -111,8 +111,14 @@ CIAM-Resonator:
 	bin/OpenHyperFLOW2D.sh TestCases/CIAM-Resonator ${NUM_NODES}
 Step:
 	bin/OpenHyperFLOW2D.sh TestCases/Step ${NUM_NODES}
+Duct:
+	bin/OpenHyperFLOW2D.sh TestCases/Duct ${NUM_NODES}
+MIT:
+	bin/OpenHyperFLOW2D.sh TestCases/MIT-ramjet ${NUM_NODES}
+PAW-Nozzle2D:
+	bin/OpenHyperFLOW2D.sh TestCases/PAW-Nozzle2D ${NUM_NODES}
 #
-$(TARGET_2D): local  Utl libexcept libflow objData libhyperflow libdeeps2d liboutcfd $(OBJECTS_2D)
+$(TARGET_2D): local Utl libexcept libflow objData libhyperflow libdeeps2d liboutcfd $(OBJECTS_2D)
 	$(CXXC) $(STATIC) $(CLFLAGS) $(OBJECTS_2D) $(OPTIONS) $(LLIBS_2D) -o $(TARGET_2D)
 	cp $(TARGET_2D) bin/$(TARGET_2D)
 clean:
