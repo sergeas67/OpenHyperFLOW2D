@@ -54,7 +54,7 @@ DEBUG      =
 # -D_ICC_VER_${ICC_VER}
 
 ALIGN      = 16
-GCC_COMPAT = -gcc-version=${GCC_VER} -Wno-deprecated -diag-disable 576 -Wno-non-virtual-dtor 
+GCC_COMPAT = -m64 -gcc-version=${GCC_VER} -Wno-deprecated -diag-disable 576 -Wno-non-virtual-dtor 
 
 
 

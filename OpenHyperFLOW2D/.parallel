@@ -6,7 +6,7 @@
 # PARALLEL=MPI       - using MPI
 ######################################################
 ifeq ("${PARALLEL}","")
-PARALLEL=MPI
+PARALLEL=
 endif
 #######################################################
 # OpenMP
