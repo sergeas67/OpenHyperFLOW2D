@@ -28,10 +28,11 @@ all: $(TARGET)
 .SUFFIXES: .cpp
 	
 .cpp.o:
+#	$(CXXC) -c $(INCPATH) $(CXXOPTIONS) $(CFLAGS) $<;ar -r $(TARGET_2D) $(OBJECTS);
 	@if [  ! -a $(TARGET_2D)  ];\
-        then $(CXXC) -c $(INCPATH) $(CXXOPTIONS) $(CFLAGS) $<; \
-        ar -r $(TARGET_2D) $(OBJECTS);\
-        fi
+	then $(CXXC) -c $(INCPATH) $(CXXOPTIONS) $(CFLAGS) $<; \
+	ar -r $(TARGET_2D) $(OBJECTS);\
+	fi
 $(TARGET_2D): $(OBJECTS)
 
 clean:
