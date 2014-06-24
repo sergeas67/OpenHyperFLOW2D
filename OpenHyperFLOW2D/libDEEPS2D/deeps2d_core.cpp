@@ -2372,7 +2372,7 @@ void SaveMonitors(ofstream* MonitorsFile,
 void SaveRMS(ofstream* OutputData,unsigned int n, double* outRMS) {
          *OutputData <<  n  << " ";
          for(int i=0;i<FlowNode2D<double,NUM_COMPONENTS>::NumEq;i++) {
-             *OutputData <<  outRMS[i]  << flush;
+             *OutputData <<  outRMS[i] << " " << flush;
          }
 
         if(is_Cx_calc) {
