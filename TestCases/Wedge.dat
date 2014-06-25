@@ -57,23 +57,23 @@
 <data/MonitorNumber=5>
 <data/ExitMonitorValue=0.0025>
 
-; Monitor points
 <data/NumMonitorPoints=0>
 
 ; Point 1
-<data/Point-1.X=0.0>
-<data/Point-1.Y=0.0>
+<data/Point-1.X=0.05>
+<data/Point-1.Y=0.05>
+
 
 ;Maximum time of calculation, s
 ; Courant number (for gas phase only)
-<data/CFL=0.1>
+<data/CFL=0.5>
 
 ; CFL scenario
 <table=CFL_Scenario/4>
-0       0.01
-1000    0.05
-20000   0.05
-200000  0.08
+0       0.05
+1000    0.10
+20000   0.15
+200000  0.20
 <endtable>
 
 ; Base blending factor
@@ -87,9 +87,9 @@
 <endtable>
 
 ; Maximum number of steps
-<data/Nmax=25000>
+<data/Nmax=1000>
 ; Every NOutStep-th step is displayed
-<data/NOutStep=10>
+<data/NOutStep=100>
 <data/NSaveStep=1>
 <data/isVerboseOutput=1>
 ; Initial time
@@ -101,7 +101,7 @@
 ; 1 -  linear BFF with relaxation       beta = (beta + beta0^2/(beta0 + | max_local_residual |))/2
 ; 4 -  square root BFF                  beta = beta0^2/(beta0 + sqrt(| max_local_residual |))
 ; 5 -  square root  BFF with relaxation beta = (beta + beta0^2/(beta0 + sqrt(| max_local_residual |)))/2
-<data/BFF=3>
+<data/BFF=4>
 ;-------------------------------------------------
 ; Turbulence models
 ;-------------------------------------------------
@@ -420,6 +420,7 @@
 
 ;---- Flow2D 1 -------
 <data/Flow2D-1.CompIndex=3>
+<data/Flow2D-1.Mode=0>
 
 ; Flow pressure (p*) , Pa.
 <data/Flow2D-1.p=101350.0>
@@ -433,6 +434,7 @@
 
 ;---- Flow2D 2 -------
 <data/Flow2D-2.CompIndex=3>
+<data/Flow2D-2.Mode=0>
 
 ; Flow pressure (p*) , Pa.
 <data/Flow2D-2.p=101350.0>
@@ -545,6 +547,7 @@
 ;  Additional CFD parameters output
 ;---------------------------------------------------
 <data/is_Cx_calc=0>
+<data/is_Cd_calc=0>
 <data/x_body=0.0>
 <data/y_body=0.0>
 <data/dx_body=0.0>
