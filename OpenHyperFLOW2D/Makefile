@@ -57,6 +57,7 @@ all:
 	@echo '"run"          - run $(TARGET_BASE)2D v.$(CURRENT_VER) program'
 	@echo '"debug"        - start debugger for $(TARGET_BASE)2D v.$(CURRENT_VER)'
 	@echo '"backup"       - make backup copy'
+	@echo '"test"         - run tests'
 
 build: $(TARGET_2D)
 
@@ -94,29 +95,13 @@ local:
 	echo -e "${MPILIB}" > .mpilib
 	./get_SIMD.sh > .simd
 test: ObliqueShock Wedge Step
-
+	
 ObliqueShock:
 	bin/OpenHyperFLOW2D.sh TestCases/ObliqueShock ${NUM_NODES}
-FlatPlate:
-	bin/OpenHyperFLOW2D.sh TestCases/FlatPlate ${NUM_NODES}
-Wedge:
-	bin/OpenHyperFLOW2D.sh TestCases/Wedge ${NUM_NODES}
-sphere2D:
-	bin/OpenHyperFLOW2D.sh TestCases/sphere2D ${NUM_NODES}
-Nozzle2D:
-	bin/OpenHyperFLOW2D.sh TestCases/Nozzle2D ${NUM_NODES}
-WallNozzle2D:
-	bin/OpenHyperFLOW2D.sh TestCases/WallNozzle2D ${NUM_NODES}
-CIAM-Resonator:
-	bin/OpenHyperFLOW2D.sh TestCases/CIAM-Resonator ${NUM_NODES}
 Step:
 	bin/OpenHyperFLOW2D.sh TestCases/Step ${NUM_NODES}
-Duct:
-	bin/OpenHyperFLOW2D.sh TestCases/Duct ${NUM_NODES}
-MIT:
-	bin/OpenHyperFLOW2D.sh TestCases/MIT-ramjet ${NUM_NODES}
-PAW-Nozzle2D:
-	bin/OpenHyperFLOW2D.sh TestCases/PAW-Nozzle2D ${NUM_NODES}
+Wedge:
+	bin/OpenHyperFLOW2D.sh TestCases/Wedge ${NUM_NODES}
 #
 $(TARGET_2D): local Utl libexcept libflow objData libhyperflow libdeeps2d liboutcfd $(OBJECTS_2D)
 	$(CXXC) $(STATIC) $(CLFLAGS) $(OBJECTS_2D) $(OPTIONS) $(LLIBS_2D) -o $(TARGET_2D)
