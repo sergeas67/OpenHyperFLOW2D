@@ -18,9 +18,15 @@
 ; is p* out ?
 <data/is_p_asterisk_out=0>
 <data/NumStreams=1>
+
 ;------------------------------------------------------------------;
 ; General parameters                                               ;
 ;------------------------------------------------------------------;
+; Problem Type
+; 0 - Euler
+; 1 - Navier-Stokes
+<data/ProblemType=0>
+
 ;FlowType
 ; 0 - FLAT
 ; 1 - AXISYMMETRIC
@@ -49,7 +55,7 @@
 ; 4 - Rho*E residual
 ; 5 - Time
 <data/MonitorNumber=5>
-<data/ExitMonitorValue=6.0>
+<data/ExitMonitorValue=1.0>
 
 <data/NumMonitorPoints=0>
 
@@ -96,7 +102,7 @@
 ; 3 -  square BFF with relaxation       beta = (beta + beta0^2/(beta0 + | max_local_residual^2 |))/2
 ; 4 -  square root BFF                  beta = beta0^2/(beta0 + sqrt(| max_local_residual |))
 ; 5 -  square root  BFF with relaxation beta = (beta + beta0^2/(beta0 + sqrt(| max_local_residual |)))/2
-<data/BFF=4>
+<data/BFF=5>
 ;-------------------------------------------------
 ; Turbulence models
 ;-------------------------------------------------
