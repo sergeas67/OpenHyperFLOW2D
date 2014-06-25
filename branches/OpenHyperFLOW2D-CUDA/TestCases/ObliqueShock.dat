@@ -54,14 +54,14 @@
 ; 4 - Rho*E residual
 ; 5 - Time
 <data/MonitorNumber=5>
-<data/ExitMonitorValue=0.02>
+<data/ExitMonitorValue=0.01>
 
-; Monitor points
 <data/NumMonitorPoints=0>
 
 ; Point 1
-<data/Point-1.X=0.0>
-<data/Point-1.Y=0.0>
+<data/Point-1.X=0.05>
+<data/Point-1.Y=0.05>
+
 
 ;Maximum time of calculation, s
 ; Courant number (for gas phase only)
@@ -84,10 +84,10 @@
 <endtable>
 
 ; Maximum number of steps
-<data/Nmax=25000>
+<data/Nmax=1000>
 ; Every NOutStep-th step is displayed
-<data/NOutStep=10>
-<data/NSaveStep=4>
+<data/NOutStep=100>
+<data/NSaveStep=1>
 <data/isVerboseOutput=1>
 ; Initial time
 <data/InitTime=0.>
@@ -568,6 +568,7 @@
 
 ;---- Flow2D 1 -------
 <data/Flow2D-1.CompIndex=3>
+<data/Flow2D-1.Mode=0>
 
 ; Flow pressure (p*) , Pa.
 <data/Flow2D-1.p=101325.0>
@@ -581,6 +582,7 @@
 
 ;---- Flow2D 2 -------
 <data/Flow2D-2.CompIndex=3>
+<data/Flow2D-2.Mode=0>
 
 ; Flow pressure (p*) , Pa.
 <data/Flow2D-2.p=216782.0>
@@ -675,6 +677,7 @@
 ;---------------------------------------------------
 ;  Additional CFD parameters output
 ;---------------------------------------------------
+<data/is_Cd_calc=0>
 <data/is_Cx_calc=0>
 <data/x_body=0.0>
 <data/y_body=0.0>
