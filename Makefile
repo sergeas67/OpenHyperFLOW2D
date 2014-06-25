@@ -1,7 +1,7 @@
-###################################################
+#################################################
 # Makefile for OpenOpenHyperFLOW2D project        #
 ###################################################
-SHELL     = /bin/sh
+SHELL     = /bin/bash
 DATE      = date +%d-%b-%Y
 #Version
 include   .version
@@ -62,6 +62,7 @@ all:
 	@echo '"run"          - run $(TARGET_BASE)2D v.$(CURRENT_VER) program'
 	@echo '"debug"        - start debugger for $(TARGET_BASE)2D v.$(CURRENT_VER)'
 	@echo '"backup"       - make backup copy'
+	@echo '"test"         - run tests'
 
 build: $(TARGET_2D)
 
@@ -103,26 +104,11 @@ local:
 test: ObliqueShock Wedge Step
 
 ObliqueShock:
-	bin/OpenHyperFLOW2D.sh TestCases/ObliqueShock ${NUM_NODES}
-FlatPlate:
-	bin/OpenHyperFLOW2D.sh TestCases/FlatPlate ${NUM_NODES}
+	bin/OpenHyperFLOW2D.sh TestCases/ObliqueShock
 Wedge:
-	bin/OpenHyperFLOW2D.sh TestCases/Wedge ${NUM_NODES}
-sphere2D:
-	bin/OpenHyperFLOW2D.sh TestCases/sphere2D ${NUM_NODES}
-Nozzle2D:
-	bin/OpenHyperFLOW2D.sh TestCases/Nozzle2D ${NUM_NODES}
-WallNozzle2D:
-	bin/OpenHyperFLOW2D.sh TestCases/WallNozzle2D ${NUM_NODES}
+	bin/OpenHyperFLOW2D.sh TestCases/Wedge
 Step:
-	bin/OpenHyperFLOW2D.sh TestCases/Step ${NUM_NODES}
-FlameHolder:
-	bin/OpenHyperFLOW2D.sh TestCases/FlameHolder ${NUM_NODES}
-Cyl2D:
-	bin/OpenHyperFLOW2D.sh TestCases/Cyl2D ${NUM_NODES}
-CIAM-Resonator:
-	bin/OpenHyperFLOW2D.sh TestCases/CIAM-Resonator ${NUM_NODES}
-	
+	bin/OpenHyperFLOW2D.sh TestCases/Step
 #
 $(TARGET_2D): local  Utl libexcept libflow objData libhyperflow libdeeps2d liboutcfd $(OBJECTS_2D)
 	$(NVCC) $(STATIC) $(OBJECTS_2D) $(CUDA_OPTIONS) $(CFLAGS) $(LLIBS_2D) -o $(TARGET_2D)
@@ -157,10 +143,5 @@ run:
 	$(TARGET) $(DATAFILE)
 
 debug:
-	
-ifdef MPI
-	 /opt/intel/impi/4.1.0/bin64/mpiexec -n 32 ./ddd-mpi.sh ./$(TARGET_2D)  $(DATAFILE)
-else
 	 optirun --no-xorg  /usr/local/cuda-5.5/bin/cuda-gdb ./$(TARGET_2D)  $(DATAFILE)
-endif
 
