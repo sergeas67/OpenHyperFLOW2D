@@ -653,9 +653,9 @@ void DEEPS2D_Run(ofstream* f_stream
                       max_RMS = 0.;
                   } else {
                     if(MonitorNumber < 5)
-                       max_RMS =  2*ExitMonitorValue;
+                       max_RMS = 2*ExitMonitorValue;
                     else
-                       max_RMS = 0.;
+                       max_RMS = 0.5*ExitMonitorValue;
                   }
 
                   k_max_RMS = -1;
