@@ -1563,8 +1563,8 @@ void DEEPS2D_Run(ofstream* f_stream
 #endif // _PARALLEL_RECALC_Y_PLUS_
 
     if( rank == 0) {
-        *f_stream << "Recalc y+...";
 #ifndef _PARALLEL_RECALC_Y_PLUS_
+        *f_stream << "Recalc y+...";
          Recalc_y_plus(J,WallNodes);
 #endif // _PARALLEL_RECALC_Y_PLUS_
 #endif //  _MPI
