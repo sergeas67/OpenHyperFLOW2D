@@ -114,6 +114,17 @@ void InitSharedData(InputData* _data,
             if ( _data->GetDataError()==-1 ) {
                 Abort_OpenHyperFLOW2D();
             }
+            /*
+            isRecalcYplus  = _data->GetIntVal((char*)"isRecalcYplus");
+            if ( _data->GetDataError()==-1 ) {
+                Abort_OpenHyperFLOW2D();
+            }
+            
+            isHighOrder = _data->GetIntVal((char*)"isHighOrder");
+            if ( _data->GetDataError()==-1 ) {
+                Abort_OpenHyperFLOW2D();
+            }
+            */
 
             CFL  = _data->GetFloatVal((char*)"CFL");               // Courant number
             if ( _data->GetDataError()==-1 ) {
@@ -1891,16 +1902,24 @@ void* InitDEEPS2D(void* lpvParam)
                                     J->GetValue(i,j).beta[k]  = beta0;
                                 
                                 if ( j==0 || J->GetValue(i,j-1).isCond2D(CT_SOLID_2D) ) {           // is down node present ? (0 or 1)
-                                    J->GetValue(i,j).idYd=0;/*J->GetValue(i,j).NGY =2;*/
+                                    J->GetValue(i,j).idYd=0;
+                                    if(isHighOrder) {
+                                    }
                                 }
                                 if ( j==(int)MaxY-1 || J->GetValue(i,j+1).isCond2D(CT_SOLID_2D) ) { // is up node present ? (0 or 1)
-                                    J->GetValue(i,j).idYu=0;/*J->GetValue(i,j).NGY =2;*/
+                                    J->GetValue(i,j).idYu=0;
+                                    if(isHighOrder) {
+                                    }
                                 }
                                 if ( i==0 || J->GetValue(i-1,j).isCond2D(CT_SOLID_2D) ) {           // is left node present ? (0 or 1)
-                                    J->GetValue(i,j).idXl=0;/*J->GetValue(i,j).NGX =2;*/
+                                    J->GetValue(i,j).idXl=0;
+                                    if(isHighOrder) {
+                                    }
                                 }
                                 if ( i==(int)MaxX-1 ||J->GetValue(i+1,j).isCond2D(CT_SOLID_2D) ) {  // is right node present ? (0 or 1)
-                                    J->GetValue(i,j).idXr=0;/*J->GetValue(i,j).NGX =2;*/
+                                    J->GetValue(i,j).idXr=0;
+                                    if(isHighOrder) {
+                                    }
                                 }
 
                                 if (J->GetValue(i,j).isCond2D(CT_WALL_NO_SLIP_2D) || J->GetValue(i,j).isCond2D(CT_WALL_LAW_2D)) {

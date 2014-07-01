@@ -69,7 +69,7 @@ build: $(TARGET_2D)
 .SUFFIXES: .c  .cu  .cpp
 
 .cu.o:
-	$(NVCC) -c $(CUDA_INCPATH) $(CUDA_OPTIONS) $(CFLAGS)  $<
+	$(NVCC) -c $(CUDA_OPTIONS) $(CFLAGS)  $<
 .cpp.s:
 	$(CXXC) -S $(INCPATH) $(CXXOPTIONS) $(OPTIONS) $(CFLAGS) $<
 .cpp.o:
@@ -101,7 +101,7 @@ local:
 	echo -e "${MPIBIN}" > .mpi
 	echo -e "${MPILIB}" > .mpilib
 	./get_SIMD.sh > .simd
-test: ObliqueShock Wedge Step
+test: ObliqueShock Wedge Step ShowResults
 
 ObliqueShock:
 	bin/OpenHyperFLOW2D.sh TestCases/ObliqueShock
@@ -109,6 +109,13 @@ Wedge:
 	bin/OpenHyperFLOW2D.sh TestCases/Wedge
 Step:
 	bin/OpenHyperFLOW2D.sh TestCases/Step
+ShowResults:
+	gnuplot TestCases/T.dat
+	gnuplot TestCases/pressure.dat
+	gnuplot TestCases/Mach.dat
+	gnuplot TestCases/Rho.dat
+	gnuplot TestCases/U.dat
+	gnuplot TestCases/V.dat
 #
 $(TARGET_2D): local  Utl libexcept libflow objData libhyperflow libdeeps2d liboutcfd $(OBJECTS_2D)
 	$(NVCC) $(STATIC) $(OBJECTS_2D) $(CUDA_OPTIONS) $(CFLAGS) $(LLIBS_2D) -o $(TARGET_2D)

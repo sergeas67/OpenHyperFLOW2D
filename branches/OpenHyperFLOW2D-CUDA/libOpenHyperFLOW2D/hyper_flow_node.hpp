@@ -99,6 +99,8 @@ enum CondType2D   {                  // Condition type (bit flags)
     CT_NODE_IS_SET_2D  = 0x080000000,// 32 - (if this bit set, node alredy initialized, use for seek uninitialized nodes)
     CT_LIQUID_2D       = 0x0100000000,//33 - node is LIQUID
     CT_NONREFLECTED_2D = 0x0200000000,//34 - non-reflected BC
+    CT_4TH_ORDER_X_2D  = 0x0400000000,//35 - 4-th order X bound
+    CT_4TH_ORDER_Y_2D  = 0x0800000000,//36 - 4-th order Y bound
 };
 
 

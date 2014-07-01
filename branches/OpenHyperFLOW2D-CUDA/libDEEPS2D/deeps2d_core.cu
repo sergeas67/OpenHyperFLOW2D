@@ -25,6 +25,8 @@ int num_blocks  = 1;
 
 SourceList2D*  SrcList = NULL;
 int            isGasSource=0;
+int            isRecalcYplus;
+int            isHighOrder;
 int            TurbStartIter;
 int            TurbExtModel;
 int            err_i, err_j;
@@ -992,6 +994,26 @@ void DEEPS2D_Run(ofstream* f_stream,
                                                   cuda_streams[ii+1]);
                         }
 // --- Halo exchange ---
+                   
+/*
+#ifdef _PARALLEL_RECALC_Y_PLUS_
+                        if (isRecalcYplus) {
+                            cuda_Recalc_y_plus<<<num_cuda_blocks,num_cuda_threads, 0, cuda_streams[ii]>>>(cudaJ,
+                                                                                                          max_X*max_Y,
+                                                                                                          cudaWallNodes,
+                                                                                                          NumWallNodes,
+                                                                                                          min(dx,dy),
+                                                                                                          max((FlowNode2D<double,NUM_COMPONENTS>::dx*(iX0 + max_X)), 
+                                                                                                              (FlowNode2D<double,NUM_COMPONENTS>::dy*max_Y)),
+                                                                                                          FlowNode2D<double,NUM_COMPONENTS>::dx,
+                                                                                                          FlowNode2D<double,NUM_COMPONENTS>::dy,
+                                                                                                          max_Y);
+
+                            CUDA_BARRIER("cuda_Recalc_y_plus");
+                        }
+#endif // _PARALLEL_RECALC_Y_PLUS_
+*/
+                   
                    }
 
                    if(n_s > 1) {
@@ -1002,9 +1024,6 @@ void DEEPS2D_Run(ofstream* f_stream,
                 CalcHeatOnWallSources(pJ,dx,dy,dt);
 */
 
-#ifdef _PARALLEL_RECALC_Y_PLUS_
-
-#endif // _PARALLEL_RECALC_Y_PLUS_
 
 /*         
         if ( isGasSource && SrcList) {
@@ -1092,7 +1111,21 @@ void DEEPS2D_Run(ofstream* f_stream,
 
        TmpMaxX = (SubMaxX-SubStartIndex) - r_Overlap;
        TmpMatrixPtr = (FlowNode2D<double,NUM_COMPONENTS>*)((ulong)J->GetMatrixPtr()+(ulong)(sizeof(FlowNode2D<double,NUM_COMPONENTS>)*(SubStartIndex)*MaxY));
+#ifdef _PARALLEL_RECALC_Y_PLUS_
+       *f_stream << "Parallel recalc y+..." << endl;    
+       cuda_Recalc_y_plus<<<num_cuda_blocks,num_cuda_threads, 0, cuda_streams[i]>>>(cudaJ,
+                                                                                    TmpMaxX*MaxY,
+                                                                                    cudaWallNodes,
+                                                                                    NumWallNodes,
+                                                                                    min(dx,dy),
+                                                                                    max((FlowNode2D<double,NUM_COMPONENTS>::dx*MaxX), 
+                                                                                        (FlowNode2D<double,NUM_COMPONENTS>::dy*MaxY)),
+                                                                                    FlowNode2D<double,NUM_COMPONENTS>::dx,
+                                                                                    FlowNode2D<double,NUM_COMPONENTS>::dy,
+                                                                                    MaxY);
 
+       CUDA_BARRIER("cuda_Recalc_y_plus");
+#endif // _PARALLEL_RECALC_Y_PLUS_
        CopyDeviceToHost(cudaArraySubmatrix->GetElement(i),TmpMatrixPtr,(sizeof(FlowNode2D<double,NUM_COMPONENTS>))*(TmpMaxX*MaxY),cuda_streams[i]);
 
   }
@@ -1933,19 +1966,18 @@ void DEEPS2D_Run(ofstream* f_stream
                                  WallNodesUw_2D->GetNumElements()*WallNodesUw_2D->GetElementSize(),
                                  MPI::BYTE,0,tag_WallFrictionVelocity);
     }
-#endif // _PARALLEL_RECALC_Y_PLUS_
-
-#ifdef _PARALLEL_RECALC_Y_PLUS_
     ParallelRecalc_y_plus(pJ,WallNodes,WallNodesUw_2D,x0);
 #endif // _PARALLEL_RECALC_Y_PLUS_
 
     if( rank == 0) {
 #ifndef _PARALLEL_RECALC_Y_PLUS_
+        *f_stream << "Recalc y+...";
          Recalc_y_plus(J,WallNodes);
 #endif // _PARALLEL_RECALC_Y_PLUS_
 #else
 #ifdef _PARALLEL_RECALC_Y_PLUS_
-    ParallelRecalc_y_plus(pJ,WallNodes,WallNodesUw_2D,x0);
+         *f_stream << "Parallel recalc y+...";
+         ParallelRecalc_y_plus(pJ,WallNodes,WallNodesUw_2D,x0);
 #else
    *f_stream << "Recalc y+...";
    Recalc_y_plus(J,WallNodes);
