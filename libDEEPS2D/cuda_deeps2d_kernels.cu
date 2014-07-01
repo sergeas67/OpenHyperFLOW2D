@@ -65,21 +65,19 @@ inline double GetVal(Table* t,
                      double _x ) {
     if ( !t )
         return 0.;
-    //Îáùåå ÷èñëî çíà÷åíèé â òàáëèöå
-    register int    i, _n = t->n;
+    
+    register int  i, _n = t->n;
+    
     register double _y;
 
-    //Â òàáëèöå - åäèíñòâåííîå çíà÷åíèå.
     if ( _n == 1 )
         return( t->y[0] );
 
-    //Àðãóìåíò ìåíüøå ìèíèìàëüíîãî çíà÷åíèÿ.
     if ( _x <= t->x[0] ) {
         i = 1;
         goto EndGetVal;
     }
 
-    //Àðãóìåíò áîëüøå ìàêñèìàëüíîãî çíà÷åíèÿ.
     if ( _x >= t->x[t->n-1] ) {
         i = _n - 1;
         goto EndGetVal;
@@ -151,7 +149,7 @@ int cuda_CalcChemicalReactions(FlowNode2D<double,NUM_COMPONENTS>* CalcNode,
                     GetVal(model_data->lam_cp,CalcNode->Tg)*Ycp+
                     GetVal(model_data->lam_air,CalcNode->Tg)*Yair;
 
-    if ( Yair<1.e-5 ) {
+    if ( Yair<1.e-8 ) {
          Yair =0.;
       }
     if ( Ycp<1.e-8 ) {

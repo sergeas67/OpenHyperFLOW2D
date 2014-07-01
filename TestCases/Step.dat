@@ -17,7 +17,8 @@
 <data/isOutHeatFluxY=0>
 ; is p* out ?
 <data/is_p_asterisk_out=0>
-<data/NumStreams=1>
+; Recalc y+  on each iterations
+<data/isRecalcYplus=0>
 
 ;------------------------------------------------------------------;
 ; General parameters                                               ;
