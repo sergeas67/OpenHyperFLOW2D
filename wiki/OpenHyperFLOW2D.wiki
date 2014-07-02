@@ -4,15 +4,16 @@
 ||[http://openhyperflow2d.googlecode.com/svn/trunk/OpenHyperFLOW2D/doc/OpenHyperFLOW2D-Logo.png] || Copyright (C)  1995-2014 by Serge A. Suchkov ||
 ||<g:plusone size="medium"></g:plusone>|| Copyright policy: LGPL V3 || 
 
-*OpenHyperFLOW2D* it is research CFD code for simulation 2D (flat/axisymmetrical) transient viscous compressible multicomponent sub/trans/supersonic reacting gas flows.
+*OpenHyperFLOW2D* it is parallel (C++/MPI/CUDA/OpenMP) research CFD code for simulation 2D (flat/axisymmetrical) transient viscous compressible multicomponent sub/trans/supersonic reacting gas flows.
 
 ==Include:==
- * boundary conditions of I, II and III type for any of the dependent variables;
- * no-slip boundary conditions on walls;
- * multicomponent flow (4 base components);
- * temperature dependence properties of components;
- * chemical reactions with infinity speed (_Zeldovich_ model);
- * turbulence (RANS/URANS models):
+ * Own simple text-based preprocessor and cartesian mesh (does not need extra mesh)
+ * Boundary conditions of I, II and III type for any of the dependent variables;
+ * No-slip boundary conditions on walls;
+ * Multicomponent flow (4 base components);
+ * Temperature dependence properties of components;
+ * Chemical reactions with infinity speed (_Zeldovich_ model);
+ * Turbulence (RANS/URANS models):
    * Zero-equation models:
      * _Prandtl_;
      * _van Driest_;
