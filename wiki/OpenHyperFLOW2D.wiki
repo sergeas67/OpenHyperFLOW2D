@@ -7,7 +7,8 @@
 *OpenHyperFLOW2D* it is parallel (C++/MPI/CUDA/OpenMP) research CFD code for simulation 2D (flat/axisymmetrical) transient viscous compressible multicomponent sub/trans/supersonic reacting gas flows.
 
 ==Include:==
- * Own simple text-based preprocessor and cartesian mesh (does not need extra mesh)
+ * Own simple text-based preprocessor
+ * Automatically generated cartesian mesh (does not need extra mesh)
  * Boundary conditions of I, II and III type for any of the dependent variables;
  * No-slip boundary conditions on walls;
  * Multicomponent flow (4 base components);
