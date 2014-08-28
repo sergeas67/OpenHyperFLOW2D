@@ -13,8 +13,8 @@ include   ../gcc.compiler
 endif
 
 DEBUGLEVEL=0
-
-CFLAGS    =  $(PICFLAGS) $(MODELS) $(OPTIONS) -D_REMOVE_SWAPFILE_ -D_STREAM_COMPAT  -Wno-deprecated \
+#-D_REMOVE_SWAPFILE_ 
+CFLAGS    =  $(PICFLAGS) $(MODELS) $(OPTIONS) -D_STREAM_COMPAT  -Wno-deprecated \
             -DBUFF_SIZE=16384 
 
 TARGET    = libobj_data.a
