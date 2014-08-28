@@ -9,7 +9,7 @@
 *                                                                              *
 *   init_deeps2d.cpp: OpenHyperFLOW2D solver init code....                     *
 *                                                                              *
-*  last update: 16/01/2014                                                     *
+*  last update: 01/07/2014                                                     *
 ********************************************************************************/
 #include "deeps2d_core.hpp"
 
@@ -119,12 +119,13 @@ void InitSharedData(InputData* _data,
             if ( _data->GetDataError()==-1 ) {
                 Abort_OpenHyperFLOW2D();
             }
-            
+
             isHighOrder = _data->GetIntVal((char*)"isHighOrder");
             if ( _data->GetDataError()==-1 ) {
                 Abort_OpenHyperFLOW2D();
             }
             */
+            
 
             CFL  = _data->GetFloatVal((char*)"CFL");               // Courant number
             if ( _data->GetDataError()==-1 ) {

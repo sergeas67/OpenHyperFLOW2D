@@ -5,7 +5,7 @@
 *   Copyright (C)  1995-2014 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
 *                                                                              *
-*   last update: 16/01/2014                                                    *
+*   last update: 01/07/2014                                                    *
 *******************************************************************************/
 #ifndef _hyper_flow_turbulence_hpp_
 #define _hyper_flow_turbulence_hpp_
