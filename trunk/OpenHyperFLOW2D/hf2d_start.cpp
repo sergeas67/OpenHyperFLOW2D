@@ -137,11 +137,11 @@ rank      = MPI::COMM_WORLD.Get_rank();
                if(i == GlobalSubmatrix->GetNumElements()-1)
                  r_Overlap = 0;
                else
-                 r_Overlap = 1;
+                 r_Overlap = 2;
                if(i == 0)
                  l_Overlap = 0;
                else
-                 l_Overlap = 1;
+                 l_Overlap = 2;
 
                TmpMaxX = (SubMaxX-SubStartIndex)+r_Overlap;
                TmpMatrixPtr = (FlowNode2D<double,NUM_COMPONENTS>*)((ulong)J->GetMatrixPtr()+(ulong)(sizeof(FlowNode2D<double,NUM_COMPONENTS>)*(SubStartIndex)*MaxY));                      
