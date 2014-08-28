@@ -39,6 +39,8 @@ Experimental features
 2. Separate local blending factor (LBF) for each equation, may be unstable in some cases.
 3. CUDA based computational core.
 
+*Prebuilded binary executble compiled for sm 3.0
+
 OpenHyperFLOW2D it is open source clone of HyperFLOW2D (in-house CFD code)
 with reduced functionality, and can be used without restriction for educational
 and academic purpose. Reference at the publication is obligatory.

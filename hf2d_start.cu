@@ -7,7 +7,7 @@
 *                                                                              *
 *  hf2d_start.cpp: OpenHyperFLOW2D solver init code....                        *
 *                                                                              *
-*  last update: 16/01/2014                                                     *
+*  last update: 01/07/2014                                                     *
 ********************************************************************************/
 #ifdef _CUDA_
 #define _PARALLEL_ONLY
@@ -350,11 +350,11 @@ int main( int argc, char **argv )
             if(i == GlobalSubmatrix->GetNumElements()-1)
               r_Overlap = 0;
             else
-              r_Overlap = 1;
+              r_Overlap = 2;
             if(i == 0)
               l_Overlap = 0;
             else
-              l_Overlap = 1;
+              l_Overlap = 2;
 
             TmpMaxX = (SubMaxX-SubStartIndex) + r_Overlap;
 
@@ -391,11 +391,11 @@ int main( int argc, char **argv )
             if(i == GlobalSubmatrix->GetNumElements()-1)
               r_Overlap = 0;
             else
-              r_Overlap = 1;
+              r_Overlap = 2;
             if(i == 0)
               l_Overlap = 0;
             else
-              l_Overlap = 1;
+              l_Overlap = 2;
 
             SubStartIndex = GlobalSubmatrix->GetElementPtr(i)->GetX();  
             SubMaxX = GlobalSubmatrix->GetElementPtr(i)->GetY();

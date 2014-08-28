@@ -9,7 +9,7 @@
 *                                                                              *
 *   deeps2d_core.cpp: OpenHyperFLOW2D solver core code....                     *
 *                                                                              *
-*  last update: 16/01/2014                                                     *
+*  last update: 01/07/2014                                                     *
 ********************************************************************************/
 #include "deeps2d_core.hpp"
 
@@ -994,26 +994,6 @@ void DEEPS2D_Run(ofstream* f_stream,
                                                   cuda_streams[ii+1]);
                         }
 // --- Halo exchange ---
-                   
-/*
-#ifdef _PARALLEL_RECALC_Y_PLUS_
-                        if (isRecalcYplus) {
-                            cuda_Recalc_y_plus<<<num_cuda_blocks,num_cuda_threads, 0, cuda_streams[ii]>>>(cudaJ,
-                                                                                                          max_X*max_Y,
-                                                                                                          cudaWallNodes,
-                                                                                                          NumWallNodes,
-                                                                                                          min(dx,dy),
-                                                                                                          max((FlowNode2D<double,NUM_COMPONENTS>::dx*(iX0 + max_X)), 
-                                                                                                              (FlowNode2D<double,NUM_COMPONENTS>::dy*max_Y)),
-                                                                                                          FlowNode2D<double,NUM_COMPONENTS>::dx,
-                                                                                                          FlowNode2D<double,NUM_COMPONENTS>::dy,
-                                                                                                          max_Y);
-
-                            CUDA_BARRIER("cuda_Recalc_y_plus");
-                        }
-#endif // _PARALLEL_RECALC_Y_PLUS_
-*/
-                   
                    }
 
                    if(n_s > 1) {
@@ -1123,11 +1103,9 @@ void DEEPS2D_Run(ofstream* f_stream,
                                                                                     FlowNode2D<double,NUM_COMPONENTS>::dx,
                                                                                     FlowNode2D<double,NUM_COMPONENTS>::dy,
                                                                                     MaxY);
-
-       CUDA_BARRIER("cuda_Recalc_y_plus");
+       CUDA_BARRIER("Copy device to host");
 #endif // _PARALLEL_RECALC_Y_PLUS_
        CopyDeviceToHost(cudaArraySubmatrix->GetElement(i),TmpMatrixPtr,(sizeof(FlowNode2D<double,NUM_COMPONENTS>))*(TmpMaxX*MaxY),cuda_streams[i]);
-
   }
        CUDA_BARRIER("Data collection");
 
