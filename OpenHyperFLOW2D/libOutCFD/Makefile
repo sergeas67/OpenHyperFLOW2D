@@ -14,9 +14,8 @@ include   ../gcc.compiler
 endif
 
 DEBUGLEVEL=0
-
-CFLAGS    =  $(PICFLAGS) $(OPTIONS)  \
-            -D_REMOVE_SWAPFILE_ -D_GNUPLOT_  -D_STREAM_COMPAT  -Wno-deprecated $(MODELS) 
+#-D_REMOVE_SWAPFILE_
+CFLAGS    =  $(PICFLAGS) $(OPTIONS)  -D_GNUPLOT_  -D_STREAM_COMPAT  -Wno-deprecated $(MODELS) 
 
 TARGET    = libOutCFD.a
 

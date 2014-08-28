@@ -498,17 +498,35 @@ void SmoothX(UMatrix2D<double>* A) {
     }
 }
 
-
 void SaveXHeatFlux2D(ofstream* OutputData,
                      UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >* pJ,
                      double  Ts) {
     char  HeatFluxHeader[128];
+
+#ifdef _REF_TEST_
+    snprintf(HeatFluxHeader,128,"#VARIABLES = X, HeatFlux(X), Alpha(X), HeatFluxRef(X), AlphaRef(X), Re(X), Pr(X)");
+    UArray<double> HeatFluxRefArray(pJ->GetX());
+    UArray<double> HeatExcgCoeffRefArray(pJ->GetX());
+
+    UArray<double> ReArray(pJ->GetX());
+    UArray<double> PrArray(pJ->GetX());
+#else
     snprintf(HeatFluxHeader,128,"#VARIABLES = X, HeatFlux(X)");
+#endif // _REF_TEST_
+    
     *OutputData << HeatFluxHeader  << endl;
+
     UArray<double> HeatFluxArray(pJ->GetX());
+    UArray<double> HeatExcgCoeffArray(pJ->GetX());
+
     for(int i=0; i < (int)HeatFluxArray.GetNumElements(); i++) {
         double Zero = 0.0;
         HeatFluxArray.SetElement(i,&Zero);
+        HeatExcgCoeffArray.SetElement(i,&Zero);
+#ifdef _REF_TEST_
+        HeatFluxRefArray.SetElement(i,&Zero);
+        HeatExcgCoeffRefArray.SetElement(i,&Zero);
+#endif // _REF_TEST_
     }
 
     for(int i=0; i < (int)pJ->GetX(); i++) {
@@ -561,19 +579,58 @@ void SaveXHeatFlux2D(ofstream* OutputData,
             }
 
             lam_eff = lam_eff/num_near_nodes;
-            double Q = lam_eff*(pJ->GetValue(i,j).Tg - Ts)/FlowNode2D<double,NUM_COMPONENTS>::dx;
-
+            double Q     = lam_eff*(pJ->GetValue(i,j).Tg - Ts)/FlowNode2D<double,NUM_COMPONENTS>::dy;
+            double alpha = lam_eff/FlowNode2D<double,NUM_COMPONENTS>::dy;
+#ifdef _REF_TEST_
+            double Re    = (pJ->GetValue(i,pJ->GetY()-1).U * (i+0.5)*FlowNode2D<double,NUM_COMPONENTS>::dx*pJ->GetValue(i,j).S[0])/pJ->GetValue(i,j).mu;
+            double Pr    =  pJ->GetValue(i,j).mu*pJ->GetValue(i,j).CP/pJ->GetValue(i,j).lam;
+            double Nu;
+            
+            if(Re < 5.0e5 ) {
+              Nu = 0.332*sqrt(Re)*pow(Pr,1.0/3.0);
+            } else {
+              Nu = 0.0296*pow(Re,0.8)*pow(Pr,1.0/3.0);
+            }
+            
+            double Alpha_Ref =  Nu*pJ->GetValue(i,j).lam/((i+0.5)*FlowNode2D<double,NUM_COMPONENTS>::dx);
+            double Q_Ref     =  Alpha_Ref*(pJ->GetValue(i,j).Tg - Ts);
+            
+            ReArray.SetElement(i,&Re);
+            PrArray.SetElement(i,&Pr);
+#endif // _REF_TEST_            
+            
             if(HeatFluxArray.GetElement(i) != 0.) {
-              Q =  max(HeatFluxArray.GetElement(i),Q);
+              Q =     max(HeatFluxArray.GetElement(i),Q);
+#ifdef _REF_TEST_
+              Q_Ref = max(HeatFluxRefArray.GetElement(i),Q_Ref);
+              HeatFluxRefArray.SetElement(i,&Q_Ref);
+              Alpha_Ref = max(HeatExcgCoeffRefArray.GetElement(i),Alpha_Ref);
+              HeatExcgCoeffRefArray.SetElement(i,&Alpha_Ref); 
+#endif // _REF_TEST_            
+              
               HeatFluxArray.SetElement(i,&Q);
+              
+              alpha = max(HeatExcgCoeffArray.GetElement(i),alpha);
+
+              HeatExcgCoeffArray.SetElement(i,&alpha);
             } else {
               HeatFluxArray.SetElement(i,&Q);
+              HeatExcgCoeffArray.SetElement(i,&alpha);
+#ifdef _REF_TEST_
+              HeatExcgCoeffRefArray.SetElement(i,&Alpha_Ref); 
+              HeatFluxRefArray.SetElement(i,&Q_Ref);
+#endif // _REF_TEST_            
             }
           }
         }
     }
     for(int i=0; i < (int)HeatFluxArray.GetNumElements(); i++) {
-        *OutputData << i*FlowNode2D<double,NUM_COMPONENTS>::dx << " " << HeatFluxArray.GetElement(i) << endl;
+        *OutputData << i*FlowNode2D<double,NUM_COMPONENTS>::dx << " " << HeatFluxArray.GetElement(i)<< " " << HeatExcgCoeffArray.GetElement(i) << 
+#ifdef _REF_TEST_
+                                                                  " " << HeatFluxRefArray.GetElement(i) << " " << HeatExcgCoeffRefArray.GetElement(i) << 
+                                                                  " " << ReArray.GetElement(i) << " " << PrArray.GetElement(i)  <<
+#endif // _REF_TEST_ 
+                                                                  endl;           
     }
 }
 
@@ -631,7 +688,7 @@ void SaveYHeatFlux2D(ofstream* OutputData,
 
             lam_eff = lam_eff/num_near_nodes;
 
-            double Q = lam_eff*(pJ->GetValue(i,j).Tg - Ts)/FlowNode2D<double,NUM_COMPONENTS>::dy;
+            double Q = lam_eff*(pJ->GetValue(i,j).Tg - Ts)/FlowNode2D<double,NUM_COMPONENTS>::dx;
             if(HeatFluxArray.GetElement(j) != 0.) {
               Q =  max(HeatFluxArray.GetElement(j),Q);
               HeatFluxArray.SetElement(j,&Q); 
