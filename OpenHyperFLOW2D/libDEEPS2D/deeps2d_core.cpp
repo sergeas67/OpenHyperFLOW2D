@@ -777,7 +777,7 @@ void DEEPS2D_Run(ofstream* f_stream
 
                               NextNode    = &(pC->GetValue(i,j)); 
 
-                              CurrentNode->time=dt;//GlobalTime;
+                              CurrentNode->time=GlobalTime;
 
                                 if(CurrentNode->isTurbulenceCond2D(TCT_Spalart_Allmaras_Model_2D))
                                    turb_mod_name_index = 3;
@@ -2469,7 +2469,7 @@ void SaveRMS(ofstream* OutputData,unsigned int n, double* outRMS) {
                 }
                 if(!J->GetValue(i,j).isCond2D(CT_SOLID_2D)) {
                     if( Mach > 1.e-30) 
-                      *OutputData << Mach  << "  " << J->GetValue(i,j).time;  
+                      *OutputData << Mach  << "  " << J->GetValue(i,j).l_min;  
                     else
                       *OutputData << "  0  0 ";
                 } else {
