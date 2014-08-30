@@ -391,11 +391,11 @@ int main( int argc, char **argv )
             if(i == GlobalSubmatrix->GetNumElements()-1)
               r_Overlap = 0;
             else
-              r_Overlap = 2;
+              r_Overlap = 1;
             if(i == 0)
               l_Overlap = 0;
             else
-              l_Overlap = 2;
+              l_Overlap = 1;
 
             SubStartIndex = GlobalSubmatrix->GetElementPtr(i)->GetX();  
             SubMaxX = GlobalSubmatrix->GetElementPtr(i)->GetY();
