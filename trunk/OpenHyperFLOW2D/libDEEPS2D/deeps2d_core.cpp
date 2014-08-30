@@ -740,6 +740,7 @@ void DEEPS2D_Run(ofstream* f_stream
                        StartXLocal=0;
                     else
                        StartXLocal=1;
+                    
                     if( ii == (int)SubmatrixArray->GetNumElements()-1) {
                         MaxXLocal=pJ->GetX();
                     } else {
@@ -748,6 +749,8 @@ void DEEPS2D_Run(ofstream* f_stream
 #endif // _MPI
                     dx_1 = 1.0/dx;
                     dy_1 = 1.0/dy;
+                    
+                    MPI::COMM_WORLD.Bcast(&dt,1,MPI::DOUBLE,0);
 
                     dtdx = dt/dx;
                     dtdy = dt/dy;
@@ -774,7 +777,7 @@ void DEEPS2D_Run(ofstream* f_stream
 
                               NextNode    = &(pC->GetValue(i,j)); 
 
-                              CurrentNode->time=GlobalTime;
+                              CurrentNode->time=dt;//GlobalTime;
 
                                 if(CurrentNode->isTurbulenceCond2D(TCT_Spalart_Allmaras_Model_2D))
                                    turb_mod_name_index = 3;
@@ -2466,7 +2469,7 @@ void SaveRMS(ofstream* OutputData,unsigned int n, double* outRMS) {
                 }
                 if(!J->GetValue(i,j).isCond2D(CT_SOLID_2D)) {
                     if( Mach > 1.e-30) 
-                      *OutputData << Mach  << "  " << J->GetValue(i,j).l_min;  
+                      *OutputData << Mach  << "  " << J->GetValue(i,j).time;  
                     else
                       *OutputData << "  0  0 ";
                 } else {

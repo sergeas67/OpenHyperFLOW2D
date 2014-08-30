@@ -137,11 +137,11 @@ rank      = MPI::COMM_WORLD.Get_rank();
                if(i == GlobalSubmatrix->GetNumElements()-1)
                  r_Overlap = 0;
                else
-                 r_Overlap = 2;
+                 r_Overlap = 1; //
                if(i == 0)
                  l_Overlap = 0;
                else
-                 l_Overlap = 2;
+                 l_Overlap = 1; //
 
                TmpMaxX = (SubMaxX-SubStartIndex)+r_Overlap;
                TmpMatrixPtr = (FlowNode2D<double,NUM_COMPONENTS>*)((ulong)J->GetMatrixPtr()+(ulong)(sizeof(FlowNode2D<double,NUM_COMPONENTS>)*(SubStartIndex)*MaxY));                      
@@ -261,7 +261,7 @@ rank      = MPI::COMM_WORLD.Get_rank();
             if(i == GlobalSubmatrix->GetNumElements()-1)
                Overlap = 0;
             else
-               Overlap = 2;
+               Overlap = 1;
             TmpMatrixPtr=(FlowNode2D<double,NUM_COMPONENTS>*)((ulong)J->GetMatrixPtr()+(ulong)(sizeof(FlowNode2D<double,NUM_COMPONENTS>)*SubStartIndex*MaxY));
             TmpSubmatrix     = new UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >(TmpMatrixPtr,(SubMaxX-SubStartIndex)+Overlap,MaxY);
             TmpCoreSubmatrix = new UMatrix2D< FlowNodeCore2D<double,NUM_COMPONENTS> >((SubMaxX-SubStartIndex)+Overlap,MaxY);
