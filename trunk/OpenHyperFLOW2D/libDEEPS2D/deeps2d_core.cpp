@@ -730,7 +730,7 @@ void DEEPS2D_Run(ofstream* f_stream
 #endif // _MPI
 
 #ifdef _MPI
-
+                    MPI::COMM_WORLD.Bcast(&dt,1,MPI::DOUBLE,0);
 #else
                     for ( k=0;k<(int)FlowNode2D<double,NUM_COMPONENTS>::NumEq;k++ ) {
                        DD_max(k,ii) =  0.;
@@ -747,10 +747,10 @@ void DEEPS2D_Run(ofstream* f_stream
                         MaxXLocal=pJ->GetX()-1;
                     }
 #endif // _MPI
+                    
                     dx_1 = 1.0/dx;
                     dy_1 = 1.0/dy;
                     
-                    MPI::COMM_WORLD.Bcast(&dt,1,MPI::DOUBLE,0);
 
                     dtdx = dt/dx;
                     dtdy = dt/dy;
