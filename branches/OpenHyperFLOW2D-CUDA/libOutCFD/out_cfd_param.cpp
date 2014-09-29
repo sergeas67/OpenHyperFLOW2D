@@ -134,6 +134,34 @@ double CalcaverageTemperature2D(UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >* 
     }
 }
 
+double CalcArea2D(UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >* pJ,             
+                  double x0,  // initial X  point of probed area                  
+                  double y0,  // initial Y  point of probed area                  
+                  double dy   // diameter (or cross-section size) of probed area) 
+                 ) {                                                             
+double Sp=0.;
+unsigned int i = (unsigned int)(x0/FlowNode2D<double,NUM_COMPONENTS>::dx);
+unsigned int jj_start = (unsigned int)(y0/FlowNode2D<double,NUM_COMPONENTS>::dy);
+unsigned int jj_end = (unsigned int)((y0+dy)/FlowNode2D<double,NUM_COMPONENTS>::dy);
+#ifdef _MPI_OPENMP 
+#pragma omp parallel for reduction(+:Sp)
+#else
+#ifdef _OPEN_MP
+#pragma omp parallel for reduction(+:Sp)
+#endif //_OPEN_MP
+#endif // _MPI_OPENMP
+
+    for (int j=jj_start;j<(int)jj_end;j++ ) {
+        if ( !pJ->GetValue(i,j).isCond2D(CT_SOLID_2D)) {
+            if (FlowNode2D<double,NUM_COMPONENTS>::FT == FT_FLAT)
+                Sp+= FlowNode2D<double,NUM_COMPONENTS>::dy;
+            else
+                Sp+= 2 * M_PI *FlowNode2D<double,NUM_COMPONENTS>::dy*pJ->GetValue(i,j).r;
+        }
+    }
+    return(Sp);
+}
+
 double CalcMassFlowRateX2D(UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >* pJ,
                            double x0,  // initial X  point of probed area
                            double y0,  // initial Y  point of probed area
@@ -347,9 +375,9 @@ double CalcYForce2D(UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >* pJ,
     return(Fp+Fd);
 }
 
-double   Calc_Cp(UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >* pJ, int i, int j, Flow2D* pF) {
-    if (pJ->GetValue(i,j).isCond2D(CT_WALL_LAW_2D) || pJ->GetValue(i,j).isCond2D(CT_WALL_NO_SLIP_2D))
-        return(pJ->GetValue(i,j).p - pF->Pg())/(0.5*pF->ROG()*pF->Wg()*pF->Wg());
+double   Calc_Cp(FlowNode2D<double,NUM_COMPONENTS>* CurrentNode, Flow2D* pF) {
+    if (CurrentNode->isCond2D(CT_WALL_NO_SLIP_2D))
+        return(CurrentNode->p - pF->Pg())/(0.5*pF->ROG()*pF->Wg()*pF->Wg());
     else
         return 0;
 }
@@ -470,24 +498,62 @@ void SmoothX(UMatrix2D<double>* A) {
     }
 }
 
-
 void SaveXHeatFlux2D(ofstream* OutputData,
                      UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >* pJ,
-                     double  Ts) {
+                     Flow2D* TestFlow, 
+                     double  Ts,
+                     int     y_max,
+                     int     y_min) {
     char  HeatFluxHeader[128];
-    snprintf(HeatFluxHeader,128,"#VARIABLES = X, HeatFlux(X)");
+    double Cp;
+    double St;
+    double Trec  = (1 + 0.45 * (TestFlow->kg() - 1.0) * TestFlow->MACH() * TestFlow->MACH())*TestFlow->Tg();
+
+#ifdef _REF_TEST_
+    snprintf(HeatFluxHeader,128,"#VARIABLES = X, HeatFlux(X), Alpha(X), HeatFluxRef(X), AlphaRef(X), Re(X), Pr(X)");
+    UArray<double> HeatFluxRefArray(pJ->GetX());
+    UArray<double> HeatExcgCoeffRefArray(pJ->GetX());
+
+    UArray<double> ReArray(pJ->GetX());
+    UArray<double> PrArray(pJ->GetX());
+    
+#else
+    snprintf(HeatFluxHeader,128,"#VARIABLES = X, HeatFlux(X),  Alpha(X), Cp(X), St(X)");
+    
+    UArray<double> CpArray(pJ->GetX());
+    UArray<double> StArray(pJ->GetX());
+
+#endif // _REF_TEST_
+    
     *OutputData << HeatFluxHeader  << endl;
+
     UArray<double> HeatFluxArray(pJ->GetX());
+    UArray<double> HeatExcgCoeffArray(pJ->GetX());
+
     for(int i=0; i < (int)HeatFluxArray.GetNumElements(); i++) {
         double Zero = 0.0;
+        
         HeatFluxArray.SetElement(i,&Zero);
+        HeatExcgCoeffArray.SetElement(i,&Zero);
+        
+        CpArray.SetElement(i,&Zero);
+        StArray.SetElement(i,&Zero);
+
+#ifdef _REF_TEST_
+        ReArray.SetElement(i,&Zero);
+        PrArray.SetElement(i,&Zero);
+        
+        HeatFluxRefArray.SetElement(i,&Zero);
+        HeatExcgCoeffRefArray.SetElement(i,&Zero);
+#endif // _REF_TEST_
     }
 
     for(int i=0; i < (int)pJ->GetX(); i++) {
-        for(int j=0; j < (int)pJ->GetY()-1; j++) {
+        for(int j=max(0,y_min); j < min(y_max,(int)pJ->GetY()-1); j++) {
 
         if(pJ->GetValue(i,j).isCond2D(CT_WALL_NO_SLIP_2D)) {
 
+            FlowNode2D<double,NUM_COMPONENTS>* CurrentNode;
             FlowNode2D<double,NUM_COMPONENTS>* UpNode;
             FlowNode2D<double,NUM_COMPONENTS>* DownNode; 
             FlowNode2D<double,NUM_COMPONENTS>* RightNode;
@@ -509,6 +575,7 @@ void SaveXHeatFlux2D(ofstream* OutputData,
             N3 = j + n3;
             N4 = j - n4;
 
+            CurrentNode= &(pJ->GetValue(i,j));
             UpNode     = &(pJ->GetValue(i,N3));
             DownNode   = &(pJ->GetValue(i,N4));
             RightNode  = &(pJ->GetValue(N2,j));
@@ -533,19 +600,70 @@ void SaveXHeatFlux2D(ofstream* OutputData,
             }
 
             lam_eff = lam_eff/num_near_nodes;
-            double Q = lam_eff*(pJ->GetValue(i,j).Tg - Ts)/FlowNode2D<double,NUM_COMPONENTS>::dx;
+            double Q     = lam_eff*(pJ->GetValue(i,j).Tg - Ts)/FlowNode2D<double,NUM_COMPONENTS>::dy;
+            double alpha = lam_eff/FlowNode2D<double,NUM_COMPONENTS>::dy;
+            
+            Cp = St = 0.0;
 
+#ifdef _REF_TEST_
+            double Re    = (pJ->GetValue(i,pJ->GetY()-1).U * (i+0.5)*FlowNode2D<double,NUM_COMPONENTS>::dx*pJ->GetValue(i,j).S[0])/pJ->GetValue(i,j).mu;
+            double Pr    =  pJ->GetValue(i,j).mu*pJ->GetValue(i,j).CP/pJ->GetValue(i,j).lam;
+            double Nu;
+            
+            ReArray.SetElement(i,&Re);
+            PrArray.SetElement(i,&Pr);
+            
+            if(Re < 5.0e5 ) {
+              Nu = 0.332*sqrt(Re)*pow(Pr,1.0/3.0);
+            } else {
+              Nu = 0.0296*pow(Re,0.8)*pow(Pr,1.0/3.0);
+            }
+            
+            double Alpha_Ref =  Nu*pJ->GetValue(i,j).lam/((i+0.5)*FlowNode2D<double,NUM_COMPONENTS>::dx);
+            double Q_Ref     =  Alpha_Ref*(pJ->GetValue(i,j).Tg - Ts);
+#endif // _REF_TEST_            
+            St =     Q/(TestFlow->ROG()*TestFlow->Wg()*TestFlow->C*(Trec-Ts));
+            Cp =     Calc_Cp(CurrentNode,TestFlow);
+            
             if(HeatFluxArray.GetElement(i) != 0.) {
-              Q =  max(HeatFluxArray.GetElement(i),Q);
+              Q  =     max(HeatFluxArray.GetElement(i),Q);
+#ifdef _REF_TEST_
+              Q_Ref = max(HeatFluxRefArray.GetElement(i),Q_Ref);
+              HeatFluxRefArray.SetElement(i,&Q_Ref);
+              Alpha_Ref = max(HeatExcgCoeffRefArray.GetElement(i),Alpha_Ref);
+              HeatExcgCoeffRefArray.SetElement(i,&Alpha_Ref); 
+#endif // _REF_TEST_            
+              
               HeatFluxArray.SetElement(i,&Q);
+              
+              alpha = max(HeatExcgCoeffArray.GetElement(i),alpha);
+
+              HeatExcgCoeffArray.SetElement(i,&alpha);
+
+              CpArray.SetElement(i,&Cp);
+              StArray.SetElement(i,&St);
             } else {
               HeatFluxArray.SetElement(i,&Q);
+              HeatExcgCoeffArray.SetElement(i,&alpha);
+              
+              CpArray.SetElement(i,&Cp);
+              StArray.SetElement(i,&St);
+#ifdef _REF_TEST_
+              HeatExcgCoeffRefArray.SetElement(i,&Alpha_Ref); 
+              HeatFluxRefArray.SetElement(i,&Q_Ref);
+#endif // _REF_TEST_            
             }
           }
         }
     }
     for(int i=0; i < (int)HeatFluxArray.GetNumElements(); i++) {
-        *OutputData << i*FlowNode2D<double,NUM_COMPONENTS>::dx << " " << HeatFluxArray.GetElement(i) << endl;
+        *OutputData << i*FlowNode2D<double,NUM_COMPONENTS>::dx << " " << HeatFluxArray.GetElement(i)<< " " << HeatExcgCoeffArray.GetElement(i) << 
+                                                                  " " << CpArray.GetElement(i) << " " << StArray.GetElement(i)  <<
+#ifdef _REF_TEST_
+                                                                  " " << HeatFluxRefArray.GetElement(i) << " " << HeatExcgCoeffRefArray.GetElement(i) << 
+                                                                  " " << ReArray.GetElement(i) << " " << PrArray.GetElement(i)  <<
+#endif // _REF_TEST_ 
+                                                                  endl;           
     }
 }
 
@@ -603,7 +721,7 @@ void SaveYHeatFlux2D(ofstream* OutputData,
 
             lam_eff = lam_eff/num_near_nodes;
 
-            double Q = lam_eff*(pJ->GetValue(i,j).Tg - Ts)/FlowNode2D<double,NUM_COMPONENTS>::dy;
+            double Q = lam_eff*(pJ->GetValue(i,j).Tg - Ts)/FlowNode2D<double,NUM_COMPONENTS>::dx;
             if(HeatFluxArray.GetElement(j) != 0.) {
               Q =  max(HeatFluxArray.GetElement(j),Q);
               HeatFluxArray.SetElement(j,&Q); 
@@ -616,5 +734,53 @@ void SaveYHeatFlux2D(ofstream* OutputData,
     for(int j=0; j < (int)HeatFluxArray.GetNumElements(); j++) {
         *OutputData << j*FlowNode2D<double,NUM_COMPONENTS>::dy << " " << HeatFluxArray.GetElement(j) << endl;
     }
+}
+
+double Calc_Cv(UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >* pJ,               
+               double x0, // initial point of probed area                        
+               double y0,                                                        
+               double dy, // diameter (or cross-section size) of probed area)
+               double p_amb,
+               Flow2D* pF) {
+  
+double Fv=0.;
+double Mp=0;
+unsigned int i = (unsigned int)(x0/FlowNode2D<double,NUM_COMPONENTS>::dx);
+unsigned int jj_start = (unsigned int)(y0/FlowNode2D<double,NUM_COMPONENTS>::dy);
+unsigned int jj_end = (unsigned int)((y0+dy)/FlowNode2D<double,NUM_COMPONENTS>::dy);
+#ifdef _MPI_OPENMP 
+#pragma omp parallel for reduction(+:Fv)
+#else
+#ifdef _OPEN_MP
+#pragma omp parallel for reduction(+:Fv)
+#endif //_OPEN_MP
+#endif // _MPI_OPENMP
+
+    for (int j=jj_start;j<(int)jj_end;j++ ) {
+        if ( !pJ->GetValue(i,j).isCond2D(CT_SOLID_2D)) {
+            if (FlowNode2D<double,NUM_COMPONENTS>::FT == FT_FLAT)
+                Fv+= FlowNode2D<double,NUM_COMPONENTS>::dy*(pJ->GetValue(i,j).S[i2d_RoU]*pJ->GetValue(i,j).U+(pF->Pg() - p_amb));
+            else
+                Fv+= 2 * M_PI *FlowNode2D<double,NUM_COMPONENTS>::dy*pJ->GetValue(i,j).r*(pJ->GetValue(i,j).S[i2d_RoU]*pJ->GetValue(i,j).U+(pF->Pg() - p_amb));
+        }
+    }
+    
+    Mp = CalcMassFlowRateX2D(pJ,x0,y0,dy);
+    
+    if(Mp > 0.0)
+       return Fv/pF->U()/Mp;
+    else
+       return 0;
+}
+                                                                                 
+
+double Calc_Cd(UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >* pJ,               
+               double x0, // initial point of probed area                        
+               double y0,                                                        
+               double dy,   // diameter (or cross-section size) of probed area)   
+               Flow2D* pF) {
+
+    return CalcMassFlowRateX2D(pJ,x0,y0,dy)/pF->ROG()/pF->Wg()/CalcArea2D(pJ,x0,y0,dy);
+
 }
 

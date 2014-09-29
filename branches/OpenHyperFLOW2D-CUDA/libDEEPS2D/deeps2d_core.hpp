@@ -242,6 +242,8 @@ extern UArray<XCut>*                         XCutArray;
 extern unsigned int                          last_iter;     // Global iteration number
 extern int                                   is_Cx_calc;
 extern double                                x0_body,y0_body,dx_body,dy_body;
+extern int                                   y_max,y_min;
+extern int                                   Cp_Flow_index;
 extern int                                   Cx_Flow_index;
 extern int                                   SigmaFi_Flow_index;
 extern int                                   num_threads;

@@ -86,7 +86,10 @@ double CalcYForce2D(UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >* pJ,
 
 void SaveXHeatFlux2D(ofstream* OutputData,
                      UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >* pJ,
-                     double  Ts);
+                     Flow2D* TestFlow, 
+                     double  Ts,
+                     int     y_max,
+                     int     y_min);
 
 void SaveYHeatFlux2D(ofstream* OutputData,
                      UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >* pJ,
@@ -98,7 +101,7 @@ double   Calc_XSigmaFi(UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >* pJ,
                       double dy,
                       Flow2D* pF);
 
-double   Calc_Cp(UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >* pJ, int i, int j, Flow2D* pF);
+double   Calc_Cp(FlowNode2D<double,NUM_COMPONENTS>* CurrentNode, Flow2D* pF);
 double   Calc_Cx_2D(UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >* pJ, 
                     double x, 
                     double y,
@@ -112,7 +115,27 @@ double   Calc_Cy_2D(UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >* pJ,
                     double d_x, 
                     double d_y,
                     Flow2D* pF);
-#endif //_out_cfd_param_hpp_
+
+double Calc_Cv(UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >* pJ,               
+               double x0, // initial point of probed area                        
+               double y0,                                                        
+               double dy, // diameter (or cross-section size) of probed area)
+               double p_amb,
+               Flow2D* pF);
+                                                                                 
+
+double Calc_Cd(UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >* pJ,               
+               double x0, // initial point of probed area                        
+               double y0,                                                        
+               double dy,   // diameter (or cross-section size) of probed area)   
+               Flow2D* pF);
+
+double CalcArea2D(UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >* pJ,             
+                  double x0,  // initial X  point of probed area                  
+                  double y0,  // initial Y  point of probed area                  
+                  double dy   // diameter (or cross-section size) of probed area) 
+                 );                                                             
+#endif // _out_cfd_param_hpp_
 
 
 
