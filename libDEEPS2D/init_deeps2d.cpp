@@ -114,18 +114,19 @@ void InitSharedData(InputData* _data,
             if ( _data->GetDataError()==-1 ) {
                 Abort_OpenHyperFLOW2D();
             }
+            
             /*
             isRecalcYplus  = _data->GetIntVal((char*)"isRecalcYplus");
             if ( _data->GetDataError()==-1 ) {
                 Abort_OpenHyperFLOW2D();
             }
-
+            
+            
             isHighOrder = _data->GetIntVal((char*)"isHighOrder");
             if ( _data->GetDataError()==-1 ) {
                 Abort_OpenHyperFLOW2D();
             }
             */
-            
 
             CFL  = _data->GetFloatVal((char*)"CFL");               // Courant number
             if ( _data->GetDataError()==-1 ) {
@@ -399,6 +400,15 @@ void* InitDEEPS2D(void* lpvParam)
 
             isOutHeatFluxX = Data->GetIntVal((char*)"isOutHeatFluxX");
             if ( Data->GetDataError()==-1 ) Abort_OpenHyperFLOW2D();
+            
+            if(isOutHeatFluxX) { 
+                Cp_Flow_index = Data->GetIntVal((char*)"Cp_Flow_Index");
+                if(Data->GetDataError()==-1) Abort_OpenHyperFLOW2D();
+                y_max = Data->GetIntVal((char*)"y_max");
+                if(Data->GetDataError()==-1) Abort_OpenHyperFLOW2D();
+                y_min = Data->GetIntVal((char*)"y_min");
+                if(Data->GetDataError()==-1) Abort_OpenHyperFLOW2D();
+            }
 
             isOutHeatFluxY = Data->GetIntVal((char*)"isOutHeatFluxY");
             if ( Data->GetDataError()==-1 ) Abort_OpenHyperFLOW2D();

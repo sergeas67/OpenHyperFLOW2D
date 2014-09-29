@@ -66,12 +66,18 @@ double  DD_max_var;
 #endif // OPEN_MP
 
 //------------------------------------------
-// Cx,Cy
+// Cx,Cy,Cd,Cv,Cp,St
 //------------------------------------------
-int     is_Cx_calc;
+int     is_Cx_calc,is_Cd_calc;
+double  p_ambient;
 double  x0_body,y0_body,dx_body,dy_body;
+double  x0_nozzle,y0_nozzle,dy_nozzle;
+
 int     Cx_Flow_index;
+int     Cd_Flow_index;
+int     Cp_Flow_index;
 int     SigmaFi_Flow_index;
+int     y_max,y_min;
 //------------------------------------------
 int     NOutStep;
 int     isFirstStart=0;
@@ -193,14 +199,15 @@ int CalibrateThreadBlockSize(int      cur_block_size,
                              int*     opt_block_size,
                              double*  opt_round_trip,
                              double   round_trip){
-   if(opt_block_size[1] != 1)
-    if(opt_round_trip[0] == 0.0) {
-      opt_block_size[0] = opt_block_size[1] =  cur_block_size;
-   } else if (opt_round_trip[0] > round_trip) {
-     opt_block_size[0] = cur_block_size;
-     opt_block_size[1] = cur_block_size/2;
-   } else {
-     opt_block_size[1] = cur_block_size/2; 
+   if(opt_block_size[1] != 1) {
+       if(opt_round_trip[0] == 0.0) {
+         opt_block_size[0] = opt_block_size[1] =  cur_block_size;
+      } else if (opt_round_trip[0] > round_trip) {
+        opt_block_size[0] = cur_block_size;
+        opt_block_size[1] = cur_block_size/2;
+      } else {
+        opt_block_size[1] = cur_block_size/2; 
+      }
    }
 
    opt_round_trip[0] = round_trip;
@@ -808,7 +815,7 @@ void DEEPS2D_Run(ofstream* f_stream,
                        cudaJ = cudaSubmatrixArray->GetElement(ii);
                        cudaC = cudaCoreSubmatrixArray->GetElement(ii);
 
-                       num_cuda_threads = warp_size/max(1,current_div);
+                       num_cuda_threads =  warp_size/max(1,current_div);
                        num_cuda_blocks  = (max_X*max_Y)/num_cuda_threads;
 
                        if(num_cuda_blocks*num_cuda_threads != max_X*max_Y)
@@ -830,6 +837,8 @@ void DEEPS2D_Run(ofstream* f_stream,
 
                        dx_1 = 1.0/dx;
                        dy_1 = 1.0/dy;
+
+                       // dt = ??? 
 
                        dtdx = dt/dx;
                        dtdy = dt/dy;
@@ -1134,7 +1143,7 @@ void DEEPS2D_Run(ofstream* f_stream,
           snprintf(HeatFluxXFileName,255,"HeatFlux-X-%s",OutFileName);
           CutFile(HeatFluxXFileName);
           pHeatFlux_OutFile = OpenData(HeatFluxXFileName);
-          SaveXHeatFlux2D(pHeatFlux_OutFile,J,Ts0);
+          SaveXHeatFlux2D(pHeatFlux_OutFile,J,Flow2DList->GetElement(Cp_Flow_index-1),Ts0,y_max,y_min);
           pHeatFlux_OutFile->close();
          }
 
