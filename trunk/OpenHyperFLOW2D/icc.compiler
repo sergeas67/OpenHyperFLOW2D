@@ -110,7 +110,7 @@ endif
 ifeq ("$(SIMD)","AVX2")
 
 CPU        = core-avx-i
-CPU_EXT    = -xCORE-AVX-I -opt-prefetch=4
+CPU_EXT    = -m64 -xavx -mavx -xCORE-AVX-I -opt-prefetch=4
 ALIGN2     = 32
 endif
 

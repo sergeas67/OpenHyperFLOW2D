@@ -55,7 +55,7 @@ double  DD_max_var;
 #endif // OPEN_MP
 
 //------------------------------------------
-// Cx,Cy,Cd,Cv
+// Cx,Cy,Cd,Cv,Cp,St
 //------------------------------------------
 int     is_Cx_calc,is_Cd_calc;
 double  p_ambient;
@@ -64,7 +64,9 @@ double  x0_nozzle,y0_nozzle,dy_nozzle;
 
 int     Cx_Flow_index;
 int     Cd_Flow_index;
+int     Cp_Flow_index;
 int     SigmaFi_Flow_index;
+int     y_max,y_min;
 //------------------------------------------
 int     NOutStep;
 int     isFirstStart=0;
@@ -1608,7 +1610,8 @@ void DEEPS2D_Run(ofstream* f_stream
           snprintf(HeatFluxXFileName,255,"HeatFlux-X-%s",OutFileName);
           CutFile(HeatFluxXFileName);
           pHeatFlux_OutFile = OpenData(HeatFluxXFileName);
-          SaveXHeatFlux2D(pHeatFlux_OutFile,J,Ts0);
+          
+          SaveXHeatFlux2D(pHeatFlux_OutFile,J,Flow2DList->GetElement(Cp_Flow_index-1),Ts0,y_max,y_min);
           pHeatFlux_OutFile->close();
          }
 
@@ -2703,6 +2706,14 @@ void* InitDEEPS2D(void* lpvParam)
 
             isOutHeatFluxX = Data->GetIntVal((char*)"isOutHeatFluxX");
             if ( Data->GetDataError()==-1 ) Abort_OpenHyperFLOW2D();
+            if(isOutHeatFluxX) { 
+                Cp_Flow_index = Data->GetIntVal((char*)"Cp_Flow_Index");
+                if(Data->GetDataError()==-1) Abort_OpenHyperFLOW2D();
+                y_max = Data->GetIntVal((char*)"y_max");
+                if(Data->GetDataError()==-1) Abort_OpenHyperFLOW2D();
+                y_min = Data->GetIntVal((char*)"y_min");
+                if(Data->GetDataError()==-1) Abort_OpenHyperFLOW2D();
+            }
 
             isOutHeatFluxY = Data->GetIntVal((char*)"isOutHeatFluxY");
             if ( Data->GetDataError()==-1 ) Abort_OpenHyperFLOW2D();

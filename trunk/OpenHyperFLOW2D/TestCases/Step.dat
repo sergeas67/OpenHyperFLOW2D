@@ -55,7 +55,7 @@
 ; 4 - Rho*E residual
 ; 5 - Time
 <data/MonitorNumber=5>
-<data/ExitMonitorValue=1.0>
+<data/ExitMonitorValue=4.0>
 
 <data/NumMonitorPoints=0>
 
