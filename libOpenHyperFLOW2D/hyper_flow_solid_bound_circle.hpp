@@ -49,38 +49,38 @@ char* SolidBoundCircleName;
 public:
 
   SolidBoundCircle2D(char* name,
-                     UMatrix2D< FlowNode2D< double, NUM_COMPONENTS> >* JM,  // Computation area 
-                     double  x,                      // Start circle 
-                     double  y,                      // coordinates (x,y)
-                     double  x1,                     // Center circle
-                     double  y1,                     // coordinates (x,y) 
+                     UMatrix2D< FlowNode2D< FP, NUM_COMPONENTS> >* JM,  // Computation area 
+                     FP  x,                      // Start circle 
+                     FP  y,                      // coordinates (x,y)
+                     FP  x1,                     // Center circle
+                     FP  y1,                     // coordinates (x,y) 
 #ifdef _UNIFORM_MESH_
-                     double  dx,                     // dx - step
-                     double  dy,                     // dy - step
+                     FP  dx,                     // dx - step
+                     FP  dy,                     // dy - step
 #else 
                      unsigned int     num_segments,
                      Mesh2D* p_mesh,
 #endif // _UNIFORM_MESH_
                      ulong   ct,                     // condition type
                      Flow2D* pInFlow2D=NULL,         // init flow2d object on circle bound
-                     double* Y=NULL,                 // component matrix
+                     FP* Y=NULL,                 // component matrix
                      ulong   bctt=TCT_No_Turbulence_2D,// Bound contour turbulence type
                      ostream* dbg_output=NULL);                  
   SolidBoundCircle2D(char* name,
-                     UMatrix2D< FlowNode2D< double, NUM_COMPONENTS> >* JM,  // Computation area 
-                     double  x,                     // Center circle
-                     double  y,                     // coordinates (x,y) 
-                     double  r,
+                     UMatrix2D< FlowNode2D< FP, NUM_COMPONENTS> >* JM,  // Computation area 
+                     FP  x,                     // Center circle
+                     FP  y,                     // coordinates (x,y) 
+                     FP  r,
 #ifdef _UNIFORM_MESH_
-                     double  dx,                     // dx - step
-                     double  dy,                     // dy - step
+                     FP  dx,                     // dx - step
+                     FP  dy,                     // dy - step
 #else 
                      unsigned int     num_segments,
                      Mesh2D* p_mesh,
 #endif // _UNIFORM_MESH_
                      ulong   ct,                     // condition type
                      Flow2D* pInFlow2D=NULL,         // init flow2d object on circle bound
-                     double* Y=NULL,                 // component matrix
+                     FP* Y=NULL,                 // component matrix
                      ulong   bctt=TCT_No_Turbulence_2D,// Bound contour turbulence type
                      ostream* dbg_output=NULL);                  
     

@@ -15,7 +15,7 @@ endif
 DEBUGLEVEL=0
 
 CFLAGS    =  $(PICFLAGS) $(MODELS) $(OPTIONS) -D_REMOVE_SWAPFILE_ -D_STREAM_COMPAT  -Wno-deprecated \
-            -DBUFF_SIZE=16384 
+            -DBUFF_SIZE=16384 $(FP_OPTS)
 
 TARGET    = libobj_data.a
 

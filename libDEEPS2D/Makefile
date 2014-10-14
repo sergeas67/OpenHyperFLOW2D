@@ -22,7 +22,7 @@ DEBUGLEVEL  = 0
 
 CFLAGS    +=  -D_STREAM_COMPAT  \
            -D_REMOVE_SWAPFILE  -D_GNUPLOT_ -D_TECPLOT_ -D_WRITE_LARGE_FILE_ \
-           -DNUM_COMPONENTS=3 -D_UNIFORM_MESH_ $(MODELS)
+           -DNUM_COMPONENTS=3 -D_UNIFORM_MESH_ $(MODELS) $(FP_OPTS)
 
 TARGET_LIBS_DEEPS2D    = libDEEPS2D.a
 SOURCES_LIBS_DEEPS2D   = deeps2d_core.cu init_deeps2d.cpp cuda_deeps2d_kernels.cu

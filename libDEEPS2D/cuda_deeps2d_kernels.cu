@@ -31,18 +31,18 @@ int LoadTable2GPU(Table* Src, Table*& Dst, int i_dev)
     Exit_OpenHyperFLOW2D(1);
  }
 
- if(cudaMalloc( (void**)&pTmpTable->x, sizeof(double)*Src->n ) == cudaErrorMemoryAllocation) {
+ if(cudaMalloc( (void**)&pTmpTable->x, sizeof(FP)*Src->n ) == cudaErrorMemoryAllocation) {
     printf("\nError allocate GPU memory for Table %s\n",Src->GetName());
     Exit_OpenHyperFLOW2D(1);
  }
 
- if(cudaMalloc( (void**)&pTmpTable->y, sizeof(double)*Src->n ) == cudaErrorMemoryAllocation) {
+ if(cudaMalloc( (void**)&pTmpTable->y, sizeof(FP)*Src->n ) == cudaErrorMemoryAllocation) {
    printf("\nError allocate GPU memory for Table %s",Src->GetName());
    Exit_OpenHyperFLOW2D(1);
  }
 
- CopyHostToDevice(Src->x,pTmpTable->x,sizeof(double)*Src->n); 
- CopyHostToDevice(Src->y,pTmpTable->y,sizeof(double)*Src->n);
+ CopyHostToDevice(Src->x,pTmpTable->x,sizeof(FP)*Src->n); 
+ CopyHostToDevice(Src->y,pTmpTable->y,sizeof(FP)*Src->n);
  
  if(cudaMalloc( (void**)&Dst, sizeof(Table) ) == cudaErrorMemoryAllocation) {
    printf("\nError allocate GPU memory for Table %s\n",Src->GetName());
@@ -61,14 +61,14 @@ int LoadTable2GPU(Table* Src, Table*& Dst, int i_dev)
 #ifdef _CUDA_
  __host__ __device__
 #endif //_CUDA_ 
-inline double GetVal(Table* t,
-                     double _x ) {
+inline FP GetVal(Table* t,
+                     FP _x ) {
     if ( !t )
         return 0.;
     
     register int  i, _n = t->n;
     
-    register double _y;
+    register FP _y;
 
     if ( _n == 1 )
         return( t->y[0] );
@@ -98,11 +98,11 @@ inline double GetVal(Table* t,
 #ifdef _CUDA_
  __host__ __device__
 #endif //_CUDA_ 
-int cuda_CalcChemicalReactions(FlowNode2D<double,NUM_COMPONENTS>* CalcNode,
+int cuda_CalcChemicalReactions(FlowNode2D<FP,NUM_COMPONENTS>* CalcNode,
                                ChemicalReactionsModel cr_model, void* CRM_data) {
     
     ChemicalReactionsModelData2D* model_data = (ChemicalReactionsModelData2D*)CRM_data;
-    double   Y0,Yfu,Yox,Ycp,Yair;
+    FP   Y0,Yfu,Yox,Ycp,Yair;
 
     Yfu  = CalcNode->S[i2d_Yfu]/CalcNode->S[0]; // Fuel
     Yox  = CalcNode->S[i2d_Yox]/CalcNode->S[0]; // OX
@@ -327,15 +327,15 @@ void CopyDeviceToHost(void* src, void* dst, size_t length, cudaStream_t stream) 
 }
 
 __global__ void 
-cuda_SetInitBoundaryLayer(FlowNode2D<double,NUM_COMPONENTS>* pJ2D,
+cuda_SetInitBoundaryLayer(FlowNode2D<FP,NUM_COMPONENTS>* pJ2D,
                           unsigned long int index_limit,
                           int X0, int MAX_Y,
-                          double delta,
-                          double sig_w, 
-                          double sig_f,
+                          FP delta,
+                          FP sig_w, 
+                          FP sig_f,
                           TurbulenceExtendedModel etm,
-                          double _dx, double _dy,
-                          double* _Hu,
+                          FP _dx, FP _dy,
+                          FP* _Hu,
                           int _isSrcAdd,
                           FlowType _FT,
                           SolverMode sm) {
@@ -344,7 +344,7 @@ cuda_SetInitBoundaryLayer(FlowNode2D<double,NUM_COMPONENTS>* pJ2D,
 
     if(index < index_limit) {
 
-              FlowNode2D< double,NUM_COMPONENTS >* CurrentNode=&pJ2D[index];
+              FlowNode2D< FP,NUM_COMPONENTS >* CurrentNode=&pJ2D[index];
 
               if(CurrentNode->CT != (ulong)(CT_SOLID_2D | CT_NODE_IS_SET_2D)) {
 
@@ -379,19 +379,19 @@ cuda_SetInitBoundaryLayer(FlowNode2D<double,NUM_COMPONENTS>* pJ2D,
 }
 
 __global__ void
-cuda_SetMinDistanceToWall2D(FlowNode2D<double,NUM_COMPONENTS>* pJ2D,
+cuda_SetMinDistanceToWall2D(FlowNode2D<FP,NUM_COMPONENTS>* pJ2D,
                             unsigned long int index_limit,
                             XY<int>* WallNodes2D, 
                             int NumWallNodes2D,
-                            double min_l_min,
-                            double max_l_min,
-                            double _dx, double _dy)   {
+                            FP min_l_min,
+                            FP max_l_min,
+                            FP _dx, FP _dy)   {
 
    unsigned long int index = threadIdx.x + blockIdx.x * blockDim.x;
 
    if(index < index_limit) {
 
-       FlowNode2D<double,NUM_COMPONENTS>* TmpNode = &pJ2D[index];
+       FlowNode2D<FP,NUM_COMPONENTS>* TmpNode = &pJ2D[index];
 
        if(TmpNode->CT != (ulong)(CT_SOLID_2D | CT_NODE_IS_SET_2D)) {   
 
@@ -401,9 +401,9 @@ cuda_SetMinDistanceToWall2D(FlowNode2D<double,NUM_COMPONENTS>* pJ2D,
 
               XY<int>*  TmpWallNode = &WallNodes2D[ii]; 
 
-              double L_x   = (TmpWallNode->X - TmpNode->ix)* _dx;
-              double L_y   = (TmpWallNode->Y - TmpNode->iy)* _dy;
-              double l_min = sqrt(L_x*L_x + L_y*L_y);
+              FP L_x   = (TmpWallNode->X - TmpNode->ix)* _dx;
+              FP L_y   = (TmpWallNode->Y - TmpNode->iy)* _dy;
+              FP l_min = sqrt(L_x*L_x + L_y*L_y);
 
               TmpNode->l_min = max(min(TmpNode->l_min,l_min),min_l_min);
             }
@@ -412,21 +412,21 @@ cuda_SetMinDistanceToWall2D(FlowNode2D<double,NUM_COMPONENTS>* pJ2D,
    //__syncthreads();
 }
 __global__ void 
-cuda_Recalc_y_plus(FlowNode2D<double,NUM_COMPONENTS>* pJ2D,
+cuda_Recalc_y_plus(FlowNode2D<FP,NUM_COMPONENTS>* pJ2D,
                    unsigned long int index_limit,
                    XY<int>* WallNodes2D,
                    int NumWallNodes2D,
-                   double min_l_min,
-                   double max_l_min,
-                   double _dx, 
-                   double _dy,
+                   FP min_l_min,
+                   FP max_l_min,
+                   FP _dx, 
+                   FP _dy,
                    int max_y) {
 
     unsigned long int index = threadIdx.x + blockIdx.x * blockDim.x;
 
     if(index < index_limit) {
 
-        FlowNode2D<double,NUM_COMPONENTS>* TmpNode = &pJ2D[index];
+        FlowNode2D<FP,NUM_COMPONENTS>* TmpNode = &pJ2D[index];
 
         if(TmpNode->CT != (ulong)(CT_SOLID_2D | CT_NODE_IS_SET_2D)) {
 
@@ -437,9 +437,9 @@ cuda_Recalc_y_plus(FlowNode2D<double,NUM_COMPONENTS>* pJ2D,
 
                XY<int>*  TmpWallNode = &WallNodes2D[ii]; 
 
-               double L_x   = (TmpWallNode->X - TmpNode->ix)* _dx;
-               double L_y   = (TmpWallNode->Y - TmpNode->iy)* _dy;
-               double l_min = sqrt(L_x*L_x + L_y*L_y);
+               FP L_x   = (TmpWallNode->X - TmpNode->ix)* _dx;
+               FP L_y   = (TmpWallNode->Y - TmpNode->iy)* _dy;
+               FP l_min = sqrt(L_x*L_x + L_y*L_y);
 
                if(l_min  == TmpNode->l_min) {
                   iw = TmpWallNode->X;
@@ -453,12 +453,12 @@ cuda_Recalc_y_plus(FlowNode2D<double,NUM_COMPONENTS>* pJ2D,
 
            if(wall_index < index_limit) {
 
-               FlowNode2D<double,NUM_COMPONENTS>* WallNode = &pJ2D[wall_index];   // x*nY + y
+               FlowNode2D<FP,NUM_COMPONENTS>* WallNode = &pJ2D[wall_index];   // x*nY + y
 
-               double tau_w = (fabs(WallNode->dUdy) +
+               FP tau_w = (fabs(WallNode->dUdy) +
                                fabs(WallNode->dVdx)) * WallNode->mu;  
 
-               double U_w   = sqrt(tau_w/WallNode->S[i2d_Ro]);
+               FP U_w   = sqrt(tau_w/WallNode->S[i2d_Ro]);
 
                TmpNode->y_plus = U_w*TmpNode->l_min*TmpNode->S[i2d_Ro]/TmpNode->mu;
            }
@@ -468,15 +468,15 @@ cuda_Recalc_y_plus(FlowNode2D<double,NUM_COMPONENTS>* pJ2D,
 }
 
 __global__  void
-cuda_DEEPS2D_Stage1(FlowNode2D<double,NUM_COMPONENTS>*     pLJ,
-                    FlowNodeCore2D<double,NUM_COMPONENTS>* pLC,
+cuda_DEEPS2D_Stage1(FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
+                    FlowNodeCore2D<FP,NUM_COMPONENTS>* pLC,
                     unsigned long int index_limit,
                     int MAX_X, int MAX_Y,
                     unsigned long r_limit,
                     unsigned long l_limit,
-                    double dxx, double dyy,
-                    double dtdx, double dtdy,
-                    double _dt,
+                    FP dxx, FP dyy,
+                    FP dtdx, FP dtdy,
+                    FP _dt,
                     int _FT, int Num_Eq,
                     SolverMode sm) {
 
@@ -484,30 +484,30 @@ cuda_DEEPS2D_Stage1(FlowNode2D<double,NUM_COMPONENTS>*     pLJ,
 
     if(index < index_limit) {
 
-          FlowNode2D< double,NUM_COMPONENTS >* CurrentNode=&pLJ[index];
+          FlowNode2D< FP,NUM_COMPONENTS >* CurrentNode=&pLJ[index];
 
           if(CurrentNode->ix <  r_limit &&
              CurrentNode->ix >= l_limit &&
              CurrentNode->CT != (ulong)(CT_SOLID_2D | CT_NODE_IS_SET_2D) &&
              CurrentNode->CT != (ulong)(NT_FC_2D)) {
               
-              FlowNodeCore2D< double,NUM_COMPONENTS >* NextNode=&pLC[index];
+              FlowNodeCore2D< FP,NUM_COMPONENTS >* NextNode=&pLC[index];
 
-              double beta[NUM_COMPONENTS+6];
-              double _beta[NUM_COMPONENTS+6];
+              FP beta[NUM_COMPONENTS+6];
+              FP _beta[NUM_COMPONENTS+6];
 
               int  n1 = CurrentNode->idXl; 
               int  n2 = CurrentNode->idXr;
               int  n3 = CurrentNode->idYu;
               int  n4 = CurrentNode->idYd;
 
-              double  n_n_1 = 1./max(n1+n2,1);
-              double  m_m_1 = 1./max(n3+n4,1);
+              FP  n_n_1 = 1./max(n1+n2,1);
+              FP  m_m_1 = 1./max(n3+n4,1);
 
-              FlowNode2D< double,NUM_COMPONENTS >* UpNode    = CurrentNode->UpNode;
-              FlowNode2D< double,NUM_COMPONENTS >* DownNode  = CurrentNode->DownNode;
-              FlowNode2D< double,NUM_COMPONENTS >* RightNode = CurrentNode->RightNode;
-              FlowNode2D< double,NUM_COMPONENTS >* LeftNode  = CurrentNode->LeftNode;
+              FlowNode2D< FP,NUM_COMPONENTS >* UpNode    = CurrentNode->UpNode;
+              FlowNode2D< FP,NUM_COMPONENTS >* DownNode  = CurrentNode->DownNode;
+              FlowNode2D< FP,NUM_COMPONENTS >* RightNode = CurrentNode->RightNode;
+              FlowNode2D< FP,NUM_COMPONENTS >* LeftNode  = CurrentNode->LeftNode;
 
               // Scan equation system ... k - number of equation
 #pragma unroll
@@ -517,7 +517,7 @@ cuda_DEEPS2D_Stage1(FlowNode2D<double,NUM_COMPONENTS>*     pLJ,
                   int      dx_flag, dx2_flag;
 
                   int      dy_flag, dy2_flag;
-                  double   dXX,dYY;
+                  FP   dXX,dYY;
 
                   beta[k]  = CurrentNode->beta[k];
                   _beta[k] = 1. - beta[k];
@@ -651,28 +651,28 @@ cuda_DEEPS2D_Stage1(FlowNode2D<double,NUM_COMPONENTS>*     pLJ,
 }
 
 __global__  void 
-cuda_DEEPS2D_Stage2(FlowNode2D<double,NUM_COMPONENTS>*     pLJ,
-                    FlowNodeCore2D<double,NUM_COMPONENTS>* pLC,
+cuda_DEEPS2D_Stage2(FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
+                    FlowNodeCore2D<FP,NUM_COMPONENTS>* pLC,
                     unsigned long int index_limit,
                     int MAX_X, int MAX_Y,
                     unsigned long r_limit,
                     unsigned long l_limit,
-                    double beta_init, double  beta0, 
-                    int b_FF, double CFL0,
+                    FP beta_init, FP  beta0, 
+                    int b_FF, FP CFL0,
                     ChemicalReactionsModelData2D* pCRMD,
                     int noTurbCond,
-                    double SigW, double SigF, double dx_1, double dy_1, double delta_bl,
+                    FP SigW, FP SigF, FP dx_1, FP dy_1, FP delta_bl,
                     FlowType _FT, int Num_Eq,
 #ifdef _RMS_
-                    double*  RMS, 
+                    FP*  RMS, 
                     int*     iRMS,
-                    double   DD_max,
+                    FP   DD_max,
                     int*     i_c,
                     int*     j_c,
 #endif // _RMS_
-                    double* _Hu,
+                    FP* _Hu,
                     int _isSrcAdd,
-                    unsigned int* dt_min_device, double int2float_scale,
+                    unsigned int* dt_min_device, FP int2float_scale,
                     TurbulenceExtendedModel TurbExtModel, 
                     SolverMode sm) {
 
@@ -681,34 +681,34 @@ cuda_DEEPS2D_Stage2(FlowNode2D<double,NUM_COMPONENTS>*     pLJ,
 
     if(index < index_limit) {
 
-       FlowNode2D< double,NUM_COMPONENTS >* CurrentNode=&pLJ[index];
+       FlowNode2D< FP,NUM_COMPONENTS >* CurrentNode=&pLJ[index];
 
        if(CurrentNode->ix >= l_limit && 
           CurrentNode->ix <  r_limit &&  
           CurrentNode->CT != (ulong)(CT_SOLID_2D | CT_NODE_IS_SET_2D) &&
           CurrentNode->CT != (ulong)(NT_FC_2D) ) { 
 
-              double  beta_min;
+              FP  beta_min;
 
               beta_min = min(beta0,beta_init);
 
-              FlowNodeCore2D< double,NUM_COMPONENTS >* NextNode=&pLC[index];
+              FlowNodeCore2D< FP,NUM_COMPONENTS >* NextNode=&pLC[index];
 
               int  n1 = CurrentNode->idXl; 
               int  n2 = CurrentNode->idXr;
               int  n3 = CurrentNode->idYu;
               int  n4 = CurrentNode->idYd;
 
-              double  n_n_1 = 1./max(n1+n2,1);
-              double  m_m_1 = 1./max(n3+n4,1);
+              FP  n_n_1 = 1./max(n1+n2,1);
+              FP  m_m_1 = 1./max(n3+n4,1);
 
-              FlowNode2D< double,NUM_COMPONENTS >* UpNode    = CurrentNode->UpNode;
-              FlowNode2D< double,NUM_COMPONENTS >* DownNode  = CurrentNode->DownNode;
-              FlowNode2D< double,NUM_COMPONENTS >* RightNode = CurrentNode->RightNode;
-              FlowNode2D< double,NUM_COMPONENTS >* LeftNode  = CurrentNode->LeftNode;
+              FlowNode2D< FP,NUM_COMPONENTS >* UpNode    = CurrentNode->UpNode;
+              FlowNode2D< FP,NUM_COMPONENTS >* DownNode  = CurrentNode->DownNode;
+              FlowNode2D< FP,NUM_COMPONENTS >* RightNode = CurrentNode->RightNode;
+              FlowNode2D< FP,NUM_COMPONENTS >* LeftNode  = CurrentNode->LeftNode;
 
-              double dx_1xn_n_1=dx_1*n_n_1;
-              double dy_1xm_m_1=dy_1*m_m_1;
+              FP dx_1xn_n_1=dx_1*n_n_1;
+              FP dy_1xm_m_1=dy_1*m_m_1;
 
               // Scan equation system ... k - number of equation
 #pragma unroll
@@ -727,8 +727,8 @@ cuda_DEEPS2D_Stage2(FlowNode2D<double,NUM_COMPONENTS>*     pLJ,
 
                   if ( !CurrentNode->isCond2D((CondType2D)c_flag) && 
                         CurrentNode->S[k] != 0. ) {
-                        double DD_local;
-                        double Tmp;
+                        FP DD_local;
+                        FP Tmp;
 
                         if(k == i2d_RoU && k == i2d_RoV ) {
                             Tmp = sqrt(CurrentNode->S[i2d_RoU]*CurrentNode->S[i2d_RoU]+
@@ -849,8 +849,8 @@ cuda_DEEPS2D_Stage2(FlowNode2D<double,NUM_COMPONENTS>*     pLJ,
               if( CurrentNode->Tg < 0. ) {
                   *dt_min_device = 0;  // Computational instability
               }  else {
-                  double AAA          = sqrt(CurrentNode->k*CurrentNode->R*CurrentNode->Tg); 
-                  double dt_min_local = CFL0*min(1.0/(dx_1*(AAA+fabs(CurrentNode->U))),1.0/(dy_1*(AAA+fabs(CurrentNode->V))));
+                  FP AAA          = sqrt(CurrentNode->k*CurrentNode->R*CurrentNode->Tg); 
+                  FP dt_min_local = CFL0*min(1.0/(dx_1*(AAA+fabs(CurrentNode->U))),1.0/(dy_1*(AAA+fabs(CurrentNode->V))));
                   atomicMin(dt_min_device,(unsigned int)(dt_min_local*int2float_scale));
               }
          }

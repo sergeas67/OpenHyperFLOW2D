@@ -13,7 +13,7 @@ endif
 
 DEBUGLEVEL   = 0
 
-CFLAGS       = $(PICFLAGS) $(OPTIONS)
+CFLAGS       = $(PICFLAGS) $(OPTIONS) $(FP_OPTS)
 
 TARGET_2D    = libutl2d.a
 SOURCES      = utl.cpp

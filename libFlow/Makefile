@@ -13,7 +13,7 @@ else
 include   ../gcc.compiler
 endif
 
-CFLAGS    = $(PICFLAGS) $(OPTIONS)   
+CFLAGS    = $(PICFLAGS) $(OPTIONS) $(FP_OPTS)   
 
 TARGET_2D = libflow2d.a
 

@@ -24,28 +24,28 @@ SolverMode ProblemType;
 int rank;
 int last_rank;
 int warp_size = 0;
-float _dt_test=1.0;
+FP _dt_test=1.0;
 
 timeval mark1, mark2;
 
 // Arrays for multiGPU
-UArray< FlowNode2D<double,NUM_COMPONENTS>* >*     cudaArraySubmatrix      = NULL;
-UArray< FlowNodeCore2D<double,NUM_COMPONENTS>* >* cudaArrayCoreSubmatrix  = NULL;
+UArray< FlowNode2D<FP,NUM_COMPONENTS>* >*     cudaArraySubmatrix      = NULL;
+UArray< FlowNodeCore2D<FP,NUM_COMPONENTS>* >* cudaArrayCoreSubmatrix  = NULL;
 UArray< XY<int>  >*                               cudaDimArray            = NULL;
 UArray< XY<int>* >*                               cudaWallNodesArray      = NULL;
 UArray< ChemicalReactionsModelData2D* >*          cudaCRM2DArray          = NULL;
 XY<int>*                                          cudaWallNodes           = NULL;
-FlowNode2D<double,NUM_COMPONENTS>*                cudaSubmatrix           = NULL;
-FlowNodeCore2D<double,NUM_COMPONENTS>*            cudaCoreSubmatrix       = NULL;
+FlowNode2D<FP,NUM_COMPONENTS>*                cudaSubmatrix           = NULL;
+FlowNodeCore2D<FP,NUM_COMPONENTS>*            cudaCoreSubmatrix       = NULL;
 ChemicalReactionsModelData2D*                     cudaCRM2D               = NULL;
 
 UArray< MonitorPoint >*                           MonitorPointsArray      = NULL;
 
-double*                                           cudaHu;
-UArray<double*>*                                  cudaHuArray;
-double                                            x0;
-double                                            dx;
-double                                            dy;
+FP*                                           cudaHu;
+UArray<FP*>*                                  cudaHuArray;
+FP                                            x0;
+FP                                            dx;
+FP                                            dy;
 
 int num_gpus = 0;   // number of CUDA GPUs
 int max_num_threads = 0;
@@ -56,18 +56,18 @@ size_t task_size;
 cudaError_t cudaState;
 
 
-UArray< double >*                                 WallNodesUw_2D = NULL;
+UArray< FP >*                                 WallNodesUw_2D = NULL;
 int                                               NumWallNodes;
                                                  
 /*                                               
-double GPUConf {                                 
+FP GPUConf {                                 
 
 }
 
 struct NodeConfig {
  char*  HostName;
  int    numCPUcores;
- UArray<double> GPUrate;
+ UArray<FP> GPUrate;
 };
 
 UArray<NodeConfig*>* clusterArray = NULL;
@@ -87,12 +87,12 @@ NodeConfig TmpNConf;
 
 int main( int argc, char **argv )
 {
-    const  float                   ver=_VER;
+    const  FP                   ver=_VER;
     char                           inFile[256];
     ChemicalReactionsModelData2D   TmpCRM2D;
 
-    FlowNode2D<double,NUM_COMPONENTS>* TmpMatrixPtr;
-    FlowNodeCore2D<double,NUM_COMPONENTS>* TmpCoreMatrixPtr;
+    FlowNode2D<FP,NUM_COMPONENTS>* TmpMatrixPtr;
+    FlowNodeCore2D<FP,NUM_COMPONENTS>* TmpCoreMatrixPtr;
 
     int TmpMaxX;
     
@@ -118,8 +118,8 @@ int main( int argc, char **argv )
             printf("non-uniform mesh");
 #endif //_UNIFORM_MESH_
 
-            printf("\n");
-            Exit_OpenHyperFLOW2D(1);
+            printf("\n\n");
+            Exit_OpenHyperFLOW2D();
         } else {
             sprintf(inFile,"%s",argv[1]);
             Data = new InputData(inFile,DS_FILE,o_stream,0,10);
@@ -165,10 +165,10 @@ int main( int argc, char **argv )
         num_threads = num_blocks = num_gpus;
        
        //Create arrays  
-        cudaArraySubmatrix      =  new UArray<  FlowNode2D<double,NUM_COMPONENTS>* >();
-        cudaArrayCoreSubmatrix  =  new UArray<  FlowNodeCore2D<double,NUM_COMPONENTS>* >();
+        cudaArraySubmatrix      =  new UArray<  FlowNode2D<FP,NUM_COMPONENTS>* >();
+        cudaArrayCoreSubmatrix  =  new UArray<  FlowNodeCore2D<FP,NUM_COMPONENTS>* >();
         cudaDimArray            =  new UArray<  XY<int> >();
-        cudaHuArray             =  new UArray< double* >();
+        cudaHuArray             =  new UArray< FP* >();
         dt_min_host_Array       =  new UArray<unsigned int*>();   
         dt_min_device_Array     =  new UArray<unsigned int*>();
         cudaWallNodesArray      =  new UArray< XY<int>* >();
@@ -255,13 +255,13 @@ int main( int argc, char **argv )
                Exit_OpenHyperFLOW2D(num_gpus);
             }
 
-            cudaState = cudaMalloc( (void**)&cudaHu, sizeof(double)*(NUM_COMPONENTS+1) );
+            cudaState = cudaMalloc( (void**)&cudaHu, sizeof(FP)*(NUM_COMPONENTS+1) );
             if(cudaState == cudaErrorMemoryAllocation) {
                *o_stream << "\nError allocate GPU memory for Hu[]" << endl;
                Exit_OpenHyperFLOW2D(num_gpus);
             }
 
-            CopyHostToDevice(FlowNode2D<double,NUM_COMPONENTS>::Hu,cudaHu,sizeof(double)*(NUM_COMPONENTS+1));
+            CopyHostToDevice(FlowNode2D<FP,NUM_COMPONENTS>::Hu,cudaHu,sizeof(FP)*(NUM_COMPONENTS+1));
 
             cudaHuArray->AddElement(&cudaHu);
 
@@ -358,8 +358,8 @@ int main( int argc, char **argv )
 
             TmpMaxX = (SubMaxX-SubStartIndex) + r_Overlap;
 
-            // Allocate FlowNode2D<double,NUM_COMPONENTS> subdomain
-            cudaState = cudaMalloc( (void**)&cudaSubmatrix, (sizeof(FlowNode2D<double,NUM_COMPONENTS>))*(TmpMaxX*MaxY) );
+            // Allocate FlowNode2D<FP,NUM_COMPONENTS> subdomain
+            cudaState = cudaMalloc( (void**)&cudaSubmatrix, (sizeof(FlowNode2D<FP,NUM_COMPONENTS>))*(TmpMaxX*MaxY) );
 
             if(cudaState == cudaErrorMemoryAllocation) {
                *o_stream << "\nError allocate GPU memory for Submatrix"<< endl;
@@ -368,8 +368,8 @@ int main( int argc, char **argv )
 
            cudaArraySubmatrix->AddElement(&cudaSubmatrix);
 
-           // Allocate FlowNodeCore2D<double,NUM_COMPONENTS> subdomain
-           cudaState = cudaMalloc( (void**)&cudaCoreSubmatrix, (sizeof(FlowNodeCore2D<double,NUM_COMPONENTS>))*(TmpMaxX*MaxY) );
+           // Allocate FlowNodeCore2D<FP,NUM_COMPONENTS> subdomain
+           cudaState = cudaMalloc( (void**)&cudaCoreSubmatrix, (sizeof(FlowNodeCore2D<FP,NUM_COMPONENTS>))*(TmpMaxX*MaxY) );
 
            if(cudaState == cudaErrorMemoryAllocation) {
               *o_stream << "\nError allocate GPU memory for CoreSubmatrix"<< endl;
@@ -401,7 +401,7 @@ int main( int argc, char **argv )
             SubMaxX = GlobalSubmatrix->GetElementPtr(i)->GetY();
 
             TmpMaxX = (SubMaxX-SubStartIndex) - r_Overlap;
-            TmpMatrixPtr = (FlowNode2D<double,NUM_COMPONENTS>*)((ulong)J->GetMatrixPtr()+(ulong)(sizeof(FlowNode2D<double,NUM_COMPONENTS>)*(SubStartIndex)*MaxY));
+            TmpMatrixPtr = (FlowNode2D<FP,NUM_COMPONENTS>*)((ulong)J->GetMatrixPtr()+(ulong)(sizeof(FlowNode2D<FP,NUM_COMPONENTS>)*(SubStartIndex)*MaxY));
 
             int num_cuda_threads = warp_size;
             int num_cuda_blocks  = (TmpMaxX*MaxY)/num_cuda_threads;
@@ -409,13 +409,13 @@ int main( int argc, char **argv )
             if (num_cuda_blocks*num_cuda_threads != TmpMaxX*MaxY)
                 num_cuda_blocks++;
 
-            x0 = SubStartIndex*FlowNode2D<double,NUM_COMPONENTS>::dx;
+            x0 = SubStartIndex*FlowNode2D<FP,NUM_COMPONENTS>::dx;
 
-            *o_stream << "SubMatrix("<<i<<")[" << TmpMaxX << "x" << MaxY << "]  Size=" << (ulong)(sizeof(FlowNode2D<double,NUM_COMPONENTS>)*TmpMaxX*MaxY)/(1024*1024) << " Mb\n"; 
+            *o_stream << "SubMatrix("<<i<<")[" << TmpMaxX << "x" << MaxY << "]  Size=" << (ulong)(sizeof(FlowNode2D<FP,NUM_COMPONENTS>)*TmpMaxX*MaxY)/(1024*1024) << " Mb\n"; 
 
             cudaSubmatrix = cudaArraySubmatrix->GetElement(i);
 
-            CopyHostToDevice(TmpMatrixPtr,cudaSubmatrix,(sizeof(FlowNode2D<double,NUM_COMPONENTS>))*(TmpMaxX*MaxY));
+            CopyHostToDevice(TmpMatrixPtr,cudaSubmatrix,(sizeof(FlowNode2D<FP,NUM_COMPONENTS>))*(TmpMaxX*MaxY));
 
             if(NumWallNodes > 0) {
 
@@ -432,10 +432,10 @@ int main( int argc, char **argv )
                                                                                                       cudaWallNodes,
                                                                                                       NumWallNodes,
                                                                                                       min(dx,dy),
-                                                                                                      max((x0+FlowNode2D<double,NUM_COMPONENTS>::dx*TmpMaxX), 
-                                                                                                      (FlowNode2D<double,NUM_COMPONENTS>::dy*MaxY)),
-                                                                                                      FlowNode2D<double,NUM_COMPONENTS>::dx,
-                                                                                                      FlowNode2D<double,NUM_COMPONENTS>::dy);
+                                                                                                      max((x0+FlowNode2D<FP,NUM_COMPONENTS>::dx*TmpMaxX), 
+                                                                                                      (FlowNode2D<FP,NUM_COMPONENTS>::dy*MaxY)),
+                                                                                                      FlowNode2D<FP,NUM_COMPONENTS>::dx,
+                                                                                                      FlowNode2D<FP,NUM_COMPONENTS>::dy);
 
                  CUDA_BARRIER("cuda_SetMinDistanceToWall2D");
                  *o_stream << "OK" << endl;
@@ -447,10 +447,10 @@ int main( int argc, char **argv )
                                                                                               cudaWallNodes,
                                                                                               NumWallNodes,
                                                                                               min(dx,dy),
-                                                                                              max((x0+FlowNode2D<double,NUM_COMPONENTS>::dx*TmpMaxX), 
-                                                                                                  (FlowNode2D<double,NUM_COMPONENTS>::dy*MaxY)),
-                                                                                              FlowNode2D<double,NUM_COMPONENTS>::dx,
-                                                                                              FlowNode2D<double,NUM_COMPONENTS>::dy,
+                                                                                              max((x0+FlowNode2D<FP,NUM_COMPONENTS>::dx*TmpMaxX), 
+                                                                                                  (FlowNode2D<FP,NUM_COMPONENTS>::dy*MaxY)),
+                                                                                              FlowNode2D<FP,NUM_COMPONENTS>::dx,
+                                                                                              FlowNode2D<FP,NUM_COMPONENTS>::dy,
                                                                                               MaxY);
 
                  CUDA_BARRIER("cuda_Recalc_y_plus");
@@ -467,17 +467,17 @@ int main( int argc, char **argv )
                                                                                                 TmpMaxX*MaxY, iX0, MaxY,
                                                                                                 delta_bl,
                                                                                                 SigW,SigF,(TurbulenceExtendedModel)TurbExtModel, 
-                                                                                                FlowNode2D<double,NUM_COMPONENTS>::dx,
-                                                                                                FlowNode2D<double,NUM_COMPONENTS>::dy,
+                                                                                                FlowNode2D<FP,NUM_COMPONENTS>::dx,
+                                                                                                FlowNode2D<FP,NUM_COMPONENTS>::dy,
                                                                                                 cudaHu,
-                                                                                                FlowNode2D<double,NUM_COMPONENTS>::isSrcAdd,
-                                                                                                FlowNode2D<double,NUM_COMPONENTS>::FT,
+                                                                                                FlowNode2D<FP,NUM_COMPONENTS>::isSrcAdd,
+                                                                                                FlowNode2D<FP,NUM_COMPONENTS>::FT,
                                                                                                 ProblemType);
 
             CUDA_BARRIER("cuda_SetInitBoundaryLayer");
             *o_stream << "OK" << endl;
 
-            CopyDeviceToHost(cudaSubmatrix,TmpMatrixPtr,(sizeof(FlowNode2D<double,NUM_COMPONENTS>))*(TmpMaxX*MaxY));
+            CopyDeviceToHost(cudaSubmatrix,TmpMatrixPtr,(sizeof(FlowNode2D<FP,NUM_COMPONENTS>))*(TmpMaxX*MaxY));
 
             iX0 += TmpMaxX;
             TmpDim.SetXY(TmpMaxX,MaxY);
@@ -486,7 +486,7 @@ int main( int argc, char **argv )
             if(MonitorPointsArray) {
                 for(int ii_monitor=0;ii_monitor<(int)MonitorPointsArray->GetNumElements();ii_monitor++) {
                         if(MonitorPointsArray->GetElement(ii_monitor).MonitorXY.GetX() >= x0 &&
-                           MonitorPointsArray->GetElement(ii_monitor).MonitorXY.GetX() < x0 + FlowNode2D<double,NUM_COMPONENTS>::dx*TmpMaxX) {
+                           MonitorPointsArray->GetElement(ii_monitor).MonitorXY.GetX() < x0 + FlowNode2D<FP,NUM_COMPONENTS>::dx*TmpMaxX) {
                            MonitorPointsArray->GetElement(ii_monitor).rank = i; 
                         }
                 }
@@ -495,15 +495,15 @@ int main( int argc, char **argv )
         }
 
         gettimeofday(&mark1,NULL);
-        *o_stream << "OK\n" << "Time: " << (double)(mark1.tv_sec-mark2.tv_sec)+(double)(mark1.tv_usec-mark2.tv_usec)*1.e-6 << " sec." << endl; 
+        *o_stream << "OK\n" << "Time: " << (FP)(mark1.tv_sec-mark2.tv_sec)+(FP)(mark1.tv_usec-mark2.tv_usec)*1.e-6 << " sec." << endl; 
 
 
 
        DEEPS2D_Run((ofstream*)o_stream,        // ofstream* o_stream,
-                   J,                          // UMatrix2D< FlowNode2D< double,NUM_COMPONENTS > >*
-                   C,                          // UMatrix2D< FlowNodeCore2D< double,NUM_COMPONENTS > >*
-                   cudaArraySubmatrix,         // UArray< FlowNode2D< double,NUM_COMPONENTS >* >*
-                   cudaArrayCoreSubmatrix,     // UArray< FlowNodeCore2D< double,NUM_COMPONENTS >* >*
+                   J,                          // UMatrix2D< FlowNode2D< FP,NUM_COMPONENTS > >*
+                   C,                          // UMatrix2D< FlowNodeCore2D< FP,NUM_COMPONENTS > >*
+                   cudaArraySubmatrix,         // UArray< FlowNode2D< FP,NUM_COMPONENTS >* >*
+                   cudaArrayCoreSubmatrix,     // UArray< FlowNodeCore2D< FP,NUM_COMPONENTS >* >*
                    cudaDimArray,               // UArray< XY<int> >*
                    cudaCRM2DArray,
                    num_gpus,

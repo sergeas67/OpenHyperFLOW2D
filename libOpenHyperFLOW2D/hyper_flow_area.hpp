@@ -55,15 +55,15 @@ enum AreaState {
 class 
 Area2D  {
     char*                         AreaName;                // Name of area
-    UMatrix2D<FlowNode2D<double,NUM_COMPONENTS> >* pMFN;     // Reference to computational area matrix
+    UMatrix2D<FlowNode2D<FP,NUM_COMPONENTS> >* pMFN;     // Reference to computational area matrix
 #ifndef _UNIFORM_MESH_
     Mesh2D*                       pMesh;                   //  anisotropic mesh
 #else
     unsigned int                  StartX,StartY;           // Initialisation start point coordinates (nodes)
 #endif // _UNIFORM_MESH_
-    double                        fStartX,fStartY;         // Initialisation start point coordinates (m) 
+    FP                        fStartX,fStartY;         // Initialisation start point coordinates (m) 
     AreaState                     as;                      // Area state
-    double*                       pY;                      // Y[a] - Y1,Y2,Y3,...,Ya
+    FP*                       pY;                      // Y[a] - Y1,Y2,Y3,...,Ya
     ulong                         ANT;                     // Area nodes type
     ulong                         ATT;                     // Area turbulence type
 
@@ -74,31 +74,31 @@ public:
                     ulong,ulong att=TCT_No_Turbulence_2D,int MaterialID=GAS_ID);
     void FillArea2D(unsigned int x,
                     unsigned int y,
-                    ulong, Flow2D* pf2d, double* Y=NULL,ulong att=TCT_No_Turbulence_2D,int MaterialID=GAS_ID);
+                    ulong, Flow2D* pf2d, FP* Y=NULL,ulong att=TCT_No_Turbulence_2D,int MaterialID=GAS_ID);
     void FillArea2D(unsigned int,
                     unsigned int,
-                    ulong, Flow* pf, double* Y=NULL,ulong att=TCT_No_Turbulence_2D,int MaterialID=GAS_ID);
-    void FillArea2D(double x,
-                    double y,
+                    ulong, Flow* pf, FP* Y=NULL,ulong att=TCT_No_Turbulence_2D,int MaterialID=GAS_ID);
+    void FillArea2D(FP x,
+                    FP y,
                     ulong, ulong att=TCT_No_Turbulence_2D,int MaterialID=GAS_ID);
-    void FillArea2D(double x,
-                    double y,
-                    ulong, Flow2D* pf2d, double* Y=NULL,ulong att=TCT_No_Turbulence_2D,int MaterialID=GAS_ID);
-    void FillArea2D(double x,
-                    double y,
-                    ulong, Flow* pf, double* Y=NULL,ulong att=TCT_No_Turbulence_2D,int MaterialID=GAS_ID);
+    void FillArea2D(FP x,
+                    FP y,
+                    ulong, Flow2D* pf2d, FP* Y=NULL,ulong att=TCT_No_Turbulence_2D,int MaterialID=GAS_ID);
+    void FillArea2D(FP x,
+                    FP y,
+                    ulong, Flow* pf, FP* Y=NULL,ulong att=TCT_No_Turbulence_2D,int MaterialID=GAS_ID);
 #else
-    void FillArea2D(double x,
-                    double y,
+    void FillArea2D(FP x,
+                    FP y,
                     ulong, int att=TCT_No_Turbulence_2D,int MaterialID=GAS_ID);
-    void FillArea2D(double x,
-                    double y,
-                    ulong, Flow2D* pf2d, double* Y=NULL,ulong att=TCT_No_Turbulence_2D,int MaterialID=GAS_ID);
-    void FillArea2D(double x,
-                    double y,
-                    ulong, Flow* pf, double* Y=NULL,ulong att=TCT_No_Turbulence_2D,int MaterialID=GAS_ID);
+    void FillArea2D(FP x,
+                    FP y,
+                    ulong, Flow2D* pf2d, FP* Y=NULL,ulong att=TCT_No_Turbulence_2D,int MaterialID=GAS_ID);
+    void FillArea2D(FP x,
+                    FP y,
+                    ulong, Flow* pf, FP* Y=NULL,ulong att=TCT_No_Turbulence_2D,int MaterialID=GAS_ID);
 #endif // _UNIFORM_MESH_
-    Area2D(char* name, UMatrix2D<FlowNode2D< double,NUM_COMPONENTS > >* p_j
+    Area2D(char* name, UMatrix2D<FlowNode2D< FP,NUM_COMPONENTS > >* p_j
 #ifndef _UNIFORM_MESH_
           ,Mesh2D* p_mesh       //  anisotropic mesh
 #endif // _UNIFORM_MESH_
@@ -117,10 +117,10 @@ AreaState GetAreaState() {
         return StartY;
     }
 #else
-    double GetStartFX() {
+    FP GetStartFX() {
         return fStartX;
     }
-    double GetStartFY() {
+    FP GetStartFY() {
         return fStartY;
     }
     Mesh2D*    GetMesh() {
