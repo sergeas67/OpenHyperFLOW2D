@@ -43,6 +43,10 @@
 #endif //_NO_MMAP_
 #endif // _NO_MMAP_SHARED_
 
+#ifndef FP
+#define  FP  double // Use 64-bit float point by default
+#endif  // FP
+
 #include "utl/umatrix2d.hpp"
 #include "obj_data/obj_data.hpp"
 #include "libOpenHyperFLOW2D/hyper_flow2d.hpp"
@@ -61,7 +65,7 @@
 #endif // _DEBUG_0
 
 #ifndef ComputationalMatrix2D
-#define ComputationalMatrix2D  UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >
+#define ComputationalMatrix2D  UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >
 #endif //ComputationalMatrix2D
 
 enum BlendingFactorFunction {
@@ -100,48 +104,48 @@ enum data_tag {
 
 #ifdef _MPI_
 struct DD_pack {
-          double         DD;   // max residual
-          double         RMS;  // sum residual
+          FP         DD;   // max residual
+          FP         RMS;  // sum residual
           unsigned long  iRMS; // num involved nodes
           unsigned int   i,j;  // x,y -coordinates
 };
 #endif // _MPI_
 
 struct MonitorPoint {
-       XY<double>  MonitorXY;
-       double      p;
-       double      T;
+       XY<FP>  MonitorXY;
+       FP      p;
+       FP      T;
        int         rank;
 };
 
 extern int    fd_g;
 extern int    fd_s;
 extern int    fd_l;
-extern double delta_bl;
+extern FP delta_bl;
 extern void*  SolidSwapData;
 extern void*  GasSwapData;
-extern UArray< UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >* >* ArraySubmatrix;
+extern UArray< UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* >* ArraySubmatrix;
 extern ChemicalReactionsModelData2D chemical_reactions;
 extern UArray< MonitorPoint >*      MonitorPointsArray;
 extern UArray< XY<int> >* WallNodes;
 extern UArray< XY<int> >* GetWallNodes(ofstream* f_str, ComputationalMatrix2D* pJ, int isPrint);
 
-extern UArray< double >*     WallNodesUw_2D;
-extern int                   NumWallNodes;
-extern double                x0;
+extern UArray< FP >*     WallNodesUw_2D;
+extern int               NumWallNodes;
+extern FP                x0;
 // External variables
 extern SolverMode ProblemType;
 extern UArray< XY<int> >*                                           GlobalSubmatrix;
-extern UArray<UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >*>*     SubmatrixArray;
-extern UArray<UMatrix2D< FlowNodeCore2D<double,NUM_COMPONENTS> >*>* CoreSubmatrixArray;
+extern UArray<UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*>*     SubmatrixArray;
+extern UArray<UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >*>* CoreSubmatrixArray;
 extern InputData*                            Data;                     // Object data loader
-extern UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >*     J;          // Main computation area
-extern UMatrix2D< FlowNodeCore2D<double,NUM_COMPONENTS> >* C;          // Main core area
+extern UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*     J;          // Main computation area
+extern UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >* C;          // Main core area
 extern UArray<Flow*>*                        FlowList;                 // Flow list
 extern unsigned int                          MaxX;
 extern unsigned int                          MaxY;
-extern double                                dx;
-extern double                                dy;
+extern FP                                dx;
+extern FP                                dy;
 extern int                                   EndFLAG;
 extern int                                   PrintFLAG;
 extern int                                   isRecalcYplus;
@@ -157,11 +161,11 @@ extern int                                   TurbStartIter;
 extern int                                   TurbExtModel;
 extern int                                   err_i, err_j;
 extern int                                   turb_mod_name_index;
-extern double                                Ts0,A,W,Mach;
-extern double                                SigW,SigF,delta_bl;
+extern FP                                Ts0,A,W,Mach;
+extern FP                                SigW,SigF,delta_bl;
 extern int                                   isVerboseOutput;
 extern int                                   isTurbulenceReset;
-extern double                                CFL;
+extern FP                                CFL;
 extern Table*                                CFL_Scenario;
 extern Table*                                beta_Scenario;
 extern int                                   NSaveStep;
@@ -173,12 +177,12 @@ extern int                                   isOutHeatFluxX;
 extern int                                   isOutHeatFluxY;
 extern int                                   is_p_asterisk_out;
 extern int                                   Nstep;
-extern double                                ExitMonitorValue;
+extern FP                                ExitMonitorValue;
 extern int                                   MonitorNumber;
 extern int                                   MonitorCondition;
 extern unsigned int                          AddSrcStartIter;
-extern double                                beta[6+NUM_COMPONENTS];
-extern double                                beta0;
+extern FP                                beta[6+NUM_COMPONENTS];
+extern FP                                beta0;
 extern int                                   NumContour;
 extern char*                                 ProjectName;
 extern char                                  GasSwapFileName[255];
@@ -201,28 +205,28 @@ extern UArray<Flow*>*                        FlowList;          // List of 'Flow
 extern UArray<Flow2D*>*                      Flow2DList;        // List of 'Flow2D' objects
 extern UArray<Bound2D*>                      SingleBoundsList;  // Single Bounds List;
 
-extern double                                dt;                // time step
-extern double*                               RoUx;
-extern double*                               RoVy;
-extern double                                GlobalTime;
-extern double                                CurrentTimePart;
+extern FP                                dt;                // time step
+extern FP*                               RoUx;
+extern FP*                               RoVy;
+extern FP                                GlobalTime;
+extern FP                                CurrentTimePart;
 
-extern double*                               Y;
-extern double                                Cp;
-extern double                                lam;
-extern double                                mu;
-extern double                                Tg;
-extern double                                Rg;
-extern double                                Pg;
-extern double                                Wg;
-extern double                                Ug,Vg;
+extern FP*                               Y;
+extern FP                                Cp;
+extern FP                                lam;
+extern FP                                mu;
+extern FP                                Tg;
+extern FP                                Rg;
+extern FP                                Pg;
+extern FP                                Wg;
+extern FP                                Ug,Vg;
 extern int                                   CompIndex;
 
-extern double                                Y_fuel[4];  /* fuel */
-extern double                                Y_ox[4]  ;  /* OX */
-extern double                                Y_cp[4]  ;  /* cp */
-extern double                                Y_air[4] ;  /* air */
-extern double                                Y_mix[4] ;  /* mixture */
+extern FP                                Y_fuel[4];  /* fuel */
+extern FP                                Y_ox[4]  ;  /* OX */
+extern FP                                Y_cp[4]  ;  /* cp */
+extern FP                                Y_air[4] ;  /* air */
+extern FP                                Y_mix[4] ;  /* mixture */
                                               
 #ifdef _RMS_
 extern char                                  RMSFileName[255];
@@ -241,7 +245,7 @@ extern int                                   isSnapshot;
 extern UArray<XCut>*                         XCutArray;
 extern unsigned int                          last_iter;     // Global iteration number
 extern int                                   is_Cx_calc;
-extern double                                x0_body,y0_body,dx_body,dy_body;
+extern FP                                x0_body,y0_body,dx_body,dy_body;
 extern int                                   y_max,y_min;
 extern int                                   Cp_Flow_index;
 extern int                                   Cx_Flow_index;
@@ -249,19 +253,19 @@ extern int                                   SigmaFi_Flow_index;
 extern int                                   num_threads;
 extern int                                   num_blocks;
 extern ofstream*                             pOutputData;     // output data stream (file)
-//extern double                                MemFullness;
+//extern FP                                MemFullness;
 extern unsigned int*                         dt_min_host;
 extern unsigned int*                         dt_min_device;
 extern UArray< unsigned int* >*              dt_min_host_Array;
 extern UArray< unsigned int* >*              dt_min_device_Array;
-extern double*                               cudaHu;  
-extern UArray< double* >*                    cudaHuArray;  
-extern UArray< FlowNode2D<double,NUM_COMPONENTS>* >*     cudaArraySubmatrix;
-extern UArray< FlowNodeCore2D<double,NUM_COMPONENTS>* >* cudaArrayCoreSubmatrix ;
+extern FP*                               cudaHu;  
+extern UArray< FP* >*                    cudaHuArray;  
+extern UArray< FlowNode2D<FP,NUM_COMPONENTS>* >*     cudaArraySubmatrix;
+extern UArray< FlowNodeCore2D<FP,NUM_COMPONENTS>* >* cudaArrayCoreSubmatrix ;
 extern UArray< XY<int> >*                                cudaDimArray;
 extern XY<int>*                                          cudaWallNodes;
-extern FlowNode2D<double,NUM_COMPONENTS>*                cudaSubmatrix;
-extern FlowNodeCore2D<double,NUM_COMPONENTS>*            cudaCoreSubmatrix;
+extern FlowNode2D<FP,NUM_COMPONENTS>*                cudaSubmatrix;
+extern FlowNodeCore2D<FP,NUM_COMPONENTS>*            cudaCoreSubmatrix;
 extern int                                               warp_size;
 extern int                                               max_num_threads;
 extern int                                               num_gpus;  // number of CUDA GPUs
@@ -282,11 +286,11 @@ extern void*                                 InitDEEPS2D(void*);
 extern void                                  SaveData2D(ofstream* OutputData, int);
 extern ofstream*                             OpenData(char* outputDataFile);
 extern void                                  SaveRMSHeader(ofstream* OutputData);
-extern void                                  SaveRMS(ofstream* OutputData,unsigned int n, double* outRMS);
+extern void                                  SaveRMS(ofstream* OutputData,unsigned int n, FP* outRMS);
 extern void                                  SaveMonitorsHeader(ofstream* MonitorsFile,
                                                                 UArray< MonitorPoint >* MonitorPtArray);
 extern void                                  SaveMonitors(ofstream* OutputData, 
-                                                          double t, 
+                                                          FP t, 
                                                           UArray< MonitorPoint >* MonitorPtArray);
 extern void                                  CutFile(char* cutFile);
 extern u_long                                SetWallNodes(ofstream* f_str, ComputationalMatrix2D* pJ);
@@ -294,38 +298,38 @@ extern u_long                                SetWallNodes(ofstream* f_str, Compu
 extern void                                  LongMatrixSend(int rank, void* src,  size_t len);
 extern void                                  LongMatrixRecv(int rank, void* dst,  size_t len);
 #endif // _IMPI_
-extern void                                  SetInitialSources(UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >* pJ);
-extern void                                  SetInitBoundaryLayer(ComputationalMatrix2D* pJ, double delta);
+extern void                                  SetInitialSources(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* pJ);
+extern void                                  SetInitBoundaryLayer(ComputationalMatrix2D* pJ, FP delta);
 
 #ifdef _CUDA_
  __host__ __device__
 #endif //_CUDA_ 
-extern int SetTurbulenceModel(FlowNode2D<double,NUM_COMPONENTS>* pJ);
+extern int SetTurbulenceModel(FlowNode2D<FP,NUM_COMPONENTS>* pJ);
 extern void DataSnapshot(char* filename, WRITE_MODE ioMode=WM_REWRITE);
-extern void CalcHeatOnWallSources(UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >* F, double dx, double dr, double dt, int rank, int last_rank);
+extern void CalcHeatOnWallSources(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* F, FP dx, FP dr, FP dt, int rank, int last_rank);
 extern UArray< XY<int> >* ScanArea(ofstream* f_str,ComputationalMatrix2D* pJ ,int isPrint);
 
 
-int CalcChemicalReactions(FlowNode2D<double,NUM_COMPONENTS>* CalcNode,
+int CalcChemicalReactions(FlowNode2D<FP,NUM_COMPONENTS>* CalcNode,
                           ChemicalReactionsModel cr_model, void* CRM_data);
 
 void RecalcWallFrictionVelocityArray2D(ComputationalMatrix2D* pJ,
-                                       UArray<double>* WallFrictionVelocityArray2D,
+                                       UArray<FP>* WallFrictionVelocityArray2D,
                                        UArray< XY<int> >* WallNodes2D);
 
-UArray<double>* GetWallFrictionVelocityArray2D(ComputationalMatrix2D* pJ, 
+UArray<FP>* GetWallFrictionVelocityArray2D(ComputationalMatrix2D* pJ, 
                                                UArray< XY<int> >* WallNodes2D);
 
 #ifdef _PARALLEL_RECALC_Y_PLUS_
 void ParallelRecalc_y_plus(ComputationalMatrix2D* pJ, 
                            UArray< XY<int> >* WallNodes,
-                           UArray<double>* WallFrictionVelocity2D,
-                           double x0);
+                           UArray<FP>* WallFrictionVelocity2D,
+                           FP x0);
 #else
 extern void Recalc_y_plus(ComputationalMatrix2D* pJ, UArray< XY<int> >* WallNodes);
 #endif //_PARALLEL_RECALC_Y_PLUS_
  
-extern void SetMinDistanceToWall2D(ComputationalMatrix2D* pJ2D,UArray< XY<int> >* WallNodes2D, double x0=0.0);
+extern void SetMinDistanceToWall2D(ComputationalMatrix2D* pJ2D,UArray< XY<int> >* WallNodes2D, FP x0=0.0);
 extern int BuildMesh(int mode);
 extern void InitSharedData(InputData*, void*
 #ifdef _MPI
@@ -335,8 +339,8 @@ extern void InitSharedData(InputData*, void*
 
 extern void DEEPS2D_Run(ofstream* o_stream 
 #ifdef _MPI
-                        ,UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >*    pJ,
-                        UMatrix2D< FlowNodeCore2D<double,NUM_COMPONENTS> >* pC,
+                        ,UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*    pJ,
+                        UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >* pC,
                         int rank , int last_rank
 #endif // _MPI
                         );
@@ -346,10 +350,10 @@ extern __host__ int LoadTable2GPU(Table* Src, Table*& Dst, int i_dev);
 
 
 extern void DEEPS2D_Run(ofstream* f_stream, 
-                        UMatrix2D<FlowNode2D<double,NUM_COMPONENTS> >*     pJ,
-                        UMatrix2D<FlowNodeCore2D<double,NUM_COMPONENTS> >* pC,
-                        UArray< FlowNode2D<double,NUM_COMPONENTS>* >*      cudaSubmatrix,
-                        UArray< FlowNodeCore2D<double,NUM_COMPONENTS>* >*  cudaCoreSubmatrix,
+                        UMatrix2D<FlowNode2D<FP,NUM_COMPONENTS> >*     pJ,
+                        UMatrix2D<FlowNodeCore2D<FP,NUM_COMPONENTS> >* pC,
+                        UArray< FlowNode2D<FP,NUM_COMPONENTS>* >*      cudaSubmatrix,
+                        UArray< FlowNodeCore2D<FP,NUM_COMPONENTS>* >*  cudaCoreSubmatrix,
                         UArray< XY<int> >*                                 cudaDimArray,
                         UArray< ChemicalReactionsModelData2D* >*           cudaCRM2D,
                         int                                                num_mp,
@@ -358,75 +362,75 @@ extern void DEEPS2D_Run(ofstream* f_stream,
                         int                                                max_thread_block);
 
 extern __global__  void  
-cuda_DEEPS2D_Stage1(FlowNode2D<double,NUM_COMPONENTS>*     pLJ,
-                    FlowNodeCore2D<double,NUM_COMPONENTS>* pLC,
+cuda_DEEPS2D_Stage1(FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
+                    FlowNodeCore2D<FP,NUM_COMPONENTS>* pLC,
                     unsigned long int index_limit,
                     int MAX_X, int MAX_Y, 
                     unsigned long r_limit,
                     unsigned long l_limit,
-                    double dxx, double dyy,
-                    double dtdx, double dtdy,
-                    double _dt,
+                    FP dxx, FP dyy,
+                    FP dtdx, FP dtdy,
+                    FP _dt,
                     int _FT, int Num_Eq, SolverMode pt);
 
 extern __global__  void 
-cuda_DEEPS2D_Stage2(FlowNode2D<double,NUM_COMPONENTS>*     pLJ,
-                    FlowNodeCore2D<double,NUM_COMPONENTS>* pLC,
+cuda_DEEPS2D_Stage2(FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
+                    FlowNodeCore2D<FP,NUM_COMPONENTS>* pLC,
                     unsigned long int index_limit,
                     int MAX_X, int MAX_Y,
                     unsigned long r_limit,
                     unsigned long l_limit,
-                    double beta_init, double  beta0, 
-                    int b_FF, double CFL0,
+                    FP beta_init, FP  beta0, 
+                    int b_FF, FP CFL0,
                     ChemicalReactionsModelData2D* pCRMD,
                     int noTurbCond,
-                    double SigW, double SigF, double dx_1, double dy_1, double delta_bl,
+                    FP SigW, FP SigF, FP dx_1, FP dy_1, FP delta_bl,
                     FlowType _FT, int Num_Eq,
 #ifdef _RMS_             
-                    double*  RMS, 
+                    FP*  RMS, 
                     int*     iRMS,
-                    double   DD_max,
+                    FP   DD_max,
                     int*     i_c,
                     int*     j_c,
 #endif // _RMS_
-                    double* _Hu,
+                    FP* _Hu,
                     int _isSrcAdd,
-                    unsigned int* dt_global, double int2float_scale,
+                    unsigned int* dt_global, FP int2float_scale,
                     TurbulenceExtendedModel TurbExtModel, 
                     SolverMode pt);
 
 extern __global__ void 
-cuda_SetInitBoundaryLayer(FlowNode2D<double,NUM_COMPONENTS>* pJ2D,
+cuda_SetInitBoundaryLayer(FlowNode2D<FP,NUM_COMPONENTS>* pJ2D,
                           unsigned long int index_limit,
                           int X0, int MAX_Y,
-                          double delta,
-                          double sig_w, 
-                          double sig_f,
+                          FP delta,
+                          FP sig_w, 
+                          FP sig_f,
                           TurbulenceExtendedModel etm,
-                          double _dx, double _dy,
-                          double* _Hu,
+                          FP _dx, FP _dy,
+                          FP* _Hu,
                           int _isSrcAdd,
                           FlowType _FT,
                           SolverMode sm);
 
 extern __global__ void
-cuda_SetMinDistanceToWall2D(FlowNode2D<double,NUM_COMPONENTS>* pJ2D,
+cuda_SetMinDistanceToWall2D(FlowNode2D<FP,NUM_COMPONENTS>* pJ2D,
                             unsigned long int index_limit,
                             XY<int>* WallNodes2D, 
                             int NumWallNodes2D,
-                            double min_l_min,
-                            double max_l_min,
-                            double _dx, double _dy);
+                            FP min_l_min,
+                            FP max_l_min,
+                            FP _dx, FP _dy);
 
 extern __global__ void 
-cuda_Recalc_y_plus(FlowNode2D<double,NUM_COMPONENTS>* pJ2D,
+cuda_Recalc_y_plus(FlowNode2D<FP,NUM_COMPONENTS>* pJ2D,
                    unsigned long int index_limit,
                    XY<int>* WallNodes2D, 
                    int NumWallNodes2D,
-                   double min_l_min,
-                   double max_l_min,
-                   double _dx, 
-                   double _dy,
+                   FP min_l_min,
+                   FP max_l_min,
+                   FP _dx, 
+                   FP _dy,
                    int max_y);
 
 extern void CUDA_BARRIER(char* KernelName);

@@ -16,7 +16,7 @@
 #include "libOpenHyperFLOW2D/hyper_flow_node.hpp"
 
 #ifndef ComputationalMatrix2D
-#define ComputationalMatrix2D  UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >
+#define ComputationalMatrix2D  UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >
 #endif //ComputationalMatrix
 // <------------- 2D --------------->           
 
@@ -26,7 +26,7 @@ class Source2D
  ComputationalMatrix2D* F;                //   Reference to computational matrix
  int                    sx,sy,ex,ey;      //   Start and end points (in nodes)
  int                    c_index;          //   Component index
- double                 Cp, M_s0, T, T_f; //   Cp, Ms, T, Tf of source
+ FP                 Cp, M_s0, T, T_f; //   Cp, Ms, T, Tf of source
 
 public:
   
@@ -34,10 +34,10 @@ public:
            int s_x, int s_y, 
            int e_x,int e_y, 
            int c_idx,
-           double cp, 
-           double ms, 
-           double t, 
-           double t_f);
+           FP cp, 
+           FP ms, 
+           FP t, 
+           FP t_f);
  
  ~Source2D();
  
@@ -57,15 +57,15 @@ public:
  void   SetEX(int e_x)   {ex=e_x;}
  void   SetEY(int e_y)   {ey=e_y;}
 
- double GetCp()          { return  Cp; } 
- double GetMs()          { return  M_s0;} 
- double GetT()           { return  T; } 
- double GetTf()          { return  T_f;} 
+ FP GetCp()          { return  Cp; } 
+ FP GetMs()          { return  M_s0;} 
+ FP GetT()           { return  T; } 
+ FP GetTf()          { return  T_f;} 
 
- void   SetCp(double cp) {Cp=cp;} 
- void   SetMs(double ms) {M_s0=ms;} 
- void   SetT(double t)   {T=t;}
- void   SetTf(double t_f){T_f=t_f;} 
+ void   SetCp(FP cp) {Cp=cp;} 
+ void   SetMs(FP ms) {M_s0=ms;} 
+ void   SetT(FP t)   {T=t;}
+ void   SetTf(FP t_f){T_f=t_f;} 
 
 };
 

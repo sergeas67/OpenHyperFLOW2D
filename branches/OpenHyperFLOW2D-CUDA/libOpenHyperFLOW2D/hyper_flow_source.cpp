@@ -13,10 +13,10 @@ Source2D::Source2D(ComputationalMatrix2D* f,
                    int s_x, int s_y, 
                    int e_x,int e_y, 
                    int c_idx,
-                   double cp, 
-                   double ms, 
-                   double t, 
-                   double t_f):F(f),sx(s_x),sy(s_y),ex(e_x),ey(e_y),c_index(c_idx),Cp(cp),M_s0(ms),T(t),T_f(t_f) {}
+                   FP cp, 
+                   FP ms, 
+                   FP t, 
+                   FP t_f):F(f),sx(s_x),sy(s_y),ex(e_x),ey(e_y),c_index(c_idx),Cp(cp),M_s0(ms),T(t),T_f(t_f) {}
 
 Source2D::~Source2D() {
     ClearSource2D();
@@ -27,7 +27,7 @@ void   Source2D::SetSource2D() {
 int DX = sx-ex;
 int DY = sy-ey;
 int SKX, SKY;
-double dF, DR, DR2;
+FP dF, DR, DR2;
 int i;
 unsigned int x,y;
 
@@ -35,8 +35,8 @@ unsigned int x,y;
     if ( DX == 0 && DY == 0 ) {
         
         F->GetValue(sx,sy).isCleanSources =  0;
-        //FlowNode<double,NUM_COMPONENTS>::
-        if(FlowNode2D<double,NUM_COMPONENTS>::FT==FT_AXISYMMETRIC) {
+        //FlowNode<FP,NUM_COMPONENTS>::
+        if(FlowNode2D<FP,NUM_COMPONENTS>::FT==FT_AXISYMMETRIC) {
             if(sy == 0 || ey ==0) {
               F->GetValue(sx,sy).Src[i2d_Ro]      =  M_s0/(M_PI*F->GetValue(sx,sy).dx*F->GetValue(sx,sy).dy*F->GetValue(sx,sy).dy);
             } else {
@@ -69,7 +69,7 @@ unsigned int x,y;
             x = (unsigned int)(sx+i*SKX);
             y = (unsigned int)(sy+i*dF*SKY);
             F->GetValue(x,y).isCleanSources = 0;
-            if(FlowNode2D<double,NUM_COMPONENTS>::FT==FT_AXISYMMETRIC) {
+            if(FlowNode2D<FP,NUM_COMPONENTS>::FT==FT_AXISYMMETRIC) {
              if(sy == 0 || ey ==0) {
                 DR = DY*F->GetValue(sx,sy).dy;
                 F->GetValue(x,y).Src[i2d_Ro]      =  M_s0/(M_PI*(F->GetValue(sx,sy).dx*DR*DR));
@@ -102,7 +102,7 @@ unsigned int x,y;
             x = (unsigned int)(sx+i*dF*SKX);
             y = (unsigned int)(sy+i*SKY);
             F->GetValue(x,y).isCleanSources = 0;
-            if(FlowNode2D<double,NUM_COMPONENTS>::FT==FT_AXISYMMETRIC) {
+            if(FlowNode2D<FP,NUM_COMPONENTS>::FT==FT_AXISYMMETRIC) {
                 if(sy == 0 || ey ==0) {
                    DR = DY*F->GetValue(sx,sy).dy;
                    F->GetValue(x,y).Src[i2d_Ro]      =  M_s0/(M_PI*(F->GetValue(sx,sy).dx*DR*DR));
@@ -131,14 +131,14 @@ int DY = sy-ey;
 int SKX, SKY;
 int i;
 unsigned int x,y;
-double dF;
+FP dF;
 
  // Source in single point
     if ( DX == 0 && DY == 0 ) {
         
         F->GetValue(sx,sy).isCleanSources =  0;
         
-        for (int k=0;k<FlowNode2D<double, NUM_COMPONENTS>::NumEq;k++ )
+        for (int k=0;k<FlowNode2D<FP, NUM_COMPONENTS>::NumEq;k++ )
             F->GetValue(sx,sy).Src[k] = F->GetValue(sx,sy).SrcAdd[k] = 0.;
         return;
     }
@@ -157,7 +157,7 @@ double dF;
             x = (unsigned int)(sx+i*SKX);
             y = (unsigned int)(sy+i*dF*SKY);
             F->GetValue(x,y).isCleanSources = 0;
-            for (int k=0;k<FlowNode2D<double, NUM_COMPONENTS>::NumEq;k++ )
+            for (int k=0;k<FlowNode2D<FP, NUM_COMPONENTS>::NumEq;k++ )
                 F->GetValue(x,y).Src[k] = F->GetValue(x,y).SrcAdd[k] = 0.;
         }
     } else {
@@ -172,7 +172,7 @@ double dF;
             x = (unsigned int)(sx+i*dF*SKX);
             y = (unsigned int)(sy+i*SKY);
             F->GetValue(x,y).isCleanSources = 0;
-            for (int k=0;k<FlowNode2D<double, NUM_COMPONENTS>::NumEq;k++ )
+            for (int k=0;k<FlowNode2D<FP, NUM_COMPONENTS>::NumEq;k++ )
                 F->GetValue(x,y).Src[k] = F->GetValue(x,y).SrcAdd[k] = 0.;
         }
     }
@@ -188,11 +188,11 @@ SourceList2D::SourceList2D(ComputationalMatrix2D* f, InputData* d) {
     int     GasSource_EY;  
     int     GasSourceIndex;
     
-    double  Msrc;          
-    double  Tsrc;          
-    double  Tf_src;
-    double  Cp=0.;
-    double  Y_mix[4];
+    FP  Msrc;          
+    FP  Tsrc;          
+    FP  Tf_src;
+    FP  Cp=0.;
+    FP  Y_mix[4];
 
     char    Str[255];
     

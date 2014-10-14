@@ -48,11 +48,11 @@ enum BoundMoveType {
 //  Bound 2D Contour object                     //
 //////////////////////////////////////////////////
 class BoundContour2D : private UArray<Bound2D*> {
-    double   f_current_x,f_first_x;
-    double   f_current_y,f_first_y;
+    FP   f_current_x,f_first_x;
+    FP   f_current_y,f_first_y;
     Table*   BoundContourTable;
     char*    BoundContourName;
-    UMatrix2D< FlowNode2D< double, NUM_COMPONENTS> >* FlowNodeMatrixPtr;
+    UMatrix2D< FlowNode2D< FP, NUM_COMPONENTS> >* FlowNodeMatrixPtr;
     
 #ifndef _UNIFORM_MESH_
     Mesh2D*  pMesh;       //  anisotropic mesh
@@ -64,11 +64,11 @@ class BoundContour2D : private UArray<Bound2D*> {
     int      isActivateContour;
 
 public:
-    BoundContour2D(char* Name, UMatrix2D< FlowNode2D< double, NUM_COMPONENTS> >* fnm,
+    BoundContour2D(char* Name, UMatrix2D< FlowNode2D< FP, NUM_COMPONENTS> >* fnm,
 #ifndef _UNIFORM_MESH_
                  Mesh2D* p_mesh,       //  anisotropic mesh
-                 double x=0.,
-                 double y=0.
+                 FP x=0.,
+                 FP y=0.
 #else
                  unsigned int x=0,
                  unsigned int y=0
@@ -85,18 +85,18 @@ public:
                    ulong        bt,
                    Flow*        pInFlow=0,
                    Flow2D*      pInFlow2D=0,
-                   double*      y1=0,
+                   FP*      y1=0,
                    ulong        btt=TCT_No_Turbulence_2D);
     
 #ifndef _UNIFORM_MESH_    
     int AddBound2D(char* name,
                    Mesh2D*      p_mesh,       //  anisotropic mesh
-                   double       f_x,
-                   double       f_y,
+                   FP       f_x,
+                   FP       f_y,
                    ulong        bt,
                    Flow*        pInFlow=0,
                    Flow2D*      pInFlow2D=0,
-                   double*      y1=0,
+                   FP*      y1=0,
                    int          btt=TCT_No_Turbulence_2D);
 #endif // _UNIFORM_MESH_
 
@@ -104,7 +104,7 @@ public:
                        ulong    bt,
                        Flow*    pInFlow=0,
                        Flow2D*  pInFlow2D=0,
-                       double*  y=0,
+                       FP*  y=0,
                        ulong    btt=TCT_No_Turbulence_2D);
 
     int InsertBound2D(char* name,
@@ -114,26 +114,26 @@ public:
                       ulong        bt,
                       Flow*        pInFlow=0,
                       Flow2D*      pInFlow2D=0,
-                      double*      y1=0,
+                      FP*      y1=0,
                       ulong        btt=TCT_No_Turbulence_2D);
 
 #ifndef _UNIFORM_MESH_
     int InsertBound2D(char* name,
                       unsigned int nb,
                       Mesh2D* p_mesh,       //  anisotropic mesh
-                      double       f_x,
-                      double       f_y,
+                      FP       f_x,
+                      FP       f_y,
                       ulong        bt,
                       Flow*        pInFlow=0,
                       Flow2D*      pInFlow2D=0,
-                      double*      y1=0,
+                      FP*      y1=0,
                       int          btt=TCT_No_Turbulence_2D);
 #endif // _UNIFORM_MESH_
     
     int    DelBound2D(int nb);
     int    DelBound2D(char name);
     int    SetBounds(int MaterialID=0);
-    int    SetBounds(UArray<FlowNode2D< double, NUM_COMPONENTS>* >* node_array, int MaterialID=0);
+    int    SetBounds(UArray<FlowNode2D< FP, NUM_COMPONENTS>* >* node_array, int MaterialID=0);
 #ifdef _UNIFORM_MESH_
     int    GetCurrentX();
     int    GetCurrentY();
@@ -142,20 +142,20 @@ public:
     void   SetFirstX(int x);
     void   SetFirstY(int y);
 #endif // _UNIFORM_MESH_
-    double GetCurrentFX();
-    double GetCurrentFY();
-    void   SetCurrentFX(double x);
-    void   SetCurrentFY(double y);
-    void   SetFirstFX(double x);
-    void   SetFirstFY(double y);
+    FP GetCurrentFX();
+    FP GetCurrentFY();
+    void   SetCurrentFX(FP x);
+    void   SetCurrentFY(FP y);
+    void   SetFirstFX(FP x);
+    void   SetFirstFY(FP y);
     int    GetNumBounds();
     Bound2D* GetBound(int nb);
     int    IsContourClosed();
     int    IsContourActivate();
     void   ClearBoundContour();
-    int    RotateBoundContour2D(double x0, 
-                                double y0, 
-                                double angle);
+    int    RotateBoundContour2D(FP x0, 
+                                FP y0, 
+                                FP angle);
     char*  GetBoundContourName() {return BoundContourName;}
 
 #ifndef _UNIFORM_MESH_

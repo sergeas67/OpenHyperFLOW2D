@@ -42,7 +42,7 @@ using namespace std;
 //////////////////////////////////////////////////
 class SolidBoundRect2D : protected BoundContour2D,
                          protected Area2D {
-    double X, Y, dX,dY;
+    FP X, Y, dX,dY;
     char* SolidBoundRectName;
 #ifndef _UNIFORM_MESH_
     Mesh2D*  pMesh;       //  anisotropic mesh
@@ -52,36 +52,36 @@ class SolidBoundRect2D : protected BoundContour2D,
 public:
 
   SolidBoundRect2D(char* name,
-                   UMatrix2D< FlowNode2D< double, NUM_COMPONENTS> >* JM, // Computation area reference
-                   double  x,                      // Start rect 
-                   double  y,                      // coordinates (x,y) left-down coner
-                   double  DX,                     // Rect width
-                   double  DY,                     // Rect hight
+                   UMatrix2D< FlowNode2D< FP, NUM_COMPONENTS> >* JM, // Computation area reference
+                   FP  x,                      // Start rect 
+                   FP  y,                      // coordinates (x,y) left-down coner
+                   FP  DX,                     // Rect width
+                   FP  DY,                     // Rect hight
 #ifdef _UNIFORM_MESH_
-                   double  dx,                     // dx - step
-                   double  dy,                     // dy - step
+                   FP  dx,                     // dx - step
+                   FP  dy,                     // dy - step
 #else 
                    Mesh2D* p_mesh,
 #endif // _UNIFORM_MESH_
                    ulong   ct,                     // condition type
                    Flow2D* pInFlow2D=0,            // init flow2d object on circle bound
-                   double* Y=0,                    // component matrix
+                   FP* Y=0,                    // component matrix
                    ulong   bctt=TCT_No_Turbulence_2D,// Bound contour turbulence type
                    ostream* dbg_output=NULL);                  
 
-    //void ReplaceSolidBoundRect(double  x, double  y);
+    //void ReplaceSolidBoundRect(FP  x, FP  y);
 
-    double GetX() {
+    FP GetX() {
         return X;
     }
-    double GetY() {
+    FP GetY() {
         return Y;
     }
 
-    double GetDX() {
+    FP GetDX() {
         return dX;
     }
-    double GetDY() {
+    FP GetDY() {
         return dY;
     }
  char* GetSolidBoundRectName2D() {

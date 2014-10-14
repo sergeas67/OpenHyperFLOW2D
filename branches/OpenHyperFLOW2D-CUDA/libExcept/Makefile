@@ -13,7 +13,7 @@ else
 include   ../gcc.compiler
 endif
 
-CFLAGS    = $(OPTIONS) $(PICFLAGS)
+CFLAGS    = $(OPTIONS) $(PICFLAGS) $(FP_OPTS)
 
 TARGET    = libexcept.a
 

@@ -23,7 +23,7 @@
 
 #include "libOpenHyperFLOW2D/hyper_flow_turbulence.hpp"
 
-inline double  Sgn(double a)
+inline FP  Sgn(FP a)
 {
     if ( a != 0. ) return fabs(a)/a;
     else           return 0;

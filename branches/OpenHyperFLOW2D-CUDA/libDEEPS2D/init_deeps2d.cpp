@@ -105,7 +105,7 @@ void InitSharedData(InputData* _data,
                  Abort_OpenHyperFLOW2D();
             }
 
-            FlowNode2D<double,NUM_COMPONENTS>::FT = (FlowType)(_data->GetIntVal((char*)"FlowType"));
+            FlowNode2D<FP,NUM_COMPONENTS>::FT = (FlowType)(_data->GetIntVal((char*)"FlowType"));
             if ( _data->GetDataError()==-1 ) {
                 Abort_OpenHyperFLOW2D();
             }
@@ -178,7 +178,7 @@ void InitSharedData(InputData* _data,
                 MonitorPoint TmpPoint;
                 for (int i=0;i<NumMonitorPoints;i++) {
                    char   point_str[256];
-                   double point_xy;
+                   FP point_xy;
                    snprintf(point_str,256,"Point-%i.X",i+1);
                    point_xy =  _data->GetFloatVal(point_str);
                    if ( _data->GetDataError()==-1 ) {
@@ -329,13 +329,13 @@ void InitSharedData(InputData* _data,
             }
 
 #ifdef _UNIFORM_MESH_
-            FlowNode2D<double,NUM_COMPONENTS>::dx    = dx;
-            FlowNode2D<double,NUM_COMPONENTS>::dy    = dy;
+            FlowNode2D<FP,NUM_COMPONENTS>::dx    = dx;
+            FlowNode2D<FP,NUM_COMPONENTS>::dy    = dy;
 #endif //_UNIFORM_MESH_
-            FlowNode2D<double,NUM_COMPONENTS>::Hu[h_fu] = model_data->H_Fuel;
-            FlowNode2D<double,NUM_COMPONENTS>::Hu[h_ox] = model_data->H_OX;
-            FlowNode2D<double,NUM_COMPONENTS>::Hu[h_cp] = model_data->H_cp;
-            FlowNode2D<double,NUM_COMPONENTS>::Hu[h_air] = model_data->H_air;
+            FlowNode2D<FP,NUM_COMPONENTS>::Hu[h_fu] = model_data->H_Fuel;
+            FlowNode2D<FP,NUM_COMPONENTS>::Hu[h_ox] = model_data->H_OX;
+            FlowNode2D<FP,NUM_COMPONENTS>::Hu[h_cp] = model_data->H_cp;
+            FlowNode2D<FP,NUM_COMPONENTS>::Hu[h_air] = model_data->H_air;
 };
 
 
@@ -361,8 +361,8 @@ void* InitDEEPS2D(void* lpvParam)
         u_long          FileSizeGas=0;
         static int      PreloadFlag = 0,p_g=0;
 
-        SubmatrixArray     = new UArray<UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >* >();
-        CoreSubmatrixArray = new UArray<UMatrix2D< FlowNodeCore2D<double,NUM_COMPONENTS> >* >();
+        SubmatrixArray     = new UArray<UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* >();
+        CoreSubmatrixArray = new UArray<UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >* >();
 #ifdef _DEBUG_0
         ___try {
 #endif  // _DEBUG_0
@@ -498,7 +498,7 @@ void* InitDEEPS2D(void* lpvParam)
                 TmpFlow = new Flow(Cp,Tg,Pg,Rg,lam,mu);
 
                 snprintf(FlowStr,256,"Flow%i.Type",i+1);
-                double  LamF;
+                FP  LamF;
                 int F_Type  = Data->GetIntVal(FlowStr);
                 if ( (int)Data->GetDataError()==-1 ) {
                     Abort_OpenHyperFLOW2D();
@@ -658,13 +658,13 @@ void* InitDEEPS2D(void* lpvParam)
                 *f_stream << "...OK\n" << flush;
             }
 
-            FileSizeGas =  MaxX*MaxY*sizeof(FlowNode2D<double,NUM_COMPONENTS>);
+            FileSizeGas =  MaxX*MaxY*sizeof(FlowNode2D<FP,NUM_COMPONENTS>);
             
 
             GasSwapData   = LoadSwapFile2D(GasSwapFileName,
                                            (int)MaxX,
                                            (int)MaxY,
-                                           sizeof(FlowNode2D<double,NUM_COMPONENTS>),
+                                           sizeof(FlowNode2D<FP,NUM_COMPONENTS>),
                                            &p_g,
                                            &fd_g,
                                            f_stream);
@@ -688,8 +688,8 @@ void* InitDEEPS2D(void* lpvParam)
                 if ( GasSwapData!=0 ) {
                     *f_stream << "Mapping computation area..." << flush;
                     f_stream->flush();
-                    J = new UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >((FlowNode2D<double,NUM_COMPONENTS>*)GasSwapData,MaxX,MaxY);
-                    C = new UMatrix2D< FlowNodeCore2D<double,NUM_COMPONENTS> >(MaxX,MaxY);
+                    J = new UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >((FlowNode2D<FP,NUM_COMPONENTS>*)GasSwapData,MaxX,MaxY);
+                    C = new UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >(MaxX,MaxY);
                     useSwapFile=1;
                     sprintf(OldSwapFileName,"%s",GasSwapFileName);
                     OldSwapData = GasSwapData;
@@ -701,7 +701,7 @@ void* InitDEEPS2D(void* lpvParam)
                     if ( J ) {
                         delete J;J=NULL;
                     }
-                    J = new UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >(MaxX,MaxY);
+                    J = new UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >(MaxX,MaxY);
                 }
 #ifdef _DEBUG_0
             } __except( ComputationalMatrix2D*  m) {  // ExceptLib know bug...
@@ -721,7 +721,7 @@ void* InitDEEPS2D(void* lpvParam)
 
             dt=1.;
             for (int i = 0;i<(int)FlowList->GetNumElements();i++ ) {
-                 double CFL_min      = min(CFL,CFL_Scenario->GetVal(iter+last_iter));
+                 FP CFL_min      = min(CFL,CFL_Scenario->GetVal(iter+last_iter));
                  dt = min(dt,CFL_min*dx*dy/(dy*(FlowList->GetElement(i)->Asound()*2.)+
                                             dx*FlowList->GetElement(i)->Asound()));
             }
@@ -1295,7 +1295,7 @@ void* InitDEEPS2D(void* lpvParam)
             dt = 1;
 
             for (int i = 0;i<(int)Flow2DList->GetNumElements();i++ ) {
-                double CFL_min  = min(CFL,CFL_Scenario->GetVal(iter+last_iter));
+                FP CFL_min  = min(CFL,CFL_Scenario->GetVal(iter+last_iter));
                 dt = min(dt,CFL_min*min(dx/(Flow2DList->GetElement(i)->Asound()+Flow2DList->GetElement(i)->Wg()),
                                         dy/(Flow2DList->GetElement(i)->Asound()+Flow2DList->GetElement(i)->Wg())));
             }
@@ -1318,7 +1318,7 @@ void* InitDEEPS2D(void* lpvParam)
                             }
 #endif //_UNIFORM_MESH_
 
-                            if ( FlowNode2D<double,NUM_COMPONENTS>::FT == FT_AXISYMMETRIC )
+                            if ( FlowNode2D<FP,NUM_COMPONENTS>::FT == FT_AXISYMMETRIC )
                                  J->GetValue(i,j).r     = (j+0.5)*dy;
                             //J->GetValue(i,j).x     = (i+0.5)*dx;
                             //J->GetValue(i,j).y     = (j+0.5)*dy;
@@ -1331,7 +1331,7 @@ void* InitDEEPS2D(void* lpvParam)
                             J->GetValue(i,j).NGX   = 0;
                             J->GetValue(i,j).NGY   = 0;
 
-                            for ( k=0;k<(int)FlowNode2D<double,NUM_COMPONENTS>::NumEq;k++ )
+                            for ( k=0;k<(int)FlowNode2D<FP,NUM_COMPONENTS>::NumEq;k++ )
                                 J->GetValue(i,j).Src[k]= J->GetValue(i,j).SrcAdd[k] = 0;
                         }
 #ifdef _DEBUG_0
@@ -1431,7 +1431,7 @@ void* InitDEEPS2D(void* lpvParam)
             }
             //Set bound Primitives
             // Rects
-                double        Xstart,Ystart,X_0,Y_0;
+                FP        Xstart,Ystart,X_0,Y_0;
                 unsigned int  numRects=Data->GetIntVal((char*)"NumRects");
                 if(Data->GetDataError()==-1) Abort_OpenHyperFLOW2D();
                 //unsigned int ix0,iy0;
@@ -1592,7 +1592,7 @@ void* InitDEEPS2D(void* lpvParam)
 // Solid Bound Airfoils
 /*
             unsigned int numAirfoils=Data->GetIntVal((char*)"NumAirfoils");
-            double       mm,pp,thick,scale,attack_angle;
+            FP       mm,pp,thick,scale,attack_angle;
             SolidBoundAirfoil2D* SBA;
             if ( p_g==0 )
                 if ( numAirfoils ) {
@@ -1909,7 +1909,7 @@ void* InitDEEPS2D(void* lpvParam)
                                 J->GetValue(i,j).idYd  = 1;
                                 J->GetValue(i,j).l_min = min(dx*MaxX,dy*MaxY);
                                 
-                                for (int k=0;k<(int)FlowNode2D<double,NUM_COMPONENTS>::NumEq;k++ )
+                                for (int k=0;k<(int)FlowNode2D<FP,NUM_COMPONENTS>::NumEq;k++ )
                                     J->GetValue(i,j).beta[k]  = beta0;
                                 
                                 if ( j==0 || J->GetValue(i,j-1).isCond2D(CT_SOLID_2D) ) {           // is down node present ? (0 or 1)
@@ -1966,7 +1966,7 @@ void* InitDEEPS2D(void* lpvParam)
                 *f_stream << "\n";
                 *f_stream << "Error set computation area state ("<< i_err << "," << j_err <<")." << "\n" << flush;
                 *f_stream << "\n";
-                *f_stream << "UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >" << "\n" << flush;
+                *f_stream << "UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >" << "\n" << flush;
                 f_stream->flush();
                 if ( GasSwapData!=0 ) {
 #ifdef _REMOVE_SWAPFILE_
@@ -2197,7 +2197,7 @@ f_str->flush();
 return Submatrix;
 }
 
-void SetInitBoundaryLayer(ComputationalMatrix2D* pJ, double delta) {
+void SetInitBoundaryLayer(ComputationalMatrix2D* pJ, FP delta) {
     for (int i=0;i<(int)pJ->GetX();i++ ) {
            for (int j=0;j<(int)pJ->GetY();j++ ) {
                   if (pJ->GetValue(i,j).isCond2D(CT_NODE_IS_SET_2D) &&
@@ -2214,11 +2214,11 @@ void SetInitBoundaryLayer(ComputationalMatrix2D* pJ, double delta) {
 }
 
 void RecalcWallFrictionVelocityArray2D(ComputationalMatrix2D* pJ,
-                                       UArray<double>* WallFrictionVelocityArray2D,
+                                       UArray<FP>* WallFrictionVelocityArray2D,
                                        UArray< XY<int> >* WallNodes2D) { 
     for(int ii=0;ii<(int)WallNodes2D->GetNumElements();ii++) {
         unsigned int iw,jw;
-        double tau_w;
+        FP tau_w;
         iw = WallNodes2D->GetElementPtr(ii)->GetX();
         jw = WallNodes2D->GetElementPtr(ii)->GetY();
         tau_w = (fabs(pJ->GetValue(iw,jw).dUdy)  +
@@ -2227,13 +2227,13 @@ void RecalcWallFrictionVelocityArray2D(ComputationalMatrix2D* pJ,
     }
 }
 
-UArray<double>* GetWallFrictionVelocityArray2D(ComputationalMatrix2D* pJ, 
+UArray<FP>* GetWallFrictionVelocityArray2D(ComputationalMatrix2D* pJ, 
                                                UArray< XY<int> >* WallNodes2D) { 
-    UArray<double>* WallFrictionVelocityArray2D;
-    WallFrictionVelocityArray2D = new UArray<double>();
+    UArray<FP>* WallFrictionVelocityArray2D;
+    WallFrictionVelocityArray2D = new UArray<FP>();
     for(int ii=0;ii<(int)WallNodes2D->GetNumElements();ii++) {
         unsigned int iw,jw;
-        double tau_w, U_w;
+        FP tau_w, U_w;
         iw = WallNodes2D->GetElementPtr(ii)->GetX();
         jw = WallNodes2D->GetElementPtr(ii)->GetY();
         tau_w = (fabs(pJ->GetValue(iw,jw).dUdy)  +
@@ -2249,11 +2249,11 @@ u_long NumWallNodes=0;
     for (int j=0;j<(int)pJ->GetY();j++ ) {
        for (int i=0;i<(int)pJ->GetX();i++ ) {
 
-                FlowNode2D< double,NUM_COMPONENTS >* CurrentNode=NULL;
-                FlowNode2D< double,NUM_COMPONENTS >* UpNode=NULL;
-                FlowNode2D< double,NUM_COMPONENTS >* DownNode=NULL;
-                FlowNode2D< double,NUM_COMPONENTS >* LeftNode=NULL;
-                FlowNode2D< double,NUM_COMPONENTS >* RightNode=NULL;
+                FlowNode2D< FP,NUM_COMPONENTS >* CurrentNode=NULL;
+                FlowNode2D< FP,NUM_COMPONENTS >* UpNode=NULL;
+                FlowNode2D< FP,NUM_COMPONENTS >* DownNode=NULL;
+                FlowNode2D< FP,NUM_COMPONENTS >* LeftNode=NULL;
+                FlowNode2D< FP,NUM_COMPONENTS >* RightNode=NULL;
 
                 CurrentNode = &pJ->GetValue(i,j);
 
@@ -2340,7 +2340,7 @@ const char* PrintTurbCond(int TM) {
    return "Unknown turbulence model";
 }
 
-void PrintCond(ofstream* OutputData, FlowNode2D<double,NUM_COMPONENTS>* fn) {
+void PrintCond(ofstream* OutputData, FlowNode2D<FP,NUM_COMPONENTS>* fn) {
     //Const conditions
 
     if ( fn->isCond2D(CT_Ro_CONST_2D) )
@@ -2475,7 +2475,7 @@ void SaveMonitorsHeader(ofstream* MonitorsFile,UArray< MonitorPoint >* MonitorPt
 }
 
 void SaveMonitors(ofstream* MonitorsFile, 
-                  double t, 
+                  FP t, 
                   UArray< MonitorPoint >* MonitorPtArray) {
     *MonitorsFile  << t << " ";
     for (int i=0;i<(int)MonitorPtArray->GetNumElements();i++) {
@@ -2497,9 +2497,9 @@ void SaveRMSHeader(ofstream* OutputData) {
         *OutputData <<  TechPlotTitle << endl;
     }
 
-    void SaveRMS(ofstream* OutputData,unsigned int n, double* outRMS) {
+    void SaveRMS(ofstream* OutputData,unsigned int n, FP* outRMS) {
          *OutputData <<  n  << " ";
-         for(int i=0;i<FlowNode2D<double,NUM_COMPONENTS>::NumEq;i++) {
+         for(int i=0;i<FlowNode2D<FP,NUM_COMPONENTS>::NumEq;i++) {
              *OutputData <<  outRMS[i]  << " ";
          }
 
@@ -2516,14 +2516,14 @@ void SaveRMSHeader(ofstream* OutputData) {
         char   TechPlotTitle1[1024]={0};
         char   TechPlotTitle2[256]={0};
         char   YR[2];
-        double Mach,A,W,Re,Re_t,dx_out,dy_out;
+        FP Mach,A,W,Re,Re_t,dx_out,dy_out;
         char   RT[10];
         if(is_p_asterisk_out)
           snprintf(RT,10,"p*");
         else
           snprintf(RT,10,"mu_t/mu");
 
-        if(FlowNode2D<double,NUM_COMPONENTS>::FT == 1) // FT_FLAT
+        if(FlowNode2D<FP,NUM_COMPONENTS>::FT == 1) // FT_FLAT
           snprintf(YR,2,"R");
         else
           snprintf(YR,2,"Y");
@@ -2594,7 +2594,7 @@ void SaveRMSHeader(ofstream* OutputData) {
         }
     }
 
-    inline double kg(double Cp, double R) {
+    inline FP kg(FP Cp, FP R) {
         return(Cp/(Cp-R));
     }
 

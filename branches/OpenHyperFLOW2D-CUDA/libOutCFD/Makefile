@@ -16,7 +16,7 @@ endif
 DEBUGLEVEL=0
 
 CFLAGS    =  $(PICFLAGS) $(OPTIONS)  \
-            -D_REMOVE_SWAPFILE_ -D_GNUPLOT_  -D_STREAM_COMPAT  -Wno-deprecated $(MODELS) 
+            -D_REMOVE_SWAPFILE_ -D_GNUPLOT_  -D_STREAM_COMPAT  -Wno-deprecated $(MODELS) $(FP_OPTS)
 
 TARGET    = libOutCFD.a
 
