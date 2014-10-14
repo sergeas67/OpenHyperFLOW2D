@@ -86,7 +86,10 @@ double CalcYForce2D(UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >* pJ,
 
 void SaveXHeatFlux2D(ofstream* OutputData,
                      UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >* pJ,
-                     double  Ts);
+                     Flow2D* TestFlow, 
+                     double  Ts,
+                     int     y_max,
+                     int     y_min);
 
 void SaveYHeatFlux2D(ofstream* OutputData,
                      UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >* pJ,
@@ -98,7 +101,7 @@ double   Calc_XSigmaFi(UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >* pJ,
                       double dy,
                       Flow2D* pF);
 
-double   Calc_Cp(UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >* pJ, int i, int j, Flow2D* pF);
+double   Calc_Cp(FlowNode2D<double,NUM_COMPONENTS>* CurrentNode, Flow2D* pF);
 double   Calc_Cx_2D(UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >* pJ, 
                     double x, 
                     double y,

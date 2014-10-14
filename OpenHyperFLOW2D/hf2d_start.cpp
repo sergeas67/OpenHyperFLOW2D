@@ -112,7 +112,7 @@ rank      = MPI::COMM_WORLD.Get_rank();
                InitDEEPS2D((void*)o_stream);                       // Init solver (only for rank=0)
                // Scan area for seek wall nodes      
                WallNodes = GetWallNodes((ofstream*)o_stream,J,Data->GetIntVal((char*)"isVerboseOutput")); 
-#ifndef     _PARALLEL_ONLY
+#ifndef     _PARALLEL_RECALC_Y_PLUS_
                *o_stream << "\nSerial calc min distance to wall..." << flush;
                SetMinDistanceToWall2D(J,WallNodes);
                *o_stream << "OK\n" << flush;
@@ -121,7 +121,7 @@ rank      = MPI::COMM_WORLD.Get_rank();
 #else
                *o_stream << "\nParallel calc min distance to wall..." << endl;
                gettimeofday(&mark2,NULL);
-#endif //   _PARALLEL_ONLY_
+#endif //   _PARALLEL_RECALC_Y_PLUS_
                NumWallNodes = WallNodes->GetNumElements();
                
                TmpMatrixPtr=J->GetMatrixPtr();
@@ -151,9 +151,9 @@ rank      = MPI::COMM_WORLD.Get_rank();
                *o_stream << "SubMatrix("<<i<<")[" << TmpMaxX << "x" << MaxY << "]  Size=" << (ulong)(sizeof(FlowNode2D<double,NUM_COMPONENTS>)*TmpMaxX*MaxY)/(1024*1024) << " Mb\n"; 
                TmpSubmatrix = new UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >(TmpMatrixPtr,TmpMaxX,MaxY);
 
-#ifdef     _PARALLEL_ONLY_
+#ifdef _PARALLEL_RECALC_Y_PLUS_
                SetMinDistanceToWall2D(TmpSubmatrix,WallNodes,x0);
-#endif //   _PARALLEL_ONLY_
+#endif // _PARALLEL_RECALC_Y_PLUS_
 
                ArraySubmatrix->AddElement(&TmpSubmatrix);
                o_stream->flush();
@@ -214,11 +214,14 @@ rank      = MPI::COMM_WORLD.Get_rank();
                                              0);
                    }
         }
+
         
         MPI::COMM_WORLD.Barrier();
-       
-       
         TmpCoreSubmatrix = new UMatrix2D< FlowNodeCore2D<double,NUM_COMPONENTS> >(TmpMaxX,MaxY);
+
+#ifdef _PARALLEL_RECALC_Y_PLUS_
+        SetInitBoundaryLayer(TmpSubmatrix,delta_bl);                                                // Set Initial boundary layer profile
+#endif // _PARALLEL_RECALC_Y_PLUS_
      
         if(rank == 0) {
             gettimeofday(&mark1,NULL);
