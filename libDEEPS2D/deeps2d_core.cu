@@ -678,8 +678,9 @@ void DEEPS2D_Run(ofstream* f_stream,
 
    // local variables
     FlowNode2D<FP,NUM_COMPONENTS>* TmpMatrixPtr;
-    FlowNodeCore2D<FP,NUM_COMPONENTS>* TmpCoreMatrixPtr;
-    int      SubStartIndex, SubMaxX, TmpMaxX;
+    //FlowNodeCore2D<FP,NUM_COMPONENTS>* TmpCoreMatrixPtr;
+    //int    SubMaxX, SubStartIndex; 
+    int      TmpMaxX;
     int      current_div;
     int      opt_thread_block_size[2];
     FP   opt_round_trip[1];
@@ -855,7 +856,7 @@ void DEEPS2D_Run(ofstream* f_stream,
                                                                                                       ProblemType);
                        iX0 += max_X;
                       }
-                   CUDA_BARRIER("cuda_DEEPS2D_Stage1");
+                   CUDA_BARRIER((char*)"cuda_DEEPS2D_Stage1");
                    iX0 = 0;
  #pragma unroll
                    for(int ii=0;ii<n_s;ii++) {  // CUDA version
@@ -930,7 +931,7 @@ void DEEPS2D_Run(ofstream* f_stream,
                         iX0 += max_X;
                    }
 
-                  CUDA_BARRIER("cuda_DEEPS2D_Stage2");
+                  CUDA_BARRIER((char*)"cuda_DEEPS2D_Stage2");
 
                    for(int ii=0;ii<n_s;ii++) {
 
@@ -1006,7 +1007,7 @@ void DEEPS2D_Run(ofstream* f_stream,
                    }
 
                    if(n_s > 1) {
-                       CUDA_BARRIER("Halo exchange");
+                       CUDA_BARRIER((char*)"Halo exchange");
                    }
 /*
              if(!isAdiabaticWall)
@@ -1112,11 +1113,11 @@ void DEEPS2D_Run(ofstream* f_stream,
                                                                                     FlowNode2D<FP,NUM_COMPONENTS>::dx,
                                                                                     FlowNode2D<FP,NUM_COMPONENTS>::dy,
                                                                                     MaxY);
-       CUDA_BARRIER("Copy device to host");
+       CUDA_BARRIER((char*)"Copy device to host");
 #endif // _PARALLEL_RECALC_Y_PLUS_
        CopyDeviceToHost(cudaArraySubmatrix->GetElement(i),TmpMatrixPtr,(sizeof(FlowNode2D<FP,NUM_COMPONENTS>))*(TmpMaxX*MaxY),cuda_streams[i]);
   }
-       CUDA_BARRIER("Data collection");
+       CUDA_BARRIER((char*)"Data collection");
 
 #ifdef  _GNUPLOT_
         *f_stream << "\nSave current results in file " << OutFileName << "...\n" << flush; 

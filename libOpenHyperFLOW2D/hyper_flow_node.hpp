@@ -839,7 +839,7 @@ void  FlowNode2D<T,a>::TurbModRANS2D(int is_mu_t,
            T TmpI __attribute__ ((aligned (_ALIGN))) = _I*sqrt(U*U+V*V+1.e-30);
 #endif //__ICC           
             FlowNodeCore2D<T,a>::S[i2d_k]   = 1.5*TmpI*TmpI*FlowNodeCore2D<T,a>::S[i2d_Ro];
-            FlowNodeCore2D<T,a>::S[i2d_eps] = pow(C_mu,3./4.)*pow(FlowNodeCore2D<T,a>::S[i2d_k]/FlowNodeCore2D<T,a>::S[i2d_Ro],3./2.)/l;
+            FlowNodeCore2D<T,a>::S[i2d_eps] = pow((double)C_mu,3./4.)*pow((double)(FlowNodeCore2D<T,a>::S[i2d_k]/FlowNodeCore2D<T,a>::S[i2d_Ro]),3./2.)/l;
            if(FlowNodeCore2D<T,a>::S[i2d_eps] != 0)
               FlowNodeTurbulence2D<T,a>::mu_t = fabs(C_mu * f_mu * FlowNodeCore2D<T,a>::S[i2d_k]*FlowNodeCore2D<T,a>::S[i2d_k]/FlowNodeCore2D<T,a>::S[i2d_eps]);
         }
@@ -854,11 +854,11 @@ void  FlowNode2D<T,a>::TurbModRANS2D(int is_mu_t,
          }
 
         if(FlowNodeTurbulence2D<T,a>::isTurbulenceCond2D(TCT_eps_CONST_2D)) {
-            FlowNodeCore2D<T,a>::S[i2d_eps] = pow(C_mu,3./4.)*pow(FlowNodeCore2D<T,a>::S[i2d_k]/FlowNodeCore2D<T,a>::S[i2d_Ro],3./2.)/l;
+            FlowNodeCore2D<T,a>::S[i2d_eps] = pow((double)C_mu,3./4.)*pow((double)(FlowNodeCore2D<T,a>::S[i2d_k]/FlowNodeCore2D<T,a>::S[i2d_Ro]),3./2.)/l;
          }
 
         if(FlowNodeTurbulence2D<T,a>::isTurbulenceCond2D(TCT_eps_Cmk2kXn_WALL_2D) ) 
-           FlowNodeCore2D<T,a>::S[i2d_eps] = pow(C_mu,3./4.)*pow(FlowNodeCore2D<T,a>::S[i2d_k]/FlowNodeCore2D<T,a>::S[i2d_Ro],3./2.)/l;
+           FlowNodeCore2D<T,a>::S[i2d_eps] = pow((double)C_mu,3./4.)*pow((double)(FlowNodeCore2D<T,a>::S[i2d_k]/FlowNodeCore2D<T,a>::S[i2d_Ro]),3./2.)/l;
 
         if(is_mu_t && FlowNodeCore2D<T,a>::S[i2d_eps] != 0) {
             T nu_t = fabs(C_mu * f_mu * FlowNodeCore2D<T,a>::S[i2d_k]*FlowNodeCore2D<T,a>::S[i2d_k]/FlowNodeCore2D<T,a>::S[i2d_eps]);   
@@ -950,7 +950,7 @@ void  FlowNode2D<T,a>::TurbModRANS2D(int is_mu_t,
                 Cv1 = 7.1;
                 Ct2 = 2.0;
                 //Ct3 = 1.2; // orig 1.1
-                Ct4 = 0.5; // orig 2
+                Ct4 = 0.5;   // orig 2
                 nu  = mu/FlowNodeCore2D<T,a>::S[i2d_Ro];
                 ksi = FlowNodeCore2D<T,a>::S[i2d_nu_t]/nu;
                 fv1 = ksi*ksi*ksi/(ksi*ksi*ksi + Cv1*Cv1*Cv1);
@@ -963,9 +963,9 @@ void  FlowNode2D<T,a>::TurbModRANS2D(int is_mu_t,
                    S_hat = 0.3 * Omega;
 
                 r   = min((FlowNodeCore2D<T,a>::S[i2d_nu_t]/(S_hat*_k*_k * FlowNodeTurbulence2D<T,a>::l_min * FlowNodeTurbulence2D<T,a>::l_min)),10.0);
-                g   = r + Cw2*(pow(r,6.0) - r);
+                g   = r + Cw2*(pow((double)r,6.0) - r);
 
-                fw  = g * pow((1.0 + pow(Cw3,6.0))/(pow(g,6.0)+pow(Cw3,6.0)),1.0/6.0);
+                fw  = g * pow((double)(1.0 + pow((double)Cw3,6.0))/(pow((double)g,6.0)+pow((double)Cw3,6.0)),1.0/6.0);
                 ft2 = Ct2 * exp(-Ct4*ksi*ksi);
 
                 A[i2d_nu_t]   = FlowNodeCore2D<T,a>::S[i2d_nu_t]*U;
