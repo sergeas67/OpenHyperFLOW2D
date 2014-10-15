@@ -12,12 +12,12 @@
 
 // FlowField2D constructor
 FlowField2D::FlowField2D(char* filename, InputData*  data):
-UMatrix2D< FlowNode2D< double, NUM_COMPONENTS> >(
-              (FlowNode2D< double, NUM_COMPONENTS>*)
+UMatrix2D< FlowNode2D< FP, NUM_COMPONENTS> >(
+              (FlowNode2D< FP, NUM_COMPONENTS>*)
                LoadSwapFile2D(filename,
                data->GetIntVal((char*)"MaxX"),
                data->GetIntVal((char*)"MaxY"),
-               sizeof(FlowNode2D< double, NUM_COMPONENTS>),
+               sizeof(FlowNode2D< FP, NUM_COMPONENTS>),
                &p,
                &fd,
                (ofstream*)(data->GetMessageStream())),
@@ -28,17 +28,17 @@ UMatrix2D< FlowNode2D< double, NUM_COMPONENTS> >(
   FlowFieldName = data->GetStringVal((char*)"ProjectName");;
 }
 // Field2D constructor
-FlowField2D::FlowField2D(char* name, int x, int y):UMatrix2D< FlowNode2D< double, NUM_COMPONENTS> >(x,y) {
+FlowField2D::FlowField2D(char* name, int x, int y):UMatrix2D< FlowNode2D< FP, NUM_COMPONENTS> >(x,y) {
 }
 // FlowField2D constructor
-FlowField2D::FlowField2D(FlowField2D* f2d):UMatrix2D< FlowNode2D< double, NUM_COMPONENTS> >(f2d->GetMatrixPtr(),f2d->GetX(),f2d->GetY()){
+FlowField2D::FlowField2D(FlowField2D* f2d):UMatrix2D< FlowNode2D< FP, NUM_COMPONENTS> >(f2d->GetMatrixPtr(),f2d->GetX(),f2d->GetY()){
     if(f2d->GetFlowFieldName()) {
       FlowFieldName = new char[strlen(f2d->GetFlowFieldName())+1];
       strcpy(FlowFieldName,f2d->GetFlowFieldName());
     }
 }
 // FlowField2D constructor
-FlowField2D::FlowField2D(char* name, UMatrix2D< FlowNode2D< double, NUM_COMPONENTS> >* m2d):UMatrix2D< FlowNode2D< double, NUM_COMPONENTS> >(m2d->GetMatrixPtr(),m2d->GetX(),m2d->GetY()){
+FlowField2D::FlowField2D(char* name, UMatrix2D< FlowNode2D< FP, NUM_COMPONENTS> >* m2d):UMatrix2D< FlowNode2D< FP, NUM_COMPONENTS> >(m2d->GetMatrixPtr(),m2d->GetX(),m2d->GetY()){
     if(name) {
       FlowFieldName = new char[strlen(name)+1];
       strcpy(FlowFieldName,name);
@@ -47,7 +47,7 @@ FlowField2D::FlowField2D(char* name, UMatrix2D< FlowNode2D< double, NUM_COMPONEN
 // FlowField2D constructor
 FlowField2D::~FlowField2D() {
   delete FlowFieldName;
-  //delete (UMatrix2D< FlowNode2D< double, NUM_COMPONENTS> >*)(this)
+  //delete (UMatrix2D< FlowNode2D< FP, NUM_COMPONENTS> >*)(this)
 }
 // FlowField2D constructor
 int FlowField2D::SaveFlowField2D(char* filename){
@@ -59,7 +59,7 @@ int FlowField2D::SaveFlowField2D(char* filename){
     ssize_t one_write = 0L;                                                                                                                     
     ssize_t len  = 0L;                                                                                                                        
     off_t  off = 0L;                                                                                                                           
-    LoadSwapFile2D(filename,GetX(),GetY(),sizeof(FlowNode2D< double, NUM_COMPONENTS>),&pf,&fd_g,f_stream);
+    LoadSwapFile2D(filename,GetX(),GetY(),sizeof(FlowNode2D< FP, NUM_COMPONENTS>),&pf,&fd_g,f_stream);
     char*  TmpPtr=(char*)GetMatrixPtr();                                                                                                             
     if(GetMatrixSize() > max_write) {                                                                                                                 
         for(off = 0L,one_write = max_write; len < GetMatrixSize(); off += max_write) {                                                                

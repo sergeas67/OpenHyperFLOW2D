@@ -520,7 +520,7 @@ void* LoadSwapFile1D(char* FileName,
 
 /* Data constructors */
 
-Data::Data(char* name, double val) {
+Data::Data(char* name, FP val) {
     dt = DT_FLOAT;
     if ( name != 0 ) {
         Name = new char[strlen(name)+1];
@@ -605,7 +605,7 @@ int      Data::ConvertDataType(DataType _dt) {
             StrValSize = 0;
             delete [] StrVal;
         } else if ( dt == DT_INT ) {
-            fVal = (double)(iVal);
+            fVal = (FP)(iVal);
             dt = DT_FLOAT;
         }
     } else if ( _dt == DT_INT ) {
@@ -708,9 +708,9 @@ int Data::operator != (Data d) {
 }
 
 
-double GetVal(XY_Table* XY, double x ) {
+FP GetVal(XY_Table* XY, FP x ) {
     int     i, n;
-    double  y;
+    FP  y;
 
     //Общее число значений в таблице
     n = XY->n;
@@ -1531,7 +1531,7 @@ int   InputData::GetIntVal(char* Name
     return 0;
 }
 
-double    InputData::GetFloatVal(char* Name
+FP    InputData::GetFloatVal(char* Name
 #ifdef _MPI
                                  ,int rank
 #endif //_MPI
@@ -1539,7 +1539,7 @@ double    InputData::GetFloatVal(char* Name
     int    i;
     Data*  D;
     DataType SaveDT;
-    double retVal;
+    FP retVal;
 
     for ( i=0;i<(int)dataArray->GetNumElements();i++ ) {
         D = *(dataArray->GetElementPtr(i));
@@ -1649,7 +1649,7 @@ DataType  InputData::GetDataType(char* Name
 }
 
 
-double  InputData::GetVal(char* Name, double par
+FP  InputData::GetVal(char* Name, FP par
 #ifdef _MPI
                           ,int rank
 #endif //_MPI
@@ -1660,7 +1660,7 @@ double  InputData::GetVal(char* Name, double par
     for ( i=0;i<(int)tableArray->GetNumElements();i++ ) {
         T = *(tableArray->GetElementPtr(i));
         if ( strcmp(T->GetName(),Name)==0 )
-            return T->GetVal((double)par);
+            return T->GetVal((FP)par);
     }
 #ifdef _MPI
     if ( rank == 0 ) {
@@ -1761,8 +1761,8 @@ int     InputData::EnumTable(UArray<char*>* tT) {
 
 XY_Table::XY_Table(unsigned int N) {
     n = N;
-    x = new double[n];
-    y = new double[n];
+    x = new FP[n];
+    y = new FP[n];
 }
 
 XY_Table::~XY_Table() {
@@ -1773,12 +1773,12 @@ XY_Table::~XY_Table() {
 }
 
 
-double XY_Table::GetX(unsigned  int i) {
+FP XY_Table::GetX(unsigned  int i) {
     if ( i >=n ) return 0;
     return x[i];
 }
 
-double XY_Table::GetY(unsigned int i) {
+FP XY_Table::GetY(unsigned int i) {
     if ( i >=n ) return 0;
     return y[i];
 }
@@ -1818,12 +1818,12 @@ int    Table::operator  < (Table) {
     return 0;
 }
 
-double Table::GetVal(double _x ) {
+FP Table::GetVal(FP _x ) {
     if ( this == InputData::GetZeroTable() )
         return 0.;
     //Общее число значений в таблице
     register int    i, _n = n;
-    register double _y;
+    register FP _y;
 
     //В таблице - единственное значение.
     if ( _n == 1 )

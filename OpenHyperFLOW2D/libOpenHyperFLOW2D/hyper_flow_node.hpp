@@ -23,7 +23,7 @@
 
 #include "libOpenHyperFLOW2D/hyper_flow_turbulence.hpp"
 
-inline double  Sgn(double a)
+inline FP  Sgn(FP a)
 {
     if ( a != 0. ) return fabs(a)/a;
     else           return 0;
@@ -714,7 +714,7 @@ void  FlowNode2D<T,a>::TurbModRANS2D(int is_mu_t,
          }else if(tem == TEM_k_eps_RNG) {
             // RNG
              // Calc various dumbing functions here
-             double nu_0 = 4.38;
+             FP nu_0 = 4.38;
 
              if(FlowNodeCore2D<T,a>::S[i2d_eps] != 0.)
                nu = sqrt(G)*FlowNodeCore2D<T,a>::S[i2d_k]/FlowNodeCore2D<T,a>::S[i2d_eps];
@@ -762,7 +762,7 @@ void  FlowNode2D<T,a>::TurbModRANS2D(int is_mu_t,
            FlowNodeCore2D<T,a>::S[i2d_eps] = pow(C_mu,3./4.)*pow(FlowNodeCore2D<T,a>::S[i2d_k]/FlowNodeCore2D<T,a>::S[i2d_Ro],3./2.)/l;
 
         if(is_mu_t && FlowNodeCore2D<T,a>::S[i2d_eps] != 0) {
-            double nu_t = fabs(C_mu * f_mu * FlowNodeCore2D<T,a>::S[i2d_k]*FlowNodeCore2D<T,a>::S[i2d_k]/FlowNodeCore2D<T,a>::S[i2d_eps]);   
+            FP nu_t = fabs(C_mu * f_mu * FlowNodeCore2D<T,a>::S[i2d_k]*FlowNodeCore2D<T,a>::S[i2d_k]/FlowNodeCore2D<T,a>::S[i2d_eps]);   
             FlowNodeTurbulence2D<T,a>::mu_t = min(nu_t,(FlowNodeTurbulence2D<T,a>::mu_t));
         }
         if (!is_init) {

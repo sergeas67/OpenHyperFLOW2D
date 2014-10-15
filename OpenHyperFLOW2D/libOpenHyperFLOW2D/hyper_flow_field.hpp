@@ -37,7 +37,7 @@ using namespace std;
 //////////////////////////////////////////////////////
 //  FlowField2D object                              //
 //////////////////////////////////////////////////////
-class FlowField2D : public UMatrix2D< FlowNode2D< double, NUM_COMPONENTS> >
+class FlowField2D : public UMatrix2D< FlowNode2D< FP, NUM_COMPONENTS> >
 {
      char*    FlowFieldName;
      int      fd;
@@ -47,7 +47,7 @@ class FlowField2D : public UMatrix2D< FlowNode2D< double, NUM_COMPONENTS> >
      FlowField2D(char* name, InputData*  data);
      FlowField2D(char* name, int x, int y);
      FlowField2D(FlowField2D*);
-     FlowField2D(char* name, UMatrix2D< FlowNode2D< double, NUM_COMPONENTS> >*);
+     FlowField2D(char* name, UMatrix2D< FlowNode2D< FP, NUM_COMPONENTS> >*);
      ~FlowField2D();
      char* GetFlowFieldName() {return FlowFieldName;}
      int SaveFlowField2D(char* filename);

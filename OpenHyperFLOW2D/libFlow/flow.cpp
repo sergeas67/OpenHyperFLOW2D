@@ -15,7 +15,7 @@ Flow::Flow () {
 }
 
 
-Flow::Flow(double Other_Cp,double OtherT0, double OtherP0, double OtherR,  double Other_lam, double Other_mu ) {
+Flow::Flow(FP Other_Cp,FP OtherT0, FP OtherP0, FP OtherR,  FP Other_lam, FP Other_mu ) {
     Lambda = 0.01;
     C = Other_Cp;
     InitVar(C/(C-OtherR), OtherT0, OtherP0, OtherR);
@@ -42,7 +42,7 @@ void   Flow::MakeVar() {
 }
 
 
-void   Flow::InitVar(double Other_k, double OtherT0, double OtherP0, double OtherR) {
+void   Flow::InitVar(FP Other_k, FP OtherT0, FP OtherP0, FP OtherR) {
     k  = Other_k;
     t0 = OtherT0;
     p0 = OtherP0;
@@ -53,23 +53,23 @@ void   Flow::InitVar() {
     InitVar(1.4, 300., 1.e5, 300.);
 }
 
-double Flow::TestTAU(double AnyLambda) {
+FP Flow::TestTAU(FP AnyLambda) {
     return(1-(k-1)/(k+1)*AnyLambda*AnyLambda);
 }
 
 
-double Flow::TestQF(double AnyLambda) {
-    double rValue;
+FP Flow::TestQF(FP AnyLambda) {
+    FP rValue;
     rValue = pow((k+1)/2,1/(k-1))*AnyLambda;
     return rValue*pow(1-(k-1)/(k+1)*AnyLambda*AnyLambda,1/(k-1));
 }
 
 
-double Flow::LAM() {
+FP Flow::LAM() {
     return Lambda;
 }
 
-double Flow::LAM(double NewLambda) {
+FP Flow::LAM(FP NewLambda) {
     if(LMAX() > NewLambda && NewLambda > 0.) {
         Lambda = NewLambda;
         return Lambda;
@@ -80,10 +80,10 @@ double Flow::LAM(double NewLambda) {
 
 
 
-double Flow::kg() {
+FP Flow::kg() {
     return k;
 }
-double Flow::kg(double New_k) {
+FP Flow::kg(FP New_k) {
     if(New_k > 0.) {
         k = New_k;
         return k;
@@ -93,11 +93,11 @@ double Flow::kg(double New_k) {
 }
 
 
-double Flow::Rg() {
+FP Flow::Rg() {
     return r;
 }
 
-double Flow::Rg(double NewR) {
+FP Flow::Rg(FP NewR) {
     if(NewR > 0.) {
         r = NewR;
         return r;
@@ -106,8 +106,8 @@ double Flow::Rg(double NewR) {
     }
 }
 
-double Flow::Tg(double NewT) {
-    double TestT;
+FP Flow::Tg(FP NewT) {
+    FP TestT;
     if(t0 > NewT &&  NewT > 0.) {
         TestT = NewT/t0;
         Lambda = Test(TAUf, TestT);
@@ -118,23 +118,23 @@ double Flow::Tg(double NewT) {
 }
 
 
-double Flow::BF() {
+FP Flow::BF() {
 
     return(sqrt(1.-1./k/k));
 
 }
 
-double Flow::AF() {
+FP Flow::AF() {
 
     return k*pow(2/(k+1),k/(k-1))*sqrt((k+1)/(k-1));
 
 }
 
-double Flow::QF() {
+FP Flow::QF() {
     return TestQF(Lambda);
 }
 
-double Flow::QF(double  NewQ, int Field) {
+FP Flow::QF(FP  NewQ, int Field) {
     if(Test(Qf, NewQ, Field) > 0.) {
         Lambda = Test(Qf, NewQ, Field);
         return TestQF(Lambda);
@@ -143,11 +143,11 @@ double Flow::QF(double  NewQ, int Field) {
     }
 }
 
-double Flow::T0() {
+FP Flow::T0() {
     return t0;
 }
 
-double Flow::T0(double NewT0) {
+FP Flow::T0(FP NewT0) {
     if(NewT0 > 0.) {
         t0 = NewT0;
         return t0;
@@ -156,11 +156,11 @@ double Flow::T0(double NewT0) {
     }
 }
 
-double Flow::P0() {
+FP Flow::P0() {
     return p0;
 }
 
-double Flow::P0(double NewP0) {
+FP Flow::P0(FP NewP0) {
     if(NewP0 > 0.) {
         p0 = NewP0;
         return p0;
@@ -169,11 +169,11 @@ double Flow::P0(double NewP0) {
     }
 }
 
-double Flow::Wg() {
+FP Flow::Wg() {
     return Lambda*Akr();
 }
 
-double Flow::Wg(double NewW) {
+FP Flow::Wg(FP NewW) {
     if(NewW > 0.) {
         if(NewW < Akr()*LMAX())
             Lambda = NewW/Akr();
@@ -185,20 +185,20 @@ double Flow::Wg(double NewW) {
     }
 }
 
-double Flow::Akr() {
+FP Flow::Akr() {
     return sqrt(2*k/(k+1)*r*t0);
 }
 
-double Flow::TAU() {
+FP Flow::TAU() {
     return TestTAU(Lambda);
 }
 
 
-double Flow::Asound() {
+FP Flow::Asound() {
     return sqrt(k*r*t0*TAU());
 }
 
-double Flow::TAU(double NewTAU) {
+FP Flow::TAU(FP NewTAU) {
     if(1. > NewTAU && NewTAU > 0.) {
         Lambda = Test(TAUf, NewTAU);
         return TestTAU(Lambda);
@@ -207,11 +207,11 @@ double Flow::TAU(double NewTAU) {
     }
 }
 
-double Flow::PF() {
+FP Flow::PF() {
     return TestPF(Lambda);
 }
 
-double Flow::PF(double NewPI) {
+FP Flow::PF(FP NewPI) {
     if(1. > NewPI && NewPI > 0.) {
         Lambda = Test(Pf, NewPI);
         return TestPF(Lambda);
@@ -220,11 +220,11 @@ double Flow::PF(double NewPI) {
     }
 }
 
-double Flow::ZF() {
+FP Flow::ZF() {
     return TestZF(Lambda);
 }
 
-double Flow::ZF(double NewZ, int Field) {
+FP Flow::ZF(FP NewZ, int Field) {
     if(NewZ*NewZ < 4.) return -1.;
     if(Field < 0) {
         Lambda = (NewZ-sqrt(NewZ*NewZ-3.999999))/2;
@@ -234,44 +234,44 @@ double Flow::ZF(double NewZ, int Field) {
 
     return TestZF(Lambda);
 }
-double Flow::MACH() {
+FP Flow::MACH() {
     return Wg()/Asound();
 }
 
-double Flow::MACH(double NewMach) {
+FP Flow::MACH(FP NewMach) {
     if(NewMach < 0.) return -1;
     Lambda = sqrt((k+1)/2*NewMach*NewMach/(1+((k-1)/2*NewMach*NewMach)));
     return NewMach;
 }
 
-double Flow::EPS(double NewEPS)
+FP Flow::EPS(FP NewEPS)
 
 {
     Lambda = Test(EPSf, NewEPS);
     return TestEPS(Lambda);
 }
 
-double Flow::YF() {
+FP Flow::YF() {
     return TestYF(Lambda);
 }
 
-double Flow::YF(double NewY)
+FP Flow::YF(FP NewY)
 
 {
     Lambda = Test(Yf, NewY);
     return TestYF(Lambda);
 }
 
-double Flow::TestFF(double AnyLambda) {
+FP Flow::TestFF(FP AnyLambda) {
     return(AnyLambda*AnyLambda+1)*pow(1-(k-1)/(k+1)*
                                       AnyLambda*AnyLambda,1/(k-1));
 }
 
-double Flow::FF() {
+FP Flow::FF() {
     return TestFF(Lambda);
 }
 
-double Flow::FF(double  NewF, int Field)
+FP Flow::FF(FP  NewF, int Field)
 
 {
 
@@ -279,28 +279,28 @@ double Flow::FF(double  NewF, int Field)
     return TestFF(Lambda);
 
 }
-double Flow::RF()
+FP Flow::RF()
 
 {
     return TestRF(Lambda);
 }
 
-double Flow::RF(double NewR)
+FP Flow::RF(FP NewR)
 
 {
     Lambda = Test(Rf, NewR);
     return TestRF(Lambda);
 }
 
-double Flow::Pg(double NewPg) {
-    double TmpPI;
+FP Flow::Pg(FP NewPg) {
+    FP TmpPI;
     if(NewPg >= P0()) return Pg();
     TmpPI = NewPg/P0();
     PF(TmpPI);
     return Pg();
 }
 
-double Flow::TestFunc(Func F, double Val)
+FP Flow::TestFunc(Func F, FP Val)
 
 {
     switch(F) {
@@ -316,7 +316,7 @@ double Flow::TestFunc(Func F, double Val)
 
 }
 
-double Flow::Test(Func F, double Val) {
+FP Flow::Test(Func F, FP Val) {
     LMax = LMAX();
     LMin = 0.01;
     iter = 0;
@@ -336,7 +336,7 @@ double Flow::Test(Func F, double Val) {
     return TestLam;
 }
 
-double Flow::Test(Func F, double Val , int Area) {
+FP Flow::Test(Func F, FP Val , int Area) {
     if(Area < 0) {
         LMax = 0.01;
         LMin = 1.;
@@ -373,14 +373,14 @@ Flow& Flow::operator = (Flow& NewFlow) {
     return *this;
 }
 
-void   Flow::CorrectFlow(double T, double p, double ref_val, FixedValue fv) {
+void   Flow::CorrectFlow(FP T, FP p, FP ref_val, FixedValue fv) {
 
     if(fv == FV_MACH) {
        MACH(ref_val);
        t0 = T/TAU();
        p0 = p/PF();
     } else if(fv == FV_VELOCITY) {
-       double res_p = 1.0, res_t = 1.0;
+       FP res_p = 1.0, res_t = 1.0;
        int iter=0;
        do {
            MACH(ref_val/Asound());

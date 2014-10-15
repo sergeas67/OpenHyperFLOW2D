@@ -18,111 +18,111 @@ enum FixedValue {
 
 class Flow {
 
-    double  r;                  
-    double  t0;                 
-    double  p0;                 
-    double  Lambda;             
-    double  k;                  
+    FP  r;                  
+    FP  t0;                 
+    FP  p0;                 
+    FP  Lambda;             
+    FP  k;                  
 
-    double LMax;
-    double LMin;
-    double TestLam;
+    FP LMax;
+    FP LMin;
+    FP TestLam;
     int    iter;
 
     void MakeVar();
-    void InitVar(double Other_k, double OtherT0,double OtherP0,double OtherR);
+    void InitVar(FP Other_k, FP OtherT0,FP OtherP0,FP OtherR);
     void InitVar();
 
-    inline double  Test(Func F, double Value);
-    inline double  Test(Func F, double Value,int Area);
-    inline double  TestFunc(Func F, double Value);
+    inline FP  Test(Func F, FP Value);
+    inline FP  Test(Func F, FP Value,int Area);
+    inline FP  TestFunc(Func F, FP Value);
 
-    double  TestFF(double AnyLambda);
-    double  TestQF(double AnyLambda);
-    double  TestTAU(double AnyLambda);
-    double  TestPF(double AnyLambda) {
+    FP  TestFF(FP AnyLambda);
+    FP  TestQF(FP AnyLambda);
+    FP  TestTAU(FP AnyLambda);
+    FP  TestPF(FP AnyLambda) {
         return pow(TestTAU(AnyLambda),k/(k-1));
     }
-    double  TestEPS(double AnyLambda) {
+    FP  TestEPS(FP AnyLambda) {
         return pow(TestTAU(AnyLambda),1/(k-1));
     }
-    double  TestYF(double AnyLambda) {
+    FP  TestYF(FP AnyLambda) {
         return TestQF(AnyLambda)/TestPF(AnyLambda);
     }
-    double  TestZF(double AnyLambda) {
+    FP  TestZF(FP AnyLambda) {
         return(AnyLambda + 1/AnyLambda);
     }
-    double  TestRF(double AnyLambda) {
+    FP  TestRF(FP AnyLambda) {
         return TestPF(AnyLambda)/TestFF(AnyLambda) ;
     }
 
 public:
 
-    double  C;
-    double  lam;
-    double  mu;
+    FP  C;
+    FP  lam;
+    FP  mu;
 
-    double LMAX() {
+    FP LMAX() {
         return sqrt((k+1)/(k-1));
     }
-    double Tg() {
+    FP Tg() {
         return t0*TAU();
     }
-    double EPS() {
+    FP EPS() {
         return TestEPS(Lambda);
     }
-    double ZF(double NewZ, int Field=1);
-    double Pr() {
+    FP ZF(FP NewZ, int Field=1);
+    FP Pr() {
         return C*mu/lam;
     }
-    double ROG() {
+    FP ROG() {
         return EPS()*P0()/Rg()/T0();
     }
-    double ROG(double newRo) {
+    FP ROG(FP newRo) {
         return EPS(newRo/P0()*Rg()*T0())*P0()/Rg()/T0();
     }
-    double Pg() {
+    FP Pg() {
         return p0*PF();
     }
-    double Pg(double NewPg);
-    double Akr();
-    double Asound();
-    double MACH(double NewMach);
-    double kg(double New_k);
-    double TAU(double NewT);
-    double PF(double NewPI);
-    double EPS(double NewEPS);
-    double YF(double NewY);
-    double FF(double NewF, int Field= 1);
-    double RF(double NewR);
-    double YF();
-    double FF();
-    double RF();
-    double MACH();
-    double LAM();
-    double LAM(double NewLambda);
-    double kg();
-    double Rg();
-    double Rg(double NewR);
-    double Tg(double NewT);
-    double Wg();
-    double Wg(double NewW);
-    double T0();
-    double T0(double NewT0);
-    double P0();
-    double P0(double NewP0);
-    double TAU();
-    double PF();
-    double QF();
-    double QF(double NewQ, int Field= 1);
-    double ZF();
-    double BF();
-    double AF();
+    FP Pg(FP NewPg);
+    FP Akr();
+    FP Asound();
+    FP MACH(FP NewMach);
+    FP kg(FP New_k);
+    FP TAU(FP NewT);
+    FP PF(FP NewPI);
+    FP EPS(FP NewEPS);
+    FP YF(FP NewY);
+    FP FF(FP NewF, int Field= 1);
+    FP RF(FP NewR);
+    FP YF();
+    FP FF();
+    FP RF();
+    FP MACH();
+    FP LAM();
+    FP LAM(FP NewLambda);
+    FP kg();
+    FP Rg();
+    FP Rg(FP NewR);
+    FP Tg(FP NewT);
+    FP Wg();
+    FP Wg(FP NewW);
+    FP T0();
+    FP T0(FP NewT0);
+    FP P0();
+    FP P0(FP NewP0);
+    FP TAU();
+    FP PF();
+    FP QF();
+    FP QF(FP NewQ, int Field= 1);
+    FP ZF();
+    FP BF();
+    FP AF();
 
-    void   CorrectFlow(double T, double p, double ref_val, FixedValue fv = FV_MACH );
+    void   CorrectFlow(FP T, FP p, FP ref_val, FixedValue fv = FV_MACH );
 
     Flow();                                 
-    Flow(double Other_Cp,double OtherT0, double OtherP0, double OtherR,  double Other_lam=0.01, double Other_mu=5.e-5 );
+    Flow(FP Other_Cp,FP OtherT0, FP OtherP0, FP OtherR,  FP Other_lam=0.01, FP Other_mu=5.e-5 );
     Flow(Flow &OtherFlow);
     virtual ~Flow();                        
 

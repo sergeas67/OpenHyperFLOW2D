@@ -27,17 +27,17 @@ int            TurbStartIter;
 int            TurbExtModel;
 int            err_i, err_j;
 int            turb_mod_name_index = 0;
-double         Ts0,A,W,Mach;
+FP         Ts0,A,W,Mach;
 
 UArray< XY<int> >* GlobalSubmatrix;
 UArray< XY<int> >* WallNodes;
 
-UArray<UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >*>*     SubmatrixArray;
-UArray<UMatrix2D< FlowNodeCore2D<double,NUM_COMPONENTS> >*>* CoreSubmatrixArray;
+UArray<UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*>*     SubmatrixArray;
+UArray<UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >*>* CoreSubmatrixArray;
 UArray<XCut>*                                                XCutArray;
 
 int     Nstep;
-double  ExitMonitorValue;
+FP  ExitMonitorValue;
 int     MonitorNumber;
 int     MonitorCondition; // 0 - equal
                           // 1 - less than
@@ -45,22 +45,22 @@ int     MonitorCondition; // 0 - equal
 UArray< MonitorPoint >*   MonitorPointsArray = NULL;
 
 unsigned int     AddSrcStartIter = 0;
-double  beta;
-double  beta0;
-double  CFL;
+FP  beta;
+FP  beta0;
+FP  CFL;
 Table*  CFL_Scenario;
 Table*  beta_Scenario;
 #ifdef _OPEN_MP
-double  DD_max_var;
+FP  DD_max_var;
 #endif // OPEN_MP
 
 //------------------------------------------
 // Cx,Cy,Cd,Cv,Cp,St
 //------------------------------------------
 int     is_Cx_calc,is_Cd_calc;
-double  p_ambient;
-double  x0_body,y0_body,dx_body,dy_body;
-double  x0_nozzle,y0_nozzle,dy_nozzle;
+FP  p_ambient;
+FP  x0_body,y0_body,dx_body,dy_body;
+FP  x0_nozzle,y0_nozzle,dy_nozzle;
 
 int     Cx_Flow_index;
 int     Cd_Flow_index;
@@ -79,22 +79,22 @@ int     is_p_asterisk_out;
 ChemicalReactionsModelData2D chemical_reactions;
 BlendingFactorFunction     bFF;
 
-double* Y=NULL;
-double  Cp=0.;
-double  lam=0.;
-double  mu=0.;
-double  Tg=0.;
-double  Rg=0.;
-double  Pg=0.;
-double  Wg=0.;
-double  Ug,Vg;
+FP* Y=NULL;
+FP  Cp=0.;
+FP  lam=0.;
+FP  mu=0.;
+FP  Tg=0.;
+FP  Rg=0.;
+FP  Pg=0.;
+FP  Wg=0.;
+FP  Ug,Vg;
 int     CompIndex;
 
-double Y_fuel[4]={1.,0.,0.,0.};  /* fuel */
-double Y_ox[4]  ={0.,1.,0.,0.};  /* OX */
-double Y_cp[4]  ={0.,0.,1.,0.};  /* cp */
-double Y_air[4] ={0.,0.,0.,1.};  /* air */
-double Y_mix[4] ={0.,0.,0.,0.};  /* mixture */
+FP Y_fuel[4]={1.,0.,0.,0.};  /* fuel */
+FP Y_ox[4]  ={0.,1.,0.,0.};  /* OX */
+FP Y_cp[4]  ={0.,0.,1.,0.};  /* cp */
+FP Y_air[4] ={0.,0.,0.,1.};  /* air */
+FP Y_mix[4] ={0.,0.,0.,0.};  /* mixture */
 const  char*  RMS_Name[11] = {"Rho","Rho*U","Rho*V","Rho*E","Rho*Yfu","Rho*Yox","Rho*Ycp","Rho*k","Rho*eps","Rho*omega","nu_t"};
 int    useSwapFile=0;
 char   RMSFileName[255];
@@ -129,16 +129,16 @@ unsigned int                                 iter = 0;        // iteration numbe
 unsigned int                                 last_iter=0;     // Global iteration number
 int                                          isStop=0;        // Stop flag
 InputData*                                   Data=NULL;       // Object data loader
-UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >*  J=NULL;      // Main computation area
+UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*  J=NULL;      // Main computation area
 UArray<Flow*>*                               FlowList=NULL;   // List of 'Flow' objects
 UArray<Flow2D*>*                             Flow2DList=NULL; // List of 'Flow2D' objects
 UArray<Bound2D*>                             SingleBoundsList;// Single Bounds List;
 
-double                                       dt;              // time step
-double*                                      RoUx=NULL;
-double*                                      RoVy=NULL;
-double                                       GlobalTime=0.;
-double                                       CurrentTimePart=0;
+FP                                       dt;              // time step
+FP*                                      RoUx=NULL;
+FP*                                      RoVy=NULL;
+FP                                       GlobalTime=0.;
+FP                                       CurrentTimePart=0;
 
 ofstream*                                    pOutputData;     // output data stream (file)
 
@@ -146,8 +146,8 @@ int                                          I,NSaveStep;
 unsigned int                                 MaxX=0;          // X dimension of computation area
 unsigned int                                 MaxY=0;          // Y dimension of computation area
 
-double                                       dxdy,dx2,dy2;
-double                                       Gig,SigW,SigF,delta_bl;
+FP                                       dxdy,dx2,dy2;
+FP                                       Gig,SigW,SigF,delta_bl;
 
 unsigned long FileSizeGas      = 0;
 int      isVerboseOutput       = 0;
@@ -238,7 +238,7 @@ void InitSharedData(InputData* _data,
                  Abort_OpenHyperFLOW2D();
             }
 
-            FlowNode2D<double,NUM_COMPONENTS>::FT = (FlowType)(_data->GetIntVal((char*)"FlowType"));
+            FlowNode2D<FP,NUM_COMPONENTS>::FT = (FlowType)(_data->GetIntVal((char*)"FlowType"));
             if ( _data->GetDataError()==-1 ) {
                 Abort_OpenHyperFLOW2D();
             }
@@ -300,7 +300,7 @@ void InitSharedData(InputData* _data,
                 MonitorPoint TmpPoint;
                 for (int i=0;i<NumMonitorPoints;i++) {
                    char   point_str[256];
-                   double point_xy;
+                   FP point_xy;
                    snprintf(point_str,256,"Point-%i.X",i+1);
                    point_xy =  _data->GetFloatVal(point_str);
                    if ( _data->GetDataError()==-1 ) {
@@ -465,47 +465,47 @@ void InitSharedData(InputData* _data,
             }
 
 #ifdef _UNIFORM_MESH_
-            FlowNode2D<double,NUM_COMPONENTS>::dx        = dx;
-            FlowNode2D<double,NUM_COMPONENTS>::dy        = dy;
+            FlowNode2D<FP,NUM_COMPONENTS>::dx        = dx;
+            FlowNode2D<FP,NUM_COMPONENTS>::dy        = dy;
 #endif //_UNIFORM_MESH_
-            FlowNode2D<double,NUM_COMPONENTS>::Hu[h_fu]  = model_data->H_Fuel;
-            FlowNode2D<double,NUM_COMPONENTS>::Hu[h_ox]  = model_data->H_OX;
-            FlowNode2D<double,NUM_COMPONENTS>::Hu[h_cp]  = model_data->H_cp;
-            FlowNode2D<double,NUM_COMPONENTS>::Hu[h_air] = model_data->H_air;
+            FlowNode2D<FP,NUM_COMPONENTS>::Hu[h_fu]  = model_data->H_Fuel;
+            FlowNode2D<FP,NUM_COMPONENTS>::Hu[h_ox]  = model_data->H_OX;
+            FlowNode2D<FP,NUM_COMPONENTS>::Hu[h_cp]  = model_data->H_cp;
+            FlowNode2D<FP,NUM_COMPONENTS>::Hu[h_air] = model_data->H_air;
 };
 
 #ifdef _MPI
 struct Var_pack {
-       double   dt_min;
+       FP   dt_min;
 #ifdef __INTEL_COMPILER
        DD_pack  DD[4+NUM_COMPONENTS+2];
 #else 
-       DD_pack  DD[FlowNode2D<double,NUM_COMPONENTS>::NumEq];
+       DD_pack  DD[FlowNode2D<FP,NUM_COMPONENTS>::NumEq];
 #endif //__INTEL_COMPILER
 };
 #endif // _MPI
 
 void DEEPS2D_Run(ofstream* f_stream
 #ifdef _MPI
-                ,UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >*     pJ,
-                 UMatrix2D< FlowNodeCore2D<double,NUM_COMPONENTS> >* pC,
-                 int rank, int last_rank, double x0
+                ,UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*     pJ,
+                 UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >* pC,
+                 int rank, int last_rank, FP x0
 #endif //_MPI
                  ) {
 
    // local variables
-    double   n_n,m_m,n_n_1,m_m_1;
-    double   dXX,dYY,AAA;
+    FP   n_n,m_m,n_n_1,m_m_1;
+    FP   dXX,dYY,AAA;
     int      n1,n2,n3,n4;
     unsigned int j,k;
     unsigned int StartXLocal,MaxXLocal;
-    double   dtdx;
-    double   dtdy;
-    double   dyy;
-    double   dxx;
-    double   dx_1,dy_1; // 1/dx, 1/dy
-    double   d_time;
-    double   t,VCOMP;
+    FP   dtdx;
+    FP   dtdy;
+    FP   dyy;
+    FP   dxx;
+    FP   dx_1,dy_1; // 1/dx, 1/dy
+    FP   d_time;
+    FP   t,VCOMP;
     timeval  start, stop, mark1, mark2;
     int      N1,N2,N3,N4;
 #ifdef _OPEN_MP
@@ -514,28 +514,28 @@ void DEEPS2D_Run(ofstream* f_stream
 #ifdef _MPI
     unsigned int i_max,j_max,k_max;
 #endif //_MPI
-    double   dt_min_local;
-    double   _beta;
-    double   DD_local[FlowNode2D<double,NUM_COMPONENTS>::NumEq];
-    double   max_RMS;
+    FP   dt_min_local;
+    FP   _beta;
+    FP   DD_local[FlowNode2D<FP,NUM_COMPONENTS>::NumEq];
+    FP   max_RMS;
     int      k_max_RMS;
 
 #ifndef _MPI
-    UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >*     pJ=NULL;
-    UMatrix2D< FlowNodeCore2D<double,NUM_COMPONENTS> >* pC=NULL;
-    double*   dt_min;
+    UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*     pJ=NULL;
+    UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >* pC=NULL;
+    FP*   dt_min;
     int*      i_c;
     int*      j_c;
-    double    dtmin=1.0;
-    double    DD[FlowNode2D<double,NUM_COMPONENTS>::NumEq];
-    double    sum_RMS[FlowNode2D<double,NUM_COMPONENTS>::NumEq];
-    unsigned long sum_iRMS[FlowNode2D<double,NUM_COMPONENTS>::NumEq];
-    UMatrix2D<double> RMS(FlowNode2D<double,NUM_COMPONENTS>::NumEq,SubmatrixArray->GetNumElements());
-    UMatrix2D<int>    iRMS(FlowNode2D<double,NUM_COMPONENTS>::NumEq,SubmatrixArray->GetNumElements());
-    UMatrix2D<double> DD_max(FlowNode2D<double,NUM_COMPONENTS>::NumEq,SubmatrixArray->GetNumElements());
+    FP    dtmin=1.0;
+    FP    DD[FlowNode2D<FP,NUM_COMPONENTS>::NumEq];
+    FP    sum_RMS[FlowNode2D<FP,NUM_COMPONENTS>::NumEq];
+    unsigned long sum_iRMS[FlowNode2D<FP,NUM_COMPONENTS>::NumEq];
+    UMatrix2D<FP> RMS(FlowNode2D<FP,NUM_COMPONENTS>::NumEq,SubmatrixArray->GetNumElements());
+    UMatrix2D<int>    iRMS(FlowNode2D<FP,NUM_COMPONENTS>::NumEq,SubmatrixArray->GetNumElements());
+    UMatrix2D<FP> DD_max(FlowNode2D<FP,NUM_COMPONENTS>::NumEq,SubmatrixArray->GetNumElements());
 #else
-    double   RMS[FlowNode2D<double,NUM_COMPONENTS>::NumEq];
-    unsigned long iRMS[FlowNode2D<double,NUM_COMPONENTS>::NumEq];
+    FP   RMS[FlowNode2D<FP,NUM_COMPONENTS>::NumEq];
+    unsigned long iRMS[FlowNode2D<FP,NUM_COMPONENTS>::NumEq];
     Var_pack DD_max[last_rank+1];
 #ifdef _MPI_NB
     MPI::Request  HaloExchange[4];
@@ -555,7 +555,7 @@ void DEEPS2D_Run(ofstream* f_stream
     n1 = n2 = n3 = n4 = 1;
     d_time = 0.;
 #ifndef _MPI
-    dt_min = new double[SubmatrixArray->GetNumElements()];
+    dt_min = new FP[SubmatrixArray->GetNumElements()];
     i_c    = new int[SubmatrixArray->GetNumElements()];
     j_c    = new int[SubmatrixArray->GetNumElements()];
 #endif // _MPI
@@ -627,9 +627,9 @@ void DEEPS2D_Run(ofstream* f_stream
                   gettimeofday(&mark2,NULL);
                   gettimeofday(&start,NULL);
                   if( AddSrcStartIter < iter + last_iter){
-                   FlowNode2D<double,NUM_COMPONENTS>::isSrcAdd = 1;
+                   FlowNode2D<FP,NUM_COMPONENTS>::isSrcAdd = 1;
                   } else {
-                   FlowNode2D<double,NUM_COMPONENTS>::isSrcAdd = 0;
+                   FlowNode2D<FP,NUM_COMPONENTS>::isSrcAdd = 0;
                   }
 #ifdef _OPENMP
                   n_s = (int)SubmatrixArray->GetNumElements();
@@ -641,14 +641,14 @@ void DEEPS2D_Run(ofstream* f_stream
 #endif //_OPENMP
                   iter = 0;
                   do {
-                      FlowNode2D< double,NUM_COMPONENTS >* CurrentNode=NULL;
-                      FlowNodeCore2D< double,NUM_COMPONENTS >* NextNode=NULL;
-                      FlowNode2D< double,NUM_COMPONENTS >* UpNode=NULL;          // neast
-                      FlowNode2D< double,NUM_COMPONENTS >* DownNode=NULL;        // nodes
-                      FlowNode2D< double,NUM_COMPONENTS >* LeftNode=NULL;        // references
-                      FlowNode2D< double,NUM_COMPONENTS >* RightNode=NULL;
-                      double beta_Scenario_Val = beta_Scenario->GetVal(iter+last_iter);
-                      double CFL_Scenario_Val  = CFL_Scenario->GetVal(iter+last_iter);
+                      FlowNode2D< FP,NUM_COMPONENTS >* CurrentNode=NULL;
+                      FlowNodeCore2D< FP,NUM_COMPONENTS >* NextNode=NULL;
+                      FlowNode2D< FP,NUM_COMPONENTS >* UpNode=NULL;          // neast
+                      FlowNode2D< FP,NUM_COMPONENTS >* DownNode=NULL;        // nodes
+                      FlowNode2D< FP,NUM_COMPONENTS >* LeftNode=NULL;        // references
+                      FlowNode2D< FP,NUM_COMPONENTS >* RightNode=NULL;
+                      FP beta_Scenario_Val = beta_Scenario->GetVal(iter+last_iter);
+                      FP CFL_Scenario_Val  = CFL_Scenario->GetVal(iter+last_iter);
 #ifdef _MPI
 // MPI version
                   if(rank == 0 ) {
@@ -665,7 +665,7 @@ void DEEPS2D_Run(ofstream* f_stream
 
                   k_max_RMS = -1;
 
-                  for (int kk=0;kk<FlowNode2D<double,NUM_COMPONENTS>::NumEq;kk++ ) {
+                  for (int kk=0;kk<FlowNode2D<FP,NUM_COMPONENTS>::NumEq;kk++ ) {
                       RMS[kk] = 0.;                                           // Clean sum residual
                       iRMS[kk]= 0;                                            // num involved nodes
                       DD_max[rank].DD[kk].RMS  = 0.;                          // sum residual per rank
@@ -688,7 +688,7 @@ void DEEPS2D_Run(ofstream* f_stream
 
                     k_max_RMS = -1;
 
-                    for ( k=0;k<(int)FlowNode2D<double,NUM_COMPONENTS>::NumEq;k++ ) {
+                    for ( k=0;k<(int)FlowNode2D<FP,NUM_COMPONENTS>::NumEq;k++ ) {
                            for(int ii=0;ii<(int)SubmatrixArray->GetNumElements();ii++) {
                                sum_RMS[k]  = RMS(k,ii)  = 0.;    // Clean sum residual
                                sum_iRMS[k] = iRMS(k,ii) = 0;     // num involved nodes
@@ -734,7 +734,7 @@ void DEEPS2D_Run(ofstream* f_stream
 #ifdef _MPI
                     MPI::COMM_WORLD.Bcast(&dt,1,MPI::DOUBLE,0);
 #else
-                    for ( k=0;k<(int)FlowNode2D<double,NUM_COMPONENTS>::NumEq;k++ ) {
+                    for ( k=0;k<(int)FlowNode2D<FP,NUM_COMPONENTS>::NumEq;k++ ) {
                        DD_max(k,ii) =  0.;
                       }
 
@@ -817,7 +817,7 @@ void DEEPS2D_Run(ofstream* f_stream
                                 beta  = CurrentNode->beta;
                                 _beta = 1. - beta;
                                 
-                                int Num_Eq =  (FlowNode2D<double,NUM_COMPONENTS>::NumEq-AddEq);
+                                int Num_Eq =  (FlowNode2D<FP,NUM_COMPONENTS>::NumEq-AddEq);
 
                                 // Scan equation system ... k - number of equation
                                 for (int k=0;k<Num_Eq;k++ ) {
@@ -1005,13 +1005,13 @@ void DEEPS2D_Run(ofstream* f_stream
 
                               AddEq = SetTurbulenceModel(CurrentNode);
                               
-                              int Num_Eq =  (FlowNode2D<double,NUM_COMPONENTS>::NumEq-AddEq);
+                              int Num_Eq =  (FlowNode2D<FP,NUM_COMPONENTS>::NumEq-AddEq);
 
                               for (int k=0;k<Num_Eq;k++ ) {
 
                                   int c_flag = 0;
 
-                                  if ( k < 4 ) // Make bit flags for future test for current equation // FlowNode2D<double,NUM_COMPONENTS>::NumEq-AddEq-NUM_COMPONENTS ?
+                                  if ( k < 4 ) // Make bit flags for future test for current equation // FlowNode2D<FP,NUM_COMPONENTS>::NumEq-AddEq-NUM_COMPONENTS ?
                                       c_flag  = CT_Ro_CONST_2D   << k;
                                   else if (k<(4+NUM_COMPONENTS))  // 7 ?
                                       c_flag  = CT_Y_CONST_2D;
@@ -1024,8 +1024,8 @@ void DEEPS2D_Run(ofstream* f_stream
                                   if ( !CurrentNode->isCond2D((CondType2D)c_flag) && 
                                         CurrentNode->S[k] != 0. ) {
 
-                                        double Tmp = CurrentNode->S[k];
-                                        double beta_min;
+                                        FP Tmp = CurrentNode->S[k];
+                                        FP beta_min;
 
                                         if(k == i2d_RoU && k == i2d_RoV ) {
                                             Tmp = sqrt(CurrentNode->S[i2d_RoU]*CurrentNode->S[i2d_RoU]+
@@ -1092,7 +1092,7 @@ void DEEPS2D_Run(ofstream* f_stream
 
                                     CurrentNode->droYdx[NUM_COMPONENTS]=CurrentNode->droYdy[NUM_COMPONENTS]=0.;
 
-                                    for (int k=4;k<FlowNode2D<double,NUM_COMPONENTS>::NumEq-2;k++ ) {
+                                    for (int k=4;k<FlowNode2D<FP,NUM_COMPONENTS>::NumEq-2;k++ ) {
                                         if ( !CurrentNode->isCond2D(CT_dYdx_NULL_2D) ) {
                                             CurrentNode->droYdx[k-4]=(RightNode->S[k]-LeftNode->S[k])*dx_1*0.5;
                                             CurrentNode->droYdx[NUM_COMPONENTS]+=(RightNode->S[k]-LeftNode->S[k])*dx_1*0.5;
@@ -1150,12 +1150,12 @@ void DEEPS2D_Run(ofstream* f_stream
                                     if( CurrentNode->Tg < 0. ) {
                                         *f_stream << "\nTg=" << CurrentNode->Tg << " K. p=" << CurrentNode->p <<" Pa dt=" << dt << " sec.\n" << flush;
 #ifdef _MPI
-                                        *f_stream << "\nERROR: Computational unstability in UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >(" << (int)(x0/FlowNode2D<double,NUM_COMPONENTS>::dx) + i <<","<< j << ") on iteration " << iter+last_iter<< "...\n";
+                                        *f_stream << "\nERROR: Computational unstability in UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >(" << (int)(x0/FlowNode2D<FP,NUM_COMPONENTS>::dx) + i <<","<< j << ") on iteration " << iter+last_iter<< "...\n";
 #else
   #ifdef _OPENMP
-                                        *f_stream << "\nERROR: Computational unstability in local (num_thread="<< omp_get_thread_num() << ") UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >(" << i <<","<< j <<") on iteration " << iter+last_iter << "...\n";
+                                        *f_stream << "\nERROR: Computational unstability in local (num_thread="<< omp_get_thread_num() << ") UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >(" << i <<","<< j <<") on iteration " << iter+last_iter << "...\n";
   #else
-                                        *f_stream << "\nERROR: Computational unstability in UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >(" << i <<","<< j <<") on iteration " << iter+last_iter<< "...\n";
+                                        *f_stream << "\nERROR: Computational unstability in UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >(" << i <<","<< j <<") on iteration " << iter+last_iter<< "...\n";
   #endif // _OPENMP
 #endif // _MPI
 
@@ -1213,7 +1213,7 @@ void DEEPS2D_Run(ofstream* f_stream
                                       isRun = 0;
                                       Abort_OpenHyperFLOW2D();
                                     }  else {
-                                            double CFL_min      = min(CFL,CFL_Scenario_Val);
+                                            FP CFL_min      = min(CFL,CFL_Scenario_Val);
                                             AAA                 = sqrt(CurrentNode->k*CurrentNode->R*CurrentNode->Tg); 
                                             dt_min_local        = CFL_min*
                                                                   min(dx/(AAA+fabs(CurrentNode->U)),dy/(AAA+fabs(CurrentNode->V)));
@@ -1303,7 +1303,7 @@ void DEEPS2D_Run(ofstream* f_stream
 #endif // _MPI
                                    );
 #ifdef _OPENMP
- for (DD_max_var = 1.,k=0;k<(int)FlowNode2D<double,NUM_COMPONENTS>::NumEq;k++ ) {
+ for (DD_max_var = 1.,k=0;k<(int)FlowNode2D<FP,NUM_COMPONENTS>::NumEq;k++ ) {
     DD_max_var = DD[k] = max(DD[k],DD_max(k,ii));
     if(DD[k] == DD_max(k,ii)) {
        i_max =  i_c[ii];
@@ -1356,19 +1356,19 @@ void DEEPS2D_Run(ofstream* f_stream
               for(int ii_monitor=0;ii_monitor<(int)MonitorPointsArray->GetNumElements();ii_monitor++) {
                   if(rank == MonitorPointsArray->GetElement(ii_monitor).rank) {
 
-                      int i_i = (MonitorPointsArray->GetElement(ii_monitor).MonitorXY.GetX() - x0)/FlowNode2D<double,NUM_COMPONENTS>::dx;
-                      int j_j = MonitorPointsArray->GetElement(ii_monitor).MonitorXY.GetY()/FlowNode2D<double,NUM_COMPONENTS>::dy;
+                      int i_i = (MonitorPointsArray->GetElement(ii_monitor).MonitorXY.GetX() - x0)/FlowNode2D<FP,NUM_COMPONENTS>::dx;
+                      int j_j = MonitorPointsArray->GetElement(ii_monitor).MonitorXY.GetY()/FlowNode2D<FP,NUM_COMPONENTS>::dy;
                       MonitorPointsArray->GetElement(ii_monitor).p  = pJ->GetValue(i_i,j_j).p;
                       MonitorPointsArray->GetElement(ii_monitor).T  = pJ->GetValue(i_i,j_j).Tg;
                   }
 
                   MPI::COMM_WORLD.Bcast(&MonitorPointsArray->GetElement(ii_monitor).p,
-                                        sizeof(double),
+                                        sizeof(FP),
                                         MPI::DOUBLE,
                                         MonitorPointsArray->GetElement(ii_monitor).rank);
 
                   MPI::COMM_WORLD.Bcast(&MonitorPointsArray->GetElement(ii_monitor).T,
-                                        sizeof(double),
+                                        sizeof(FP),
                                         MPI::DOUBLE,
                                         MonitorPointsArray->GetElement(ii_monitor).rank);
               }
@@ -1376,7 +1376,7 @@ void DEEPS2D_Run(ofstream* f_stream
 
         if(rank == 0) {
             for(int ii=0,DD_max_var=0.;ii<last_rank+1;ii++) {
-                for (k=0;k<(int)(FlowNode2D<double,NUM_COMPONENTS>::NumEq);k++ ) {
+                for (k=0;k<(int)(FlowNode2D<FP,NUM_COMPONENTS>::NumEq);k++ ) {
                    DD_max_var = max(DD_max[ii].DD[k].DD,DD_max_var);
                    RMS[k] += DD_max[ii].DD[k].RMS;
                    iRMS[k]+= DD_max[ii].DD[k].iRMS;
@@ -1388,7 +1388,7 @@ void DEEPS2D_Run(ofstream* f_stream
               }
             }
             
-            for (k=0;k<(int)(FlowNode2D<double,NUM_COMPONENTS>::NumEq);k++ ) {
+            for (k=0;k<(int)(FlowNode2D<FP,NUM_COMPONENTS>::NumEq);k++ ) {
                  if(iRMS[k] > 0) {
 
                   RMS[k] = sqrt(RMS[k]/iRMS[k]);
@@ -1412,7 +1412,7 @@ void DEEPS2D_Run(ofstream* f_stream
 #pragma omp single
 #endif // _OPENMP
     {
-        for(k=0;k<(int)(FlowNode2D<double,NUM_COMPONENTS>::NumEq);k++ ) {
+        for(k=0;k<(int)(FlowNode2D<FP,NUM_COMPONENTS>::NumEq);k++ ) {
          for(int ii=0;ii<(int)SubmatrixArray->GetNumElements();ii++) {
               if(iRMS(k,ii) > 0) {
                  sum_RMS[k]  += RMS(k,ii);
@@ -1444,8 +1444,8 @@ void DEEPS2D_Run(ofstream* f_stream
 #ifdef _MPI
                                - x0
 #endif //_MPI
-                               )/FlowNode2D<double,NUM_COMPONENTS>::dx;
-                    int j_j = MonitorPointsArray->GetElement(ii_monitor).MonitorXY.GetY()/FlowNode2D<double,NUM_COMPONENTS>::dy;
+                               )/FlowNode2D<FP,NUM_COMPONENTS>::dx;
+                    int j_j = MonitorPointsArray->GetElement(ii_monitor).MonitorXY.GetY()/FlowNode2D<FP,NUM_COMPONENTS>::dy;
                     
                     MonitorPointsArray->GetElement(ii_monitor).p = 
 #ifdef _MPI
@@ -1466,10 +1466,10 @@ void DEEPS2D_Run(ofstream* f_stream
          CurrentTimePart += dt;
          if ( isVerboseOutput && iter/NOutStep*NOutStep == iter ) {
              gettimeofday(&mark1,NULL);
-             d_time = (double)(mark1.tv_sec-mark2.tv_sec)+(double)(mark1.tv_usec-mark2.tv_usec)*1.e-6; 
+             d_time = (FP)(mark1.tv_sec-mark2.tv_sec)+(FP)(mark1.tv_usec-mark2.tv_usec)*1.e-6; 
 
              if(d_time > 0.)
-                 VCOMP = (double)(NOutStep)/d_time;
+                 VCOMP = (FP)(NOutStep)/d_time;
              else
                  VCOMP = 0.;
              memcpy(&mark2,&mark1,sizeof(mark1));
@@ -1489,14 +1489,14 @@ void DEEPS2D_Run(ofstream* f_stream
                 k_max_RMS +=turb_mod_name_index;
 
              if(k_max_RMS != -1 && (MonitorNumber == 0 || MonitorNumber == 5))
-             *f_stream << "Step No " << iter+last_iter << " maxRMS["<< RMS_Name[k_max_RMS] << "]="<< (double)(max_RMS*100.) \
-                        <<  " % step_time=" << (double)d_time << " sec (" << (double)VCOMP <<" step/sec) dt="<< dt <<"\n" << flush;
+             *f_stream << "Step No " << iter+last_iter << " maxRMS["<< RMS_Name[k_max_RMS] << "]="<< (FP)(max_RMS*100.) \
+                        <<  " % step_time=" << (FP)d_time << " sec (" << (FP)VCOMP <<" step/sec) dt="<< dt <<"\n" << flush;
              else if(MonitorNumber > 0 &&  MonitorNumber < 5 )
-                 *f_stream << "Step No " << iter+last_iter << " maxRMS["<< RMS_Name[MonitorNumber-1] << "]="<< (double)(max_RMS*100.) \
-                  <<  " % step_time=" << (double)d_time << " sec (" << (double)VCOMP <<" step/sec) dt="<< dt <<"\n" << flush;
+                 *f_stream << "Step No " << iter+last_iter << " maxRMS["<< RMS_Name[MonitorNumber-1] << "]="<< (FP)(max_RMS*100.) \
+                  <<  " % step_time=" << (FP)d_time << " sec (" << (FP)VCOMP <<" step/sec) dt="<< dt <<"\n" << flush;
              else
-             *f_stream << "Step No " << iter+last_iter << " maxRMS["<< k_max_RMS << "]="<< (double)(max_RMS*100.) \
-                        <<  " % step_time=" << (double)d_time << " sec (" << (double)VCOMP <<" step/sec) dt="<< dt <<"\n" << flush;
+             *f_stream << "Step No " << iter+last_iter << " maxRMS["<< k_max_RMS << "]="<< (FP)(max_RMS*100.) \
+                        <<  " % step_time=" << (FP)d_time << " sec (" << (FP)VCOMP <<" step/sec) dt="<< dt <<"\n" << flush;
               f_stream->flush();
              }
 //#ifdef _MPI
@@ -1597,8 +1597,8 @@ void DEEPS2D_Run(ofstream* f_stream
 #endif // _TECPLOT_
          }
          I++;
-         d_time = (double)(stop.tv_sec-start.tv_sec)+(double)(stop.tv_usec-start.tv_usec)*1.e-6; 
-         *f_stream << "HyperFLOW/DEEPS computation cycle time=" << (double)d_time << " sec ( average  speed " << (double)(Nstep/d_time) <<" step/sec).       \n" << flush;
+         d_time = (FP)(stop.tv_sec-start.tv_sec)+(FP)(stop.tv_usec-start.tv_usec)*1.e-6; 
+         *f_stream << "HyperFLOW/DEEPS computation cycle time=" << (FP)d_time << " sec ( average  speed " << (FP)(Nstep/d_time) <<" step/sec).       \n" << flush;
          f_stream->flush();
          last_iter  += iter;
          iter = 0;
@@ -1673,10 +1673,10 @@ void DEEPS2D_Run(ofstream* f_stream
 #endif //_IMPI_
 #ifdef _PARALLEL_RECALC_Y_PLUS_
         if(!WallNodesUw_2D)
-            WallNodesUw_2D = new UArray<double>(NumWallNodes,-1);
+            WallNodesUw_2D = new UArray<FP>(NumWallNodes,-1);
 
         MPI::COMM_WORLD.Recv(WallNodesUw_2D->GetArrayPtr(),
-                             NumWallNodes*sizeof(double),
+                             NumWallNodes*sizeof(FP),
                              MPI::BYTE,0,tag_WallFrictionVelocity);
 #endif // _PARALLEL_RECALC_Y_PLUS_
     } else {
@@ -1696,7 +1696,7 @@ void DEEPS2D_Run(ofstream* f_stream
 #endif //_IMPI_ 
 #ifdef _PARALLEL_RECALC_Y_PLUS_
           MPI::COMM_WORLD.Send(WallNodesUw_2D->GetArrayPtr(),
-                               NumWallNodes*sizeof(double),
+                               NumWallNodes*sizeof(FP),
                                MPI::BYTE,ii,tag_WallFrictionVelocity);
 #endif // _PARALLEL_RECALC_Y_PLUS_
       }
@@ -1774,9 +1774,9 @@ if (rank == 0) {
        }
 #endif //  _MPI
 #ifdef _DEBUG_0
-       }__except( UMatrix2D<double>*  m) {
+       }__except( UMatrix2D<FP>*  m) {
                 *f_stream << "\n";
-                *f_stream << "Error in UMatrix2D<double> ("<< err_i << "," << err_j <<")." << "\n" << flush;
+                *f_stream << "Error in UMatrix2D<FP> ("<< err_i << "," << err_j <<")." << "\n" << flush;
                 f_stream->flush();
 
                 if ( GasSwapData!=0 ) {
@@ -1794,7 +1794,7 @@ if (rank == 0) {
                 Abort_OpenHyperFLOW2D();
             } __except( ComputationalMatrix2D*  m) {
                 *f_stream << "\n";
-                *f_stream << "Error in UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> ("<< err_i << "," << err_j <<")->";
+                *f_stream << "Error in UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> ("<< err_i << "," << err_j <<")->";
                 if(m->GetMatrixState() == MXS_ERR_OUT_OF_INDEX){
                 *f_stream << "MXS_ERR_OUT_OF_INDEX"  << "\n" << flush; 
                 } else if(m->GetMatrixState() == MXS_ERR_MEM) {
@@ -1872,11 +1872,11 @@ u_long NumWallNodes=0;
     for (int j=0;j<(int)pJ->GetY();j++ ) {
        for (int i=0;i<(int)pJ->GetX();i++ ) {
 
-                FlowNode2D< double,NUM_COMPONENTS >* CurrentNode=NULL;
-                FlowNode2D< double,NUM_COMPONENTS >* UpNode=NULL;
-                FlowNode2D< double,NUM_COMPONENTS >* DownNode=NULL;
-                FlowNode2D< double,NUM_COMPONENTS >* LeftNode=NULL;
-                FlowNode2D< double,NUM_COMPONENTS >* RightNode=NULL;
+                FlowNode2D< FP,NUM_COMPONENTS >* CurrentNode=NULL;
+                FlowNode2D< FP,NUM_COMPONENTS >* UpNode=NULL;
+                FlowNode2D< FP,NUM_COMPONENTS >* DownNode=NULL;
+                FlowNode2D< FP,NUM_COMPONENTS >* LeftNode=NULL;
+                FlowNode2D< FP,NUM_COMPONENTS >* RightNode=NULL;
 
                 CurrentNode = &pJ->GetValue(i,j);
 
@@ -2085,7 +2085,7 @@ f_str->flush();
 return Submatrix;
 }
 
-void SetInitBoundaryLayer(ComputationalMatrix2D* pJ, double delta) {
+void SetInitBoundaryLayer(ComputationalMatrix2D* pJ, FP delta) {
     for (int i=0;i<(int)pJ->GetX();i++ ) {
            for (int j=0;j<(int)pJ->GetY();j++ ) {
                   if (pJ->GetValue(i,j).isCond2D(CT_NODE_IS_SET_2D) &&
@@ -2103,11 +2103,11 @@ void SetInitBoundaryLayer(ComputationalMatrix2D* pJ, double delta) {
 
 #ifdef _PARALLEL_RECALC_Y_PLUS_
 void RecalcWallFrictionVelocityArray2D(ComputationalMatrix2D* pJ,
-                                       UArray<double>* WallFrictionVelocityArray2D,
+                                       UArray<FP>* WallFrictionVelocityArray2D,
                                        UArray< XY<int> >* WallNodes2D) { 
     for(int ii=0;ii<(int)WallNodes2D->GetNumElements();ii++) {
         unsigned int iw,jw;
-        double tau_w;
+        FP tau_w;
         iw = WallNodes2D->GetElementPtr(ii)->GetX();
         jw = WallNodes2D->GetElementPtr(ii)->GetY();
         tau_w = (fabs(pJ->GetValue(iw,jw).dUdy)  +
@@ -2116,13 +2116,13 @@ void RecalcWallFrictionVelocityArray2D(ComputationalMatrix2D* pJ,
     }
 }
 
-UArray<double>* GetWallFrictionVelocityArray2D(ComputationalMatrix2D* pJ, 
+UArray<FP>* GetWallFrictionVelocityArray2D(ComputationalMatrix2D* pJ, 
                                                UArray< XY<int> >* WallNodes2D) { 
-    UArray<double>* WallFrictionVelocityArray2D;
-    WallFrictionVelocityArray2D = new UArray<double>();
+    UArray<FP>* WallFrictionVelocityArray2D;
+    WallFrictionVelocityArray2D = new UArray<FP>();
     for(int ii=0;ii<(int)WallNodes2D->GetNumElements();ii++) {
         unsigned int iw,jw;
-        double tau_w, U_w;
+        FP tau_w, U_w;
         iw = WallNodes2D->GetElementPtr(ii)->GetX();
         jw = WallNodes2D->GetElementPtr(ii)->GetY();
         tau_w = (fabs(pJ->GetValue(iw,jw).dUdy)  +
@@ -2135,8 +2135,8 @@ UArray<double>* GetWallFrictionVelocityArray2D(ComputationalMatrix2D* pJ,
 
 void ParallelRecalc_y_plus(ComputationalMatrix2D* pJ, 
                            UArray< XY<int> >* WallNodes,
-                           UArray<double>* WallFrictionVelocity2D,
-                           double x0) {
+                           UArray<FP>* WallFrictionVelocity2D,
+                           FP x0) {
 #ifdef _OPEN_MP
 #pragma omp parallel for
 #endif //_OPEN_MP
@@ -2148,22 +2148,22 @@ void ParallelRecalc_y_plus(ComputationalMatrix2D* pJ,
                         for (int ii=0;ii<(int)WallNodes->GetNumElements();ii++) {
 
                              unsigned int iw,jw;
-                             double U_w,x,y,wx,wy;
+                             FP U_w,x,y,wx,wy;
 
                              iw = WallNodes->GetElementPtr(ii)->GetX();
                              jw = WallNodes->GetElementPtr(ii)->GetY();
 
                              U_w   =  WallFrictionVelocity2D->GetElement(ii);
 
-                             x = x0 + i * FlowNode2D<double,NUM_COMPONENTS>::dx;
-                             y = j * FlowNode2D<double,NUM_COMPONENTS>::dy;
+                             x = x0 + i * FlowNode2D<FP,NUM_COMPONENTS>::dx;
+                             y = j * FlowNode2D<FP,NUM_COMPONENTS>::dy;
 
-                             wx = iw * FlowNode2D<double,NUM_COMPONENTS>::dx;
-                             wy = jw * FlowNode2D<double,NUM_COMPONENTS>::dy;
+                             wx = iw * FlowNode2D<FP,NUM_COMPONENTS>::dx;
+                             wy = jw * FlowNode2D<FP,NUM_COMPONENTS>::dy;
 
                              if(x == wx && y == wy ) {
-                                 pJ->GetValue(i,j).y_plus = U_w*min((FlowNode2D<double,NUM_COMPONENTS>::dx),
-                                                                    (FlowNode2D<double,NUM_COMPONENTS>::dy))*pJ->GetValue(i,j).S[i2d_Ro]/pJ->GetValue(i,j).mu;
+                                 pJ->GetValue(i,j).y_plus = U_w*min((FlowNode2D<FP,NUM_COMPONENTS>::dx),
+                                                                    (FlowNode2D<FP,NUM_COMPONENTS>::dy))*pJ->GetValue(i,j).S[i2d_Ro]/pJ->GetValue(i,j).mu;
                              } else {
                                  if(pJ->GetValue(i,j).l_min == min(pJ->GetValue(i,j).l_min,
                                                                    sqrt((x-wx)*(x-wx) + (y-wy)*(y-wy))))
@@ -2177,7 +2177,7 @@ void ParallelRecalc_y_plus(ComputationalMatrix2D* pJ,
 #else
 void Recalc_y_plus(ComputationalMatrix2D* pJ, UArray< XY<int> >* WallNodes) {
     unsigned int iw,jw;
-    double tau_w, U_w;
+    FP tau_w, U_w;
 
     for (int ii=0;ii<(int)WallNodes->GetNumElements();ii++) { 
 
@@ -2224,7 +2224,7 @@ const char* PrintTurbCond(int TM) {
    return "Unknown turbulence model";
 }
 
-void PrintCond(ofstream* OutputData, FlowNode2D<double,NUM_COMPONENTS>* fn) {
+void PrintCond(ofstream* OutputData, FlowNode2D<FP,NUM_COMPONENTS>* fn) {
     //Const conditions
 
     if ( fn->isCond2D(CT_Ro_CONST_2D) )
@@ -2374,7 +2374,7 @@ void SaveRMSHeader(ofstream* OutputData) {
     }
 
 void SaveMonitors(ofstream* MonitorsFile, 
-                  double t, 
+                  FP t, 
                   UArray< MonitorPoint >* MonitorPtArray) {
     *MonitorsFile  << t << " ";
     for (int i=0;i<(int)MonitorPtArray->GetNumElements();i++) {
@@ -2384,9 +2384,9 @@ void SaveMonitors(ofstream* MonitorsFile,
     *MonitorsFile << endl;
 }
 
-void SaveRMS(ofstream* OutputData,unsigned int n, double* outRMS) {
+void SaveRMS(ofstream* OutputData,unsigned int n, FP* outRMS) {
          *OutputData <<  n  << " ";
-         for(int i=0;i<FlowNode2D<double,NUM_COMPONENTS>::NumEq;i++) {
+         for(int i=0;i<FlowNode2D<FP,NUM_COMPONENTS>::NumEq;i++) {
              *OutputData <<  outRMS[i] << " " << flush;
          }
 
@@ -2407,14 +2407,14 @@ void SaveRMS(ofstream* OutputData,unsigned int n, double* outRMS) {
         char   TechPlotTitle1[1024]={0};
         char   TechPlotTitle2[256]={0};
         char   YR[2];
-        double Mach,A,W,Re,Re_t,dx_out,dy_out;
+        FP Mach,A,W,Re,Re_t,dx_out,dy_out;
         char   RT[10];
         if(is_p_asterisk_out)
           snprintf(RT,10,"p*");
         else
           snprintf(RT,10,"mu_t/mu");
 
-        if(FlowNode2D<double,NUM_COMPONENTS>::FT == 1) // FT_FLAT
+        if(FlowNode2D<FP,NUM_COMPONENTS>::FT == 1) // FT_FLAT
           snprintf(YR,2,"R");
         else
           snprintf(YR,2,"Y");
@@ -2485,14 +2485,14 @@ void SaveRMS(ofstream* OutputData,unsigned int n, double* outRMS) {
         }
     }
 
-    inline double kg(double Cp, double R) {
+    inline FP kg(FP Cp, FP R) {
         return(Cp/(Cp-R));
     }
 
-inline  void CalcHeatOnWallSources(UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >* F, double dx, double dy, double dt, int rank, int last_rank) {
+inline  void CalcHeatOnWallSources(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* F, FP dx, FP dy, FP dt, int rank, int last_rank) {
 
         unsigned int StartXLocal,MaxXLocal;
-        double dx_local, dy_local;
+        FP dx_local, dy_local;
 
         if( rank == 0) {
             StartXLocal = 0;
@@ -2514,11 +2514,11 @@ inline  void CalcHeatOnWallSources(UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> 
         for (unsigned int i=StartXLocal;i<MaxXLocal;i++ )
             for ( unsigned int j=0;j<F->GetY();j++ ) {
 
-                FlowNode2D< double,NUM_COMPONENTS >* CurrentNode=NULL;
-                FlowNode2D< double,NUM_COMPONENTS >* UpNode=NULL;
-                FlowNode2D< double,NUM_COMPONENTS >* DownNode=NULL;
-                FlowNode2D< double,NUM_COMPONENTS >* LeftNode=NULL;
-                FlowNode2D< double,NUM_COMPONENTS >* RightNode=NULL;
+                FlowNode2D< FP,NUM_COMPONENTS >* CurrentNode=NULL;
+                FlowNode2D< FP,NUM_COMPONENTS >* UpNode=NULL;
+                FlowNode2D< FP,NUM_COMPONENTS >* DownNode=NULL;
+                FlowNode2D< FP,NUM_COMPONENTS >* LeftNode=NULL;
+                FlowNode2D< FP,NUM_COMPONENTS >* RightNode=NULL;
 
 
                 CurrentNode = &F->GetValue(i,j);
@@ -2550,7 +2550,7 @@ inline  void CalcHeatOnWallSources(UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> 
 
                 if ( CurrentNode->isCond2D(CT_WALL_SLIP_2D) || 
                      CurrentNode->isCond2D(CT_WALL_NO_SLIP_2D)) { 
-                    double lam_eff = 0;
+                    FP lam_eff = 0;
                     int num_near_nodes = 0;
                     
                     if( CurrentNode->isCleanSources ) 
@@ -2667,8 +2667,8 @@ void* InitDEEPS2D(void* lpvParam)
         u_long          FileSizeGas=0;
         static int      PreloadFlag = 0,p_g=0;
 
-        SubmatrixArray     = new UArray<UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >* >();
-        CoreSubmatrixArray = new UArray<UMatrix2D< FlowNodeCore2D<double,NUM_COMPONENTS> >* >();
+        SubmatrixArray     = new UArray<UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* >();
+        CoreSubmatrixArray = new UArray<UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >* >();
 #ifdef _DEBUG_0
         ___try {
 #endif  // _DEBUG_0
@@ -2686,7 +2686,7 @@ void* InitDEEPS2D(void* lpvParam)
                 Abort_OpenHyperFLOW2D();
             }
 
-            NumContour = Data->GetIntVal((char*)"NumContour"); // Number of "Contour" objects 
+            NumContour = Data->GetIntVal((char*)"NumContour");              // Number of "Contour" objects 
             if ( Data->GetDataError()==-1 ) {
                 Abort_OpenHyperFLOW2D();
             }
@@ -2804,7 +2804,7 @@ void* InitDEEPS2D(void* lpvParam)
                 TmpFlow = new Flow(Cp,Tg,Pg,Rg,lam,mu);
 
                 snprintf(FlowStr,256,"Flow%i.Type",i+1);
-                double  LamF;
+                FP  LamF;
                 int F_Type  = Data->GetIntVal(FlowStr);
                 if ( (int)Data->GetDataError()==-1 ) {
                     Abort_OpenHyperFLOW2D();
@@ -2934,7 +2934,7 @@ void* InitDEEPS2D(void* lpvParam)
                 
                 } if(FlowMode == 3) {
                     snprintf(FlowStr,256,"Flow2D-%i.Mach",i+1);
-                    double Mach = Data->GetFloatVal(FlowStr);
+                    FP Mach = Data->GetFloatVal(FlowStr);
                     if ( Data->GetDataError()==-1 ) {
                         Abort_OpenHyperFLOW2D();
                     }
@@ -2982,13 +2982,13 @@ void* InitDEEPS2D(void* lpvParam)
                 *f_stream << "...OK\n" << flush;
             }
 
-            FileSizeGas =  MaxX*MaxY*sizeof(FlowNode2D<double,NUM_COMPONENTS>);
+            FileSizeGas =  MaxX*MaxY*sizeof(FlowNode2D<FP,NUM_COMPONENTS>);
             
 
             GasSwapData   = LoadSwapFile2D(GasSwapFileName,
                                            (int)MaxX,
                                            (int)MaxY,
-                                           sizeof(FlowNode2D<double,NUM_COMPONENTS>),
+                                           sizeof(FlowNode2D<FP,NUM_COMPONENTS>),
                                            &p_g,
                                            &fd_g,
                                            f_stream);
@@ -3012,7 +3012,7 @@ void* InitDEEPS2D(void* lpvParam)
                 if ( GasSwapData!=0 ) {
                     *f_stream << "Mapping computation area..." << flush;
                     f_stream->flush();
-                    J = new UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >((FlowNode2D<double,NUM_COMPONENTS>*)GasSwapData,MaxX,MaxY);
+                    J = new UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >((FlowNode2D<FP,NUM_COMPONENTS>*)GasSwapData,MaxX,MaxY);
                     useSwapFile=1;
                     sprintf(OldSwapFileName,"%s",GasSwapFileName);
                     OldSwapData = GasSwapData;
@@ -3024,7 +3024,7 @@ void* InitDEEPS2D(void* lpvParam)
                     if ( J ) {
                         delete J;J=NULL;
                     }
-                    J = new UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >(MaxX,MaxY);
+                    J = new UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >(MaxX,MaxY);
                 }
 #ifdef _DEBUG_0
             } __except( ComputationalMatrix2D*  m) {  // ExceptLib know bug...
@@ -3044,7 +3044,7 @@ void* InitDEEPS2D(void* lpvParam)
 
             dt=1.;
             for (int i = 0;i<(int)FlowList->GetNumElements();i++ ) {
-                 double CFL_min      = min(CFL,CFL_Scenario->GetVal(iter+last_iter));
+                 FP CFL_min      = min(CFL,CFL_Scenario->GetVal(iter+last_iter));
                  dt = min(dt,CFL_min*dx*dy/(dy*(FlowList->GetElement(i)->Asound()*2.)+
                                             dx*FlowList->GetElement(i)->Asound()));
             }
@@ -3621,7 +3621,7 @@ void* InitDEEPS2D(void* lpvParam)
             dt = 1;
 
             for (int i = 0;i<(int)Flow2DList->GetNumElements();i++ ) {
-                double CFL_min  = min(CFL,CFL_Scenario->GetVal(iter+last_iter));
+                FP CFL_min  = min(CFL,CFL_Scenario->GetVal(iter+last_iter));
                 dt = min(dt,CFL_min*min(dx/(Flow2DList->GetElement(i)->Asound()+Flow2DList->GetElement(i)->Wg()),
                                         dy/(Flow2DList->GetElement(i)->Asound()+Flow2DList->GetElement(i)->Wg())));
             }
@@ -3644,7 +3644,7 @@ void* InitDEEPS2D(void* lpvParam)
                             }
 #endif //_UNIFORM_MESH_
 
-                            if ( FlowNode2D<double,NUM_COMPONENTS>::FT == FT_AXISYMMETRIC )
+                            if ( FlowNode2D<FP,NUM_COMPONENTS>::FT == FT_AXISYMMETRIC )
                                  J->GetValue(i,j).r     = (j+1)*dy;
                             J->GetValue(i,j).Tf    = chemical_reactions.Tf;
                             J->GetValue(i,j).BGX   = 1.;
@@ -3653,7 +3653,7 @@ void* InitDEEPS2D(void* lpvParam)
                             J->GetValue(i,j).NGX   = 0;
                             J->GetValue(i,j).NGY   = 0;
 
-                            for ( k=0;k<(int)FlowNode2D<double,NUM_COMPONENTS>::NumEq;k++ )
+                            for ( k=0;k<(int)FlowNode2D<FP,NUM_COMPONENTS>::NumEq;k++ )
                                 J->GetValue(i,j).Src[k]= J->GetValue(i,j).SrcAdd[k] = 0;
                         }
 #ifdef _DEBUG_0
@@ -3770,7 +3770,7 @@ void* InitDEEPS2D(void* lpvParam)
 
             //Set bound Primitives
             // Rects
-                double        Xstart,Ystart,X_0,Y_0;
+                FP        Xstart,Ystart,X_0,Y_0;
                 unsigned int  numRects=Data->GetIntVal((char*)"NumRects");
                 if(Data->GetDataError()==-1) Abort_OpenHyperFLOW2D();
                 //unsigned int ix0,iy0;
@@ -3931,7 +3931,7 @@ void* InitDEEPS2D(void* lpvParam)
 // Solid Bound Airfoils
 /*
             unsigned int numAirfoils=Data->GetIntVal((char*)"NumAirfoils");
-            double       mm,pp,thick,scale,attack_angle;
+            FP       mm,pp,thick,scale,attack_angle;
             SolidBoundAirfoil2D* SBA;
             if ( p_g==0 )
                 if ( numAirfoils ) {
@@ -4295,7 +4295,7 @@ void* InitDEEPS2D(void* lpvParam)
                 *f_stream << "\n";
                 *f_stream << "Error set computation area state ("<< i_err << "," << j_err <<")." << "\n" << flush;
                 *f_stream << "\n";
-                *f_stream << "UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >" << "\n" << flush;
+                *f_stream << "UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >" << "\n" << flush;
                 f_stream->flush();
                 if ( GasSwapData!=0 ) {
 #ifdef _REMOVE_SWAPFILE_
@@ -4389,7 +4389,7 @@ void* InitDEEPS2D(void* lpvParam)
 #endif  // _DEBUG_0
         return(NULL);
 };
-inline int SetTurbulenceModel(FlowNode2D<double,NUM_COMPONENTS>* pJ) {
+inline int SetTurbulenceModel(FlowNode2D<FP,NUM_COMPONENTS>* pJ) {
 int      AddEq = 2;
        if (pJ->isTurbulenceCond2D(TCT_Prandtl_Model_2D)) {
            AddEq = 2;
@@ -4403,10 +4403,10 @@ int      AddEq = 2;
  return AddEq;
 }
 
-inline int CalcChemicalReactions(FlowNode2D<double,NUM_COMPONENTS>* CalcNode,
+inline int CalcChemicalReactions(FlowNode2D<FP,NUM_COMPONENTS>* CalcNode,
                                  ChemicalReactionsModel cr_model, void* CRM_data) {
     ChemicalReactionsModelData2D* model_data = (ChemicalReactionsModelData2D*)CRM_data;
-    double   Y0,Yfu,Yox,Ycp,Yair;
+    FP   Y0,Yfu,Yox,Ycp,Yair;
 
     Yfu  = CalcNode->S[i2d_Yfu]/CalcNode->S[0]; // Fuel
     Yox  = CalcNode->S[i2d_Yox]/CalcNode->S[0]; // OX
@@ -4489,11 +4489,11 @@ inline int CalcChemicalReactions(FlowNode2D<double,NUM_COMPONENTS>* CalcNode,
 
 void SetMinDistanceToWall2D(ComputationalMatrix2D* pJ2D,
                             UArray< XY<int> >* WallNodes2D
-                            ,double x0
+                            ,FP x0
                             ) {
 
-double  min_l_min = min((FlowNode2D<double,NUM_COMPONENTS>::dx),
-                        (FlowNode2D<double,NUM_COMPONENTS>::dy));
+FP  min_l_min = min((FlowNode2D<FP,NUM_COMPONENTS>::dx),
+                        (FlowNode2D<FP,NUM_COMPONENTS>::dy));
 #ifdef _OPEN_MP
 #pragma omp parallel  for
 #endif //_OPEN_MP
@@ -4506,22 +4506,22 @@ for (int i=0;i<(int)pJ2D->GetX();i++ ) {
                  pJ2D->GetValue(i,j).SetCond2D(CT_SOLID_2D);
              } else {   
                         unsigned int iw,jw;
-                        double wx, wy;
-                        double x, y;
+                        FP wx, wy;
+                        FP x, y;
 
-                        pJ2D->GetValue(i,j).l_min = max((x0+FlowNode2D<double,NUM_COMPONENTS>::dx*pJ2D->GetX()),
-                                                           (FlowNode2D<double,NUM_COMPONENTS>::dy*pJ2D->GetY()));
+                        pJ2D->GetValue(i,j).l_min = max((x0+FlowNode2D<FP,NUM_COMPONENTS>::dx*pJ2D->GetX()),
+                                                           (FlowNode2D<FP,NUM_COMPONENTS>::dy*pJ2D->GetY()));
                         
-                        x = x0 + i * FlowNode2D<double,NUM_COMPONENTS>::dx;
-                        y = j * FlowNode2D<double,NUM_COMPONENTS>::dy;
+                        x = x0 + i * FlowNode2D<FP,NUM_COMPONENTS>::dx;
+                        y = j * FlowNode2D<FP,NUM_COMPONENTS>::dy;
 
                         for (int ii=0;ii<(int)WallNodes2D->GetNumElements();ii++) {
 
                              iw = WallNodes2D->GetElementPtr(ii)->GetX();
                              jw = WallNodes2D->GetElementPtr(ii)->GetY();
 
-                             wx = iw * FlowNode2D<double,NUM_COMPONENTS>::dx;
-                             wy = jw * FlowNode2D<double,NUM_COMPONENTS>::dy;
+                             wx = iw * FlowNode2D<FP,NUM_COMPONENTS>::dx;
+                             wy = jw * FlowNode2D<FP,NUM_COMPONENTS>::dy;
 
                              pJ2D->GetValue(i,j).l_min = min(pJ2D->GetValue(i,j).l_min,
                                                              sqrt((x-wx)*(x-wx) + (y-wy)*(y-wy)));

@@ -12,11 +12,11 @@
 // <------------- 2D --------------->           
 // Bound contour constructor
 BoundContour2D::BoundContour2D(char* Name, 
-                               UMatrix2D< FlowNode2D< double, NUM_COMPONENTS> >* fnm,
+                               UMatrix2D< FlowNode2D< FP, NUM_COMPONENTS> >* fnm,
 #ifndef _UNIFORM_MESH_
                                Mesh2D* p_mesh       //  nonuniform mesh
-                               double x=0.,
-                               double y=0.
+                               FP x=0.,
+                               FP y=0.
 #else
                                unsigned int x,
                                unsigned int y
@@ -53,13 +53,13 @@ int BoundContour2D::AddBound2D(char* name,
                                unsigned int x,
                                unsigned int y,
 #else
-                               double       x,
-                               double       y,
+                               FP       x,
+                               FP       y,
 #endif // _UNIFORM_MESH_
                                ulong        bt,
                                Flow*        pInFlow,
                                Flow2D*      pInFlow2D,
-                               double*      Y,
+                               FP*      Y,
                                ulong        btt) {
     Bound2D* TmpBound=NULL;
     if (isActivateContour ||
@@ -102,7 +102,7 @@ int BoundContour2D::CloseContour2D(char*    name,
                                    ulong    bt,
                                    Flow*    pInFlow,
                                    Flow2D*  pInFlow2D,
-                                   double*  Y,
+                                   FP*  Y,
                                    ulong    btt) {
     Bound2D* TmpBound;
     if (isActivateContour ||
@@ -163,7 +163,7 @@ int BoundContour2D::InsertBound2D(char* name,
                                   ulong    bt,
                                   Flow*    pInFlow,
                                   Flow2D*  pInFlow2D,
-                                  double*   Y,
+                                  FP*   Y,
                                   ulong btt) {
     return -1; // function not implemented now...
 }
@@ -205,7 +205,7 @@ int BoundContour2D::SetBounds(int MaterialID) {
     return GetNumBounds();  
 }
 // Set bounds in contour and push result in to the array
-int BoundContour2D::SetBounds(UArray<FlowNode2D< double, NUM_COMPONENTS>* >* node_array,int MaterialID) {
+int BoundContour2D::SetBounds(UArray<FlowNode2D< FP, NUM_COMPONENTS>* >* node_array,int MaterialID) {
     int i;
     if (!isContourClosed) return -1;
     for (i=0;i<GetNumBounds();i++) {
@@ -245,27 +245,27 @@ void   BoundContour2D::SetCurrentY(int y) {
 }
     #endif // _UNIFORM_MESH_
 // Get current bound X coord (m)
-double BoundContour2D::GetCurrentFX() {
+FP BoundContour2D::GetCurrentFX() {
     return f_current_x;
 }
 // Get current bound Y coord (m)
-double BoundContour2D::GetCurrentFY() {
+FP BoundContour2D::GetCurrentFY() {
     return f_current_y;
 }
 // Set current bound X coord (m)
-void   BoundContour2D::SetCurrentFX(double x) {
+void   BoundContour2D::SetCurrentFX(FP x) {
     f_current_x=x;
 }
 // Set current bound Y coord (m)
-void   BoundContour2D::SetCurrentFY(double y) {
+void   BoundContour2D::SetCurrentFY(FP y) {
     f_current_y=y;
 }
 // Set first bound X coord (m)
-void   BoundContour2D::SetFirstFX(double x) {
+void   BoundContour2D::SetFirstFX(FP x) {
     f_first_x=x;
 }
 // Set first bound Y coord (m)
-void   BoundContour2D::SetFirstFY(double y) {
+void   BoundContour2D::SetFirstFY(FP y) {
     f_first_y=y;
 }
 // Get num bounds in contour
@@ -285,7 +285,7 @@ int    BoundContour2D::IsContourActivate() {
     return isActivateContour;
 }
 // Rotate bound contour
-int    BoundContour2D::RotateBoundContour2D(double x0, double y0, double angle) {
+int    BoundContour2D::RotateBoundContour2D(FP x0, FP y0, FP angle) {
     int i,a=1;
     if (IsContourActivate()) return 0;
 

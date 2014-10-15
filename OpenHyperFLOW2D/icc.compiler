@@ -127,7 +127,7 @@ OPTIMIZE  = -O$(OPTLEVEL) -ip  -march=$(CPU) $(CPU_EXT)  -no-prec-div -fp-model 
             -falign-functions=$(ALIGN) -D_ALIGN=${ALIGN2} -opt-multi-version-aggressive -Kc++eh -Krtti $(GCC_COMPAT) -D_HAS_TRADITIONAL_IOSTREAMS
 endif
 
-OPTIONS  = $(DEBUG)  -D_DEBUG_$(DEBUGLEVEL) $(PARALLEL) $(OPTIMIZE) $(NOPROFILE) -Wno-deprecated
+OPTIONS  = $(DEBUG) $(FP_OPTS) -D_DEBUG_$(DEBUGLEVEL) $(PARALLEL) $(OPTIMIZE) $(NOPROFILE) -Wno-deprecated
 
 ifeq    ("$(OPENMP)","-D_OPEN_MP")
 OPTIONS    += -openmp -D_OPEN_MP -D_OPENMP

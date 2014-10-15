@@ -67,59 +67,59 @@ using namespace std;
 //////////////////////////////////////////////////
 class SolidBoundAirfoil2D : protected BoundContour2D,
                             protected Area2D {
-    double pp,mm;
-    double mean_y(double t);
-    double mean_x(double t);
-    double z_x(double x);
-    double z_y(double x, double tk);
-    double airfoil_y1(double t,double  thick);
-    double airfoil_y2(double t,double  thick);
-    double airfoil_y(double t);
-    double airfoil_x(double t);
+    FP pp,mm;
+    FP mean_y(FP t);
+    FP mean_x(FP t);
+    FP z_x(FP x);
+    FP z_y(FP x, FP tk);
+    FP airfoil_y1(FP t,FP  thick);
+    FP airfoil_y2(FP t,FP  thick);
+    FP airfoil_y(FP t);
+    FP airfoil_x(FP t);
     char*  SolidBoundAirfoilName;
 
 public:
 
   SolidBoundAirfoil2D(char* name,
-                      UMatrix2D< FlowNode2D< double, NUM_COMPONENTS> >* JM, // Computation area reference
-                      double  x,                      // Start profile 
-                      double  y,                      // coordinates (x,y)
-                      double  m_m,                    //
-                      double  p_p,                    //
-                      double  thick,                  // airfoil thick
+                      UMatrix2D< FlowNode2D< FP, NUM_COMPONENTS> >* JM, // Computation area reference
+                      FP  x,                      // Start profile 
+                      FP  y,                      // coordinates (x,y)
+                      FP  m_m,                    //
+                      FP  p_p,                    //
+                      FP  thick,                  // airfoil thick
 #ifdef _UNIFORM_MESH_
-                      double  dx,                     // dx - step
-                      double  dy,                     // dy - step
+                      FP  dx,                     // dx - step
+                      FP  dy,                     // dy - step
 #else 
                       unsigned int num_segments,
                       Mesh2D* p_mesh,
 #endif // _UNIFORM_MESH_
                       ulong   ct,                     // condition type
                       Flow2D* pInFlow2D,              // init flow2d object on circle bound
-                      double* Y=NULL,                 // component matrix
+                      FP* Y=NULL,                 // component matrix
                       ulong   bctt=TCT_No_Turbulence_2D, // Bound contour turbulence type
-                      double  scale=1.,               // airfoil scale
-                      double  attack_angle=0,         // Angle of attack
+                      FP  scale=1.,               // airfoil scale
+                      FP  attack_angle=0,         // Angle of attack
                       ostream* dbg_output=NULL);
   
   SolidBoundAirfoil2D(char* name,
-                    UMatrix2D< FlowNode2D< double, NUM_COMPONENTS> >* JM, // Computation area reference
-                    double  x,                      // Start profile 
-                    double  y,                      // coordinates (x,y)
-                    UArray< XY<double> >* airfoil_points,
+                    UMatrix2D< FlowNode2D< FP, NUM_COMPONENTS> >* JM, // Computation area reference
+                    FP  x,                      // Start profile 
+                    FP  y,                      // coordinates (x,y)
+                    UArray< XY<FP> >* airfoil_points,
 #ifdef _UNIFORM_MESH_
-                    double  dx,                     // dx - step
-                    double  dy,                     // dy - step
+                    FP  dx,                     // dx - step
+                    FP  dy,                     // dy - step
 #else 
                     unsigned int num_segments,
                     Mesh2D* p_mesh,
 #endif // _UNIFORM_MESH_
                     ulong   ct,                     // condition type
                     Flow2D* pInFlow2D,              // init flow2d object on circle bound
-                    double* Y=NULL,                 // component matrix
+                    FP* Y=NULL,                 // component matrix
                     ulong   bctt=TCT_No_Turbulence_2D, // Bound contour turbulence type
-                    double  scale=1.,               // airfoil scale
-                    double  attack_angle=0,         // Angle of attack
+                    FP  scale=1.,               // airfoil scale
+                    FP  attack_angle=0,         // Angle of attack
                     ostream* dbg_output=NULL);
 
 

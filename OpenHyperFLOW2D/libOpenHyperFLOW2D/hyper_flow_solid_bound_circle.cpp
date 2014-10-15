@@ -11,21 +11,21 @@
 #include "libOpenHyperFLOW2D/hyper_flow_solid_bound_circle.hpp"
 // Solid Bound Circle
 SolidBoundCircle2D::SolidBoundCircle2D(char* name,
-                                      UMatrix2D< FlowNode2D< double, NUM_COMPONENTS> >* JM,  // Computation area 
-                                      double  x,                      // Start circle 
-                                      double  y,                      // coordinates (x,y)
-                                      double  x1,                     // Center circle
-                                      double  y1,                     // coordinates (x,y) 
+                                      UMatrix2D< FlowNode2D< FP, NUM_COMPONENTS> >* JM,  // Computation area 
+                                      FP  x,                      // Start circle 
+                                      FP  y,                      // coordinates (x,y)
+                                      FP  x1,                     // Center circle
+                                      FP  y1,                     // coordinates (x,y) 
     #ifdef _UNIFORM_MESH_
-                                      double  dx,                     // dx - step
-                                      double  dy,                     // dy - step
+                                      FP  dx,                     // dx - step
+                                      FP  dy,                     // dy - step
     #else 
                                       unsigned int     num_segments,
                                       Mesh2D* p_mesh,
     #endif // _UNIFORM_MESH_
                                       ulong   ct,                     // condition type
                                       Flow2D* pInFlow2D,              // init flow2d object on circle bound
-                                      double* Y    ,                  // component matrix
+                                      FP* Y    ,                  // component matrix
                                       ulong   bctt,                   // Bound contour turbulence type
                                       ostream* dbg_output):BoundContour2D(name,JM,
     #ifndef _UNIFORM_MESH_
@@ -41,7 +41,7 @@ SolidBoundCircle2D::SolidBoundCircle2D(char* name,
     #endif // _UNIFORM_MESH_
                                                                                ) {
     int    k,i;
-    double xx1,yy1,xx2,yy2,fi0,r = sqrt((x-x1)*(x-x1)+(y-y1)*(y-y1)+1.e-30);
+    FP xx1,yy1,xx2,yy2,fi0,r = sqrt((x-x1)*(x-x1)+(y-y1)*(y-y1)+1.e-30);
     xx1 = x;
     yy1 = y;
     fi0 = atan2((y1-y),(x1-x));

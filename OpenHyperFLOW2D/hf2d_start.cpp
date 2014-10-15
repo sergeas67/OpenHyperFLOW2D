@@ -16,25 +16,25 @@ timeval mark1, mark2;
 #ifdef _MPI
 int rank;
 int last_rank;
-UArray< UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >* >* ArraySubmatrix  = NULL;
-double  x0;
+UArray< UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* >* ArraySubmatrix  = NULL;
+FP  x0;
 #endif // _MPI
 
-double  dx;
-double  dy;
+FP  dx;
+FP  dy;
 
-UArray< double >*     WallNodesUw_2D = NULL;
+UArray< FP >*     WallNodesUw_2D = NULL;
 int                   NumWallNodes;
 
 int main( int argc, char **argv )
 {
-    const  float  ver=_VER;
+    const  FP  ver=_VER;
     static char    inFile[256];
 #ifdef _MPI
-    FlowNode2D<double,NUM_COMPONENTS>* TmpMatrixPtr;
+    FlowNode2D<FP,NUM_COMPONENTS>* TmpMatrixPtr;
     int TmpMaxX;
-    UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >*            TmpSubmatrix    = NULL;
-    UMatrix2D< FlowNodeCore2D<double,NUM_COMPONENTS> >*        TmpCoreSubmatrix= NULL;
+    UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*            TmpSubmatrix    = NULL;
+    UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >*        TmpCoreSubmatrix= NULL;
 #endif // _MPI
     ostream*     o_stream = &cout;
 #ifndef   _WIN32
@@ -108,7 +108,7 @@ rank      = MPI::COMM_WORLD.Get_rank();
 	        InitSharedData(Data,&chemical_reactions,rank);        // Init shared data
             MPI::COMM_WORLD.Barrier();
             if (rank == 0) {
-               ArraySubmatrix = new UArray< UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >* >();
+               ArraySubmatrix = new UArray< UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* >();
                InitDEEPS2D((void*)o_stream);                       // Init solver (only for rank=0)
                // Scan area for seek wall nodes      
                WallNodes = GetWallNodes((ofstream*)o_stream,J,Data->GetIntVal((char*)"isVerboseOutput")); 
@@ -144,12 +144,12 @@ rank      = MPI::COMM_WORLD.Get_rank();
                  l_Overlap = 1; //
 
                TmpMaxX = (SubMaxX-SubStartIndex)+r_Overlap;
-               TmpMatrixPtr = (FlowNode2D<double,NUM_COMPONENTS>*)((ulong)J->GetMatrixPtr()+(ulong)(sizeof(FlowNode2D<double,NUM_COMPONENTS>)*(SubStartIndex)*MaxY));                      
+               TmpMatrixPtr = (FlowNode2D<FP,NUM_COMPONENTS>*)((ulong)J->GetMatrixPtr()+(ulong)(sizeof(FlowNode2D<FP,NUM_COMPONENTS>)*(SubStartIndex)*MaxY));                      
                
-               x0 = SubStartIndex*FlowNode2D<double,NUM_COMPONENTS>::dx;
+               x0 = SubStartIndex*FlowNode2D<FP,NUM_COMPONENTS>::dx;
                
-               *o_stream << "SubMatrix("<<i<<")[" << TmpMaxX << "x" << MaxY << "]  Size=" << (ulong)(sizeof(FlowNode2D<double,NUM_COMPONENTS>)*TmpMaxX*MaxY)/(1024*1024) << " Mb\n"; 
-               TmpSubmatrix = new UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >(TmpMatrixPtr,TmpMaxX,MaxY);
+               *o_stream << "SubMatrix("<<i<<")[" << TmpMaxX << "x" << MaxY << "]  Size=" << (ulong)(sizeof(FlowNode2D<FP,NUM_COMPONENTS>)*TmpMaxX*MaxY)/(1024*1024) << " Mb\n"; 
+               TmpSubmatrix = new UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >(TmpMatrixPtr,TmpMaxX,MaxY);
 
 #ifdef _PARALLEL_RECALC_Y_PLUS_
                SetMinDistanceToWall2D(TmpSubmatrix,WallNodes,x0);
@@ -177,7 +177,7 @@ rank      = MPI::COMM_WORLD.Get_rank();
                if(MonitorPointsArray) {
                    for(int ii_monitor=0;ii_monitor<(int)MonitorPointsArray->GetNumElements();ii_monitor++) {
                            if(MonitorPointsArray->GetElement(ii_monitor).MonitorXY.GetX() >= x0 &&
-                              MonitorPointsArray->GetElement(ii_monitor).MonitorXY.GetX() < x0 + FlowNode2D<double,NUM_COMPONENTS>::dx*TmpSubmatrix->GetX()) {
+                              MonitorPointsArray->GetElement(ii_monitor).MonitorXY.GetX() < x0 + FlowNode2D<FP,NUM_COMPONENTS>::dx*TmpSubmatrix->GetX()) {
                               MonitorPointsArray->GetElement(ii_monitor).rank = i; 
                            }
                    }
@@ -189,7 +189,7 @@ rank      = MPI::COMM_WORLD.Get_rank();
         } else {
            MPI::COMM_WORLD.Recv(&MaxY,1,MPI::INT,0,tag_MaxY);
            MPI::COMM_WORLD.Recv(&TmpMaxX,1,MPI::INT,0,tag_MaxX);
-           TmpSubmatrix = new UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >(TmpMaxX,MaxY);
+           TmpSubmatrix = new UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >(TmpMaxX,MaxY);
 #ifdef _IMPI_
              LongMatrixRecv(0,TmpSubmatrix->GetMatrixPtr(),TmpSubmatrix->GetMatrixSize());
 #else
@@ -201,7 +201,7 @@ rank      = MPI::COMM_WORLD.Get_rank();
            WallNodes = new UArray< XY<int> >(NumWallNodes,-1);                                     // Create wall nodes array
            MPI::COMM_WORLD.Recv(WallNodes->GetArrayPtr(),NumWallNodes*sizeof(XY<int>),             // Recive wall nodes array
                                 MPI::BYTE,0,tag_WallNodesArray);
-           WallNodesUw_2D = new UArray<double>(NumWallNodes,-1);                                   // Create friction velosity array
+           WallNodesUw_2D = new UArray<FP>(NumWallNodes,-1);                                   // Create friction velosity array
            MPI::COMM_WORLD.Recv(&x0,1,MPI::DOUBLE,0,tag_X0);                                       // Recive x0 for submatrix
        }
         
@@ -217,7 +217,7 @@ rank      = MPI::COMM_WORLD.Get_rank();
 
         
         MPI::COMM_WORLD.Barrier();
-        TmpCoreSubmatrix = new UMatrix2D< FlowNodeCore2D<double,NUM_COMPONENTS> >(TmpMaxX,MaxY);
+        TmpCoreSubmatrix = new UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >(TmpMaxX,MaxY);
 
 #ifdef _PARALLEL_RECALC_Y_PLUS_
         SetInitBoundaryLayer(TmpSubmatrix,delta_bl);                                                // Set Initial boundary layer profile
@@ -226,7 +226,7 @@ rank      = MPI::COMM_WORLD.Get_rank();
         if(rank == 0) {
             gettimeofday(&mark1,NULL);
             
-            *o_stream << "OK\n" << "Time: " << (double)(mark1.tv_sec-mark2.tv_sec)+(double)(mark1.tv_usec-mark2.tv_usec)*1.e-6 << " sec." << endl; 
+            *o_stream << "OK\n" << "Time: " << (FP)(mark1.tv_sec-mark2.tv_sec)+(FP)(mark1.tv_usec-mark2.tv_usec)*1.e-6 << " sec." << endl; 
             *o_stream << "\nStart computation...\n" << flush;
             
             x0 = 0;
@@ -253,9 +253,9 @@ rank      = MPI::COMM_WORLD.Get_rank();
        Recalc_y_plus(J,WallNodes);                        // Calculate initial y+ value
        SetInitBoundaryLayer(J,delta_bl);                  // Set Initial boundary layer profile
 
-       UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >* TmpSubmatrix=NULL;
-       UMatrix2D< FlowNodeCore2D<double,NUM_COMPONENTS> >* TmpCoreSubmatrix=NULL;
-       FlowNode2D<double,NUM_COMPONENTS>* TmpMatrixPtr=J->GetMatrixPtr();
+       UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* TmpSubmatrix=NULL;
+       UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >* TmpCoreSubmatrix=NULL;
+       FlowNode2D<FP,NUM_COMPONENTS>* TmpMatrixPtr=J->GetMatrixPtr();
        int SubStartIndex, Overlap, SubMaxX;
        *o_stream << "Allocate SubMatrix:\n";
        for (unsigned int i=0;i<GlobalSubmatrix->GetNumElements();i++) {
@@ -265,9 +265,9 @@ rank      = MPI::COMM_WORLD.Get_rank();
                Overlap = 0;
             else
                Overlap = 1;
-            TmpMatrixPtr=(FlowNode2D<double,NUM_COMPONENTS>*)((ulong)J->GetMatrixPtr()+(ulong)(sizeof(FlowNode2D<double,NUM_COMPONENTS>)*SubStartIndex*MaxY));
-            TmpSubmatrix     = new UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >(TmpMatrixPtr,(SubMaxX-SubStartIndex)+Overlap,MaxY);
-            TmpCoreSubmatrix = new UMatrix2D< FlowNodeCore2D<double,NUM_COMPONENTS> >((SubMaxX-SubStartIndex)+Overlap,MaxY);
+            TmpMatrixPtr=(FlowNode2D<FP,NUM_COMPONENTS>*)((ulong)J->GetMatrixPtr()+(ulong)(sizeof(FlowNode2D<FP,NUM_COMPONENTS>)*SubStartIndex*MaxY));
+            TmpSubmatrix     = new UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >(TmpMatrixPtr,(SubMaxX-SubStartIndex)+Overlap,MaxY);
+            TmpCoreSubmatrix = new UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >((SubMaxX-SubStartIndex)+Overlap,MaxY);
             SubmatrixArray->AddElement(&TmpSubmatrix);
             CoreSubmatrixArray->AddElement(&TmpCoreSubmatrix);
            }

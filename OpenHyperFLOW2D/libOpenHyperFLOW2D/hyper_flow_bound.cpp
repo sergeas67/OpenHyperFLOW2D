@@ -12,16 +12,16 @@
 
 // <------------- 2D --------------->           
 
-typedef FlowNode2D< double, NUM_COMPONENTS>*  NODE2D ; 
+typedef FlowNode2D< FP, NUM_COMPONENTS>*  NODE2D ; 
 
 // Init bound 
 void Bound2D::InitBound(char* name,  
-                        UMatrix2D< FlowNode2D< double, NUM_COMPONENTS> >* J,
+                        UMatrix2D< FlowNode2D< FP, NUM_COMPONENTS> >* J,
 #ifndef _UNIFORM_MESH_
                         Mesh2D* p_mesh,               //  nonuniform mesh
 #endif // _UNIFORM_MESH_
                         int     bt,
-                        double* p_Y,
+                        FP* p_Y,
                         int     btc) {
 #ifndef _UNIFORM_MESH_
     pMesh = p_mesh;       //  nonuniform mesh
@@ -32,7 +32,7 @@ void Bound2D::InitBound(char* name,
     BTC       = btc;
     pMFN      = J;
     if (NUM_COMPONENTS != 0 && p_Y != 0) {
-        pY = new double[NUM_COMPONENTS+1];
+        pY = new FP[NUM_COMPONENTS+1];
         for (unsigned int i=0;i<NUM_COMPONENTS+1;i++)
             pY[i]=p_Y[i];          // Y[a] - Y1,Y2,Y3,...,Ya
     }
@@ -41,12 +41,12 @@ void Bound2D::InitBound(char* name,
 #ifdef _UNIFORM_MESH_
 // Bound2D constructor (Flow,uint,uint,uint,uint)
 Bound2D::Bound2D(char* name,   
-                 UMatrix2D< FlowNode2D<double, NUM_COMPONENTS> >* J,
+                 UMatrix2D< FlowNode2D<FP, NUM_COMPONENTS> >* J,
                  unsigned int X1, unsigned int Y1,
                  unsigned int X2, unsigned int Y2,
                  int      bt,
                  Flow*    pInFlow,
-                 double*  p_Y,
+                 FP*  p_Y,
                  int     btc) {
     
     pBoundFlow   = pInFlow;
@@ -60,22 +60,22 @@ Bound2D::Bound2D(char* name,
     End.SetX(X2);
     End.SetY(Y2);
 
-    fStart.SetX((double)X1);
-    fStart.SetY((double)Y1);
+    fStart.SetX((FP)X1);
+    fStart.SetY((FP)Y1);
 
-    fEnd.SetX((double)X2);
-    fEnd.SetY((double)Y2);
+    fEnd.SetX((FP)X2);
+    fEnd.SetY((FP)Y2);
 }
 
 
 // Bound2D constructor (Flow2D,uint,uint,uint,uint)
 Bound2D::Bound2D(char* name,   
-                 UMatrix2D< FlowNode2D<double, NUM_COMPONENTS> >* J,
+                 UMatrix2D< FlowNode2D<FP, NUM_COMPONENTS> >* J,
                  unsigned int X1, unsigned int Y1,
                  unsigned int X2, unsigned int Y2,
                  int      bt,
                  Flow2D*  pInFlow2D,
-                 double*  p_Y,
+                 FP*  p_Y,
                  int     btc) {
     pBoundFlow2D = pInFlow2D;
 
@@ -89,21 +89,21 @@ Bound2D::Bound2D(char* name,
     End.SetX(X2);
     End.SetY(Y2);
 
-    fStart.SetX((double)X1);
-    fStart.SetY((double)Y1);
+    fStart.SetX((FP)X1);
+    fStart.SetY((FP)Y1);
 
-    fEnd.SetX((double)X2);
-    fEnd.SetY((double)Y2);
+    fEnd.SetX((FP)X2);
+    fEnd.SetY((FP)Y2);
 }
 
 // Bound2D constructor (Flow,XY<uint,uint>,XY<uint,uint>)
 Bound2D::Bound2D(char* name,   
-                 UMatrix2D< FlowNode2D<double, NUM_COMPONENTS> >* J,
+                 UMatrix2D< FlowNode2D<FP, NUM_COMPONENTS> >* J,
                  XY<unsigned int>*  p_start,
                  XY<unsigned int>*  p_end,
                  int                bt,
                  Flow*              pInFlow,
-                 double*            p_Y,
+                 FP*            p_Y,
                  int                btc) {
     
     pBoundFlow   = pInFlow;
@@ -115,21 +115,21 @@ Bound2D::Bound2D(char* name,
     Start.SetXY(p_start);
     End.SetXY(p_end);
 
-    fStart.SetX(static_cast<double>(Start.GetX()));
-    fStart.SetY(static_cast<double>(Start.GetY()));
+    fStart.SetX(static_cast<FP>(Start.GetX()));
+    fStart.SetY(static_cast<FP>(Start.GetY()));
 
-    fEnd.SetX(static_cast<double>(End.GetX()));
-    fEnd.SetY(static_cast<double>(End.GetY()));
+    fEnd.SetX(static_cast<FP>(End.GetX()));
+    fEnd.SetY(static_cast<FP>(End.GetY()));
 }
 
 // Bound2D constructor (Flow2D,XY<uint,uint>,XY<uint,uint>)
 Bound2D::Bound2D(char*  name,   
-                 UMatrix2D< FlowNode2D<double, NUM_COMPONENTS> >* J,
+                 UMatrix2D< FlowNode2D<FP, NUM_COMPONENTS> >* J,
                  XY<unsigned int>*  p_start,
                  XY<unsigned int>*  p_end,
                  int                bt,
                  Flow2D*            pInFlow2D,
-                 double*            p_Y,
+                 FP*            p_Y,
                  int                btc) {
 
     pBoundFlow2D = pInFlow2D;
@@ -141,28 +141,28 @@ Bound2D::Bound2D(char*  name,
     Start.SetXY(p_start);
     End.SetXY(p_end);
 
-    fStart.SetX(static_cast<double>(Start.GetX()));
-    fStart.SetY(static_cast<double>(Start.GetY()));
+    fStart.SetX(static_cast<FP>(Start.GetX()));
+    fStart.SetY(static_cast<FP>(Start.GetY()));
 
-    fEnd.SetX(static_cast<double>(End.GetX()));
-    fEnd.SetY(static_cast<double>(End.GetY()));
+    fEnd.SetX(static_cast<FP>(End.GetX()));
+    fEnd.SetY(static_cast<FP>(End.GetY()));
 }
 
 #endif // _UNIFORM_MESH_
 
-// Bound constructor (Flow,double,double,double,double)
+// Bound constructor (Flow,FP,FP,FP,FP)
 Bound2D::Bound2D(char* name,   
-                 UMatrix2D< FlowNode2D<double, NUM_COMPONENTS> >* J,
+                 UMatrix2D< FlowNode2D<FP, NUM_COMPONENTS> >* J,
     #ifndef _UNIFORM_MESH_
                  Mesh2D* p_mesh,       //  anisotropic mesh
     #endif // _UNIFORM_MESH_
-                 double  x1,
-                 double  y1,
-                 double  x2,
-                 double  y2,
+                 FP  x1,
+                 FP  y1,
+                 FP  x2,
+                 FP  y2,
                  int     bt,
                  Flow*   pInFlow,
-                 double* p_Y,
+                 FP* p_Y,
                  int     btc) {
 
     pBoundFlow   = pInFlow;
@@ -189,19 +189,19 @@ Bound2D::Bound2D(char* name,
     fEnd.SetY(y2);
 }
 
-// Bound constructor (Flow2D,double,double,double,double)
+// Bound constructor (Flow2D,FP,FP,FP,FP)
 Bound2D::Bound2D(char* name,   
-                 UMatrix2D< FlowNode2D<double, NUM_COMPONENTS> >* J,
+                 UMatrix2D< FlowNode2D<FP, NUM_COMPONENTS> >* J,
 #ifndef _UNIFORM_MESH_
                  Mesh2D* p_mesh,       //  anisotropic mesh
 #endif // _UNIFORM_MESH_
-                 double  x1,
-                 double  y1,
-                 double  x2,
-                 double  y2,
+                 FP  x1,
+                 FP  y1,
+                 FP  x2,
+                 FP  y2,
                  int     bt,
                  Flow2D*           pInFlow2D,
-                 double* p_Y,
+                 FP* p_Y,
                  int     btc) {
 
     pBoundFlow2D = pInFlow2D;
@@ -229,12 +229,12 @@ Bound2D::Bound2D(char* name,
 
 // Bound2D constructor (Flow,XY<uint,uint>,XY<uint,uint>)
 Bound2D::Bound2D(char* name,   
-                 UMatrix2D< FlowNode2D<double, NUM_COMPONENTS> >* J,
-                 XY<double>*  p_start,
-                 XY<double>*  p_end,
+                 UMatrix2D< FlowNode2D<FP, NUM_COMPONENTS> >* J,
+                 XY<FP>*  p_start,
+                 XY<FP>*  p_end,
                  int                bt,
                  Flow*              pInFlow,
-                 double*            p_Y,
+                 FP*            p_Y,
                  int                btc) {
 
     pBoundFlow   = pInFlow;
@@ -259,12 +259,12 @@ Bound2D::Bound2D(char* name,
 
 // Bound2D constructor (Flow2D,XY<uint,uint>,XY<uint,uint>)
 Bound2D::Bound2D(char* name,   
-                 UMatrix2D< FlowNode2D<double, NUM_COMPONENTS> >* J,
-                 XY<double>*  p_start,
-                 XY<double>*  p_end,
+                 UMatrix2D< FlowNode2D<FP, NUM_COMPONENTS> >* J,
+                 XY<FP>*  p_start,
+                 XY<FP>*  p_end,
                  int          bt,
                  Flow2D*           pInFlow2D,
-                 double*      p_Y,
+                 FP*      p_Y,
                  int          btc) {
 
     pBoundFlow2D = pInFlow2D;
@@ -289,10 +289,10 @@ Bound2D::Bound2D(char* name,
 
 // Set bound
 BoundState Bound2D::SetBound(int MaterialID) {
-    static  double  Alpha,K;//,Betta,Gamma,W,U=0,V=0;
+    static  FP  Alpha,K;//,Betta,Gamma,W,U=0,V=0;
     static  unsigned int   ii,i,j1,j2,k1,j=0;
-    static  double  DX,DY;
-    XY<double>      fCurrentPoint;
+    static  FP  DX,DY;
+    XY<FP>      fCurrentPoint;
 
 #ifdef _UNIFORM_MESH_
     if (Start.GetX() > pMFN->GetX()||
@@ -323,7 +323,7 @@ BoundState Bound2D::SetBound(int MaterialID) {
         else              k1 = End.GetY();
         j2 = max(Start.GetX(),End.GetX());
         for (i=j1;i<=j2;i++) {
-            j = k1 +(int)((double)(i-j1)*tan(Alpha));
+            j = k1 +(int)((FP)(i-j1)*tan(Alpha));
             pMFN->GetValue(i,j).CT  = BNT | CT_NODE_IS_SET_2D;
             pMFN->GetValue(i,j).TurbType  = BTC;
             pMFN->GetValue(i,j).NGX = (3-pMFN->GetValue(i,j).idXr-pMFN->GetValue(i,j).idXl);
@@ -349,7 +349,7 @@ BoundState Bound2D::SetBound(int MaterialID) {
         else              k1 = End.GetX();
         j2 = max(Start.GetY(),End.GetY());
         for (i=j1;i<=j2;i++) {
-            if (tan(Alpha) != 0.)  j = k1 + (int)((double)(i-j1)/tan(Alpha));
+            if (tan(Alpha) != 0.)  j = k1 + (int)((FP)(i-j1)/tan(Alpha));
             else                   j = k1;
             pMFN->GetValue(j,i).CT  = BNT | CT_NODE_IS_SET_2D;
             pMFN->GetValue(j,i).TurbType  = BTC;
@@ -395,12 +395,12 @@ BoundState Bound2D::SetBound(int MaterialID) {
 #endif // _UNIFORM_MESH_
 }
 // Set bound. Push result to array
-BoundState Bound2D::SetBound(UArray< FlowNode2D<double, NUM_COMPONENTS>* >* node_array, int MaterialID) {
-    static  double  Alpha,K;//,Betta,Gamma,W,U=0,V=0;
+BoundState Bound2D::SetBound(UArray< FlowNode2D<FP, NUM_COMPONENTS>* >* node_array, int MaterialID) {
+    static  FP  Alpha,K;//,Betta,Gamma,W,U=0,V=0;
     static  unsigned int   ii,i,j1,j2,k1,j=0;
-    static  double  DX,DY;
-    XY<double>      fCurrentPoint;
-    FlowNode2D<double, NUM_COMPONENTS>* TmpNodePtr;
+    static  FP  DX,DY;
+    XY<FP>      fCurrentPoint;
+    FlowNode2D<FP, NUM_COMPONENTS>* TmpNodePtr;
 
     if(node_array==NULL) {
         bs = BND_ERR;
@@ -436,7 +436,7 @@ BoundState Bound2D::SetBound(UArray< FlowNode2D<double, NUM_COMPONENTS>* >* node
         else              k1 = End.GetY();
         j2 = max(Start.GetX(),End.GetX());
         for (i=j1;i<=j2;i++) {
-            j = k1 +(int)((double)(i-j1)*tan(Alpha));
+            j = k1 +(int)((FP)(i-j1)*tan(Alpha));
             pMFN->GetValue(i,j).CT  = BNT | CT_NODE_IS_SET_2D;
             pMFN->GetValue(i,j).TurbType  = BTC;
             pMFN->GetValue(i,j).NGX = (3-pMFN->GetValue(i,j).idXr-pMFN->GetValue(i,j).idXl);
@@ -466,7 +466,7 @@ BoundState Bound2D::SetBound(UArray< FlowNode2D<double, NUM_COMPONENTS>* >* node
         else              k1 = End.GetX();
         j2 = max(Start.GetY(),End.GetY());
         for (i=j1;i<=j2;i++) {
-            if (tan(Alpha) != 0.)  j = k1 + (int)((double)(i-j1)/tan(Alpha));
+            if (tan(Alpha) != 0.)  j = k1 + (int)((FP)(i-j1)/tan(Alpha));
             else                   j = k1;
             pMFN->GetValue(j,i).CT  = BNT | CT_NODE_IS_SET_2D;
             pMFN->GetValue(j,i).TurbType  = BTC;
@@ -522,7 +522,7 @@ Bound2D::~Bound2D() {
         delete[] pY;
 }
 
-double* Bound2D::GetYArray() {
+FP* Bound2D::GetYArray() {
     return pY;
 }
 
@@ -555,43 +555,43 @@ unsigned int Bound2D::GetEndY() {
 // Set start X bound coord (nodes)
 void  Bound2D::SetStartX(unsigned int x) {
     Start.SetX(x);
-    fStart.SetX(static_cast<double>(x));
+    fStart.SetX(static_cast<FP>(x));
 }
 // Set start Y bound coord (nodes)
 void  Bound2D::SetStartY(unsigned int y) {
     Start.SetY(y);
-    fStart.SetY(static_cast<double>(y));
+    fStart.SetY(static_cast<FP>(y));
 }
 // Set end X bound coord (nodes)
 void  Bound2D::SetEndX(unsigned int x) {
     End.SetX(x);
-    fEnd.SetX(static_cast<double>(x));
+    fEnd.SetX(static_cast<FP>(x));
 }
 // Set end Y bound coord (nodes)
 void   Bound2D::SetEndY(unsigned int y) {
     End.SetY(y);
-    fEnd.SetY(static_cast<double>(y));
+    fEnd.SetY(static_cast<FP>(y));
 }
 #endif // _UNIFORM_MESH_
 
 // Get start X bound coord (m)
-double  Bound2D::GetStartFX() {
+FP  Bound2D::GetStartFX() {
     return fStart.GetY();
 }
 // Get start Y bound coord (m)
-double  Bound2D::GetStartFY() {
+FP  Bound2D::GetStartFY() {
     return fStart.GetY();
 }
 // Get end X bound coord (m)
-double  Bound2D::GetEndFX() {
+FP  Bound2D::GetEndFX() {
     return fEnd.GetX();
 }
 // Get end Y bound coord (m)
-double  Bound2D::GetEndFY() {
+FP  Bound2D::GetEndFY() {
     return fEnd.GetY();
 }
 // Set start X bound coord (m)
-void    Bound2D::SetStartFX(double x) {
+void    Bound2D::SetStartFX(FP x) {
     fStart.SetX(x);
 #ifdef _UNIFORM_MESH_
     Start.SetX(static_cast<unsigned int>(x));
@@ -599,7 +599,7 @@ void    Bound2D::SetStartFX(double x) {
 }
 
 // Set start Y bound coord (m)
-void    Bound2D::SetStartFY(double y) {
+void    Bound2D::SetStartFY(FP y) {
     fStart.SetY(y);
 #ifdef _UNIFORM_MESH_
     Start.SetY(static_cast<unsigned int>(y));
@@ -607,7 +607,7 @@ void    Bound2D::SetStartFY(double y) {
 }
 
 // Set end X bound coord (m)
-void    Bound2D::SetEndFX(double x) {
+void    Bound2D::SetEndFX(FP x) {
     fEnd.SetX(x);
 #ifdef _UNIFORM_MESH_
     End.SetX(static_cast<unsigned int>(x));
@@ -615,7 +615,7 @@ void    Bound2D::SetEndFX(double x) {
 }
 
 // Set end Y bound coord (m)
-void    Bound2D::SetEndFY(double y) {
+void    Bound2D::SetEndFY(FP y) {
     fEnd.SetY(y);
 #ifdef _UNIFORM_MESH_
     End.SetY(static_cast<unsigned int>(y));
@@ -626,13 +626,13 @@ void    Bound2D::SetEndFY(double y) {
 // Set start XY bound coord (nodes)
 void  Bound2D::SetStartXY(XY<unsigned int>* xy) {
     Start.SetXY(xy);
-    fStart.SetX(static_cast<double>(Start.GetX()));
-    fStart.SetY(static_cast<double>(Start.GetY()));
+    fStart.SetX(static_cast<FP>(Start.GetX()));
+    fStart.SetY(static_cast<FP>(Start.GetY()));
 }
 #endif // _UNIFORM_MESH_
 
 // Set start XY bound coord (m)
-void  Bound2D::SetStartFXY(XY<double>* xy) {
+void  Bound2D::SetStartFXY(XY<FP>* xy) {
     fStart.SetXY(xy);
 #ifdef _UNIFORM_MESH_
     Start.SetX(static_cast<unsigned int>(fStart.GetX()));
@@ -644,13 +644,13 @@ void  Bound2D::SetStartFXY(XY<double>* xy) {
 // Set end XY bound coord (nodes)
 void   Bound2D::SetEndXY(XY<unsigned int>* xy) {
     End.SetXY(xy);
-    fEnd.SetX(static_cast<double>(End.GetX()));
-    fEnd.SetY(static_cast<double>(End.GetY()));
+    fEnd.SetX(static_cast<FP>(End.GetX()));
+    fEnd.SetY(static_cast<FP>(End.GetY()));
 }
 #endif // _UNIFORM_MESH_
 
 // Set end XY bound coord (m)
-void  Bound2D::SetEndFXY(XY<double>* xy) {
+void  Bound2D::SetEndFXY(XY<FP>* xy) {
     fEnd.SetXY(xy);
 #ifdef _UNIFORM_MESH_
     End.SetX(static_cast<unsigned int>(fEnd.GetX()));
@@ -661,9 +661,9 @@ void  Bound2D::SetEndFXY(XY<double>* xy) {
 
 // Rotate bound
 // Bound can be rotated _only_ in INACTIVE state (before SetBound() call )!!!
-int Bound2D::RotateBound2D(double x0, double y0, double angle) {
+int Bound2D::RotateBound2D(FP x0, FP y0, FP angle) {
     if (bs != BND_INACTIVE) return 0;
-    double dxs = fStart.GetX()-x0,
+    FP dxs = fStart.GetX()-x0,
            dys = fStart.GetY()-y0,
            fi1 = atan2(dxs,dys),
            dxe = fEnd.GetX()-x0,
@@ -699,9 +699,9 @@ int Bound2D::RotateBound2D(double x0, double y0, double angle) {
     return 1;
 }
 // Test bound rotation
-int Bound2D::TestRotateBound2D(double x0, double y0, double angle) {
+int Bound2D::TestRotateBound2D(FP x0, FP y0, FP angle) {
     if (bs != BND_INACTIVE) return 0;
-    double dxs = fStart.GetX()-x0,
+    FP dxs = fStart.GetX()-x0,
            dys = fStart.GetY()-y0,
            fi1 = atan2(dxs,dys),
            dxe = fEnd.GetX()-x0,

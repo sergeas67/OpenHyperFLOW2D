@@ -11,20 +11,20 @@
 #include "libOpenHyperFLOW2D/hyper_flow_solid_bound_rect.hpp"
 // SolidBoundRect constructor
 SolidBoundRect2D::SolidBoundRect2D(char* name,
-                                   UMatrix2D< FlowNode2D< double, NUM_COMPONENTS> >* JM,// Computation area reference
-                                   double  x,                                           // Start rect 
-                                   double  y,                                           // coordinates (x,y) left-down corner
-                                   double  DX,                                          // Rect width
-                                   double  DY,                                          // Rect hight
+                                   UMatrix2D< FlowNode2D< FP, NUM_COMPONENTS> >* JM,// Computation area reference
+                                   FP  x,                                           // Start rect 
+                                   FP  y,                                           // coordinates (x,y) left-down corner
+                                   FP  DX,                                          // Rect width
+                                   FP  DY,                                          // Rect hight
     #ifdef _UNIFORM_MESH_
-                                   double  dx,                                          // dx - step
-                                   double  dy,                                          // dy - step
+                                   FP  dx,                                          // dx - step
+                                   FP  dy,                                          // dy - step
     #else 
                                    Mesh2D* p_mesh,
     #endif // _UNIFORM_MESH_
                                    ulong   ct,                                          // condition type
                                    Flow2D* pInFlow2D,                                   // init flow2d object on circle bound
-                                   double* _Y,                                          // component matrix
+                                   FP* _Y,                                          // component matrix
                                    ulong   bctt,                                        // bound contour turbulence type
                                    ostream* dbg_output):BoundContour2D(name,JM,         // embedded BoundContour object
     #ifndef _UNIFORM_MESH_
@@ -38,7 +38,7 @@ SolidBoundRect2D::SolidBoundRect2D(char* name,
                                                                         ,p_mesh
     #endif // _UNIFORM_MESH_
                                                                        ) {
-    double xx1,yy1,xx2,yy2;
+    FP xx1,yy1,xx2,yy2;
 #ifdef _UNIFORM_MESH_
     unsigned int    ix,iy;
 #else
