@@ -92,7 +92,7 @@ int main( int argc, char **argv )
     ChemicalReactionsModelData2D   TmpCRM2D;
 
     FlowNode2D<FP,NUM_COMPONENTS>* TmpMatrixPtr;
-    FlowNodeCore2D<FP,NUM_COMPONENTS>* TmpCoreMatrixPtr;
+    //FlowNodeCore2D<FP,NUM_COMPONENTS>* TmpCoreMatrixPtr;
 
     int TmpMaxX;
     
@@ -109,8 +109,8 @@ int main( int argc, char **argv )
 #endif  // _DEBUG_0
         if (argc < 2) {
             printf("OpenHyperFLOW2D/DEEPS solver v %'.2f ",ver);
-            printf(" (parallel CUDA version)\n");
-            printf("Copyright (C) 1995-2014 by Serge A. Suchkov\nCopyright policy: LGPL V3\nUsage: %s [{input_data_file}]\n",argv[0]);
+            printf(" (parallel CUDA version)");
+            printf("\nCopyright (C) 1995-2014 by Serge A. Suchkov\nCopyright policy: LGPL V3\nUsage: %s [{input_data_file}]\n",argv[0]);
             printf("\n\t* Density-based 2D-Navier-Stokes solver for ");
 #ifdef _UNIFORM_MESH_
             printf("uniform cartesian mesh");
@@ -437,7 +437,7 @@ int main( int argc, char **argv )
                                                                                                       FlowNode2D<FP,NUM_COMPONENTS>::dx,
                                                                                                       FlowNode2D<FP,NUM_COMPONENTS>::dy);
 
-                 CUDA_BARRIER("cuda_SetMinDistanceToWall2D");
+                 CUDA_BARRIER((char*)"cuda_SetMinDistanceToWall2D");
                  *o_stream << "OK" << endl;
 
 
@@ -453,7 +453,7 @@ int main( int argc, char **argv )
                                                                                               FlowNode2D<FP,NUM_COMPONENTS>::dy,
                                                                                               MaxY);
 
-                 CUDA_BARRIER("cuda_Recalc_y_plus");
+                 CUDA_BARRIER((char*)"cuda_Recalc_y_plus");
                  *o_stream << "OK" << endl;
 
 
@@ -474,7 +474,7 @@ int main( int argc, char **argv )
                                                                                                 FlowNode2D<FP,NUM_COMPONENTS>::FT,
                                                                                                 ProblemType);
 
-            CUDA_BARRIER("cuda_SetInitBoundaryLayer");
+            CUDA_BARRIER((char*)"cuda_SetInitBoundaryLayer");
             *o_stream << "OK" << endl;
 
             CopyDeviceToHost(cudaSubmatrix,TmpMatrixPtr,(sizeof(FlowNode2D<FP,NUM_COMPONENTS>))*(TmpMaxX*MaxY));
