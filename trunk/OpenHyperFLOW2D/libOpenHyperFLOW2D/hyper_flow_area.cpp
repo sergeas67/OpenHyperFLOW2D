@@ -31,7 +31,7 @@ void Exit_OpenHyperFLOW2D() {
     exit(0);
 };
 // Area constructor
-Area2D::Area2D(char* name, UMatrix2D< FlowNode2D<double,NUM_COMPONENTS> >* J):AreaName(name),pMFN(J) {
+Area2D::Area2D(char* name, UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* J):AreaName(name),pMFN(J) {
     ;
 }
 
@@ -41,7 +41,7 @@ void Area2D::FillArea2D(unsigned int X,
                         unsigned int Y,
                         ulong     bnt,
                         Flow*   pf,
-                        double* p_Y,
+                        FP* p_Y,
                         ulong     att,
                         int MaterialID) {
     Flow2D F2D(*pf);
@@ -57,7 +57,7 @@ void Area2D::FillArea2D(unsigned int X,unsigned int Y,
 }
 
 // Fill area by custom type nodes
-void Area2D::FillArea2D(double X, double Y, ulong bnt,ulong att,
+void Area2D::FillArea2D(FP X, FP Y, ulong bnt,ulong att,
                         int MaterialID) {
     FillArea2D((unsigned int)(X/pMFN->GetValue(0,0).dx),(unsigned int)(Y/pMFN->GetValue(0,0).dy),bnt | CT_NODE_IS_SET_2D,(Flow2D*)NULL,NULL,att,MaterialID);
 }
@@ -67,7 +67,7 @@ void Area2D::FillArea2D(unsigned int X,
                         unsigned int Y,
                         ulong    bnt,
                         Flow2D*  pf2d,
-                        double*  p_Y,
+                        FP*  p_Y,
                         ulong    att,
                         int MaterialID) {
 
@@ -185,11 +185,11 @@ void Area2D::FillArea2D(unsigned int X,
     as = AS_OK;
 }
 
-void Area2D::FillArea2D(double  X,
-                        double  Y,
+void Area2D::FillArea2D(FP  X,
+                        FP  Y,
                         ulong   bnt,
                         Flow2D*  pf2d,
-                        double*  p_Y,
+                        FP*  p_Y,
                         ulong    att,
                         int MaterialID) {
 
@@ -203,11 +203,11 @@ void Area2D::FillArea2D(double  X,
 }
 
 #else
-void Area2D::FillArea2D(double X,
-                        double Y,
+void Area2D::FillArea2D(FP X,
+                        FP Y,
                         ulong  bnt,
                         Flow*   pf,
-                        double* p_Y,
+                        FP* p_Y,
                         ulong   att,
                         int MaterialID) {
     Flow2D F2D(*pf);
@@ -215,19 +215,19 @@ void Area2D::FillArea2D(double X,
 }
 
 // Fill area by custom type nodes
-void Area2D::FillArea2D(double X,
-                        double Y, 
+void Area2D::FillArea2D(FP X,
+                        FP Y, 
                         ulong  bnt,
                         ulong  att,
                         int MaterialID) {
     FillArea(X,Y,bnt | CT_NODE_IS_SET_2D,(Flow2D*)NULL,NULL,att,MaterialID);
 }
 // Fill area by Flow2D
-void Area2D::FillArea2D(double  X,
-                        double  Y,
+void Area2D::FillArea2D(FP  X,
+                        FP  Y,
                         ulong   bnt,
                         Flow2D* pf2d,
-                        double* p_Y,
+                        FP* p_Y,
                         ulong   att,
                         int MaterialID=GAS_ID) {
 // ...

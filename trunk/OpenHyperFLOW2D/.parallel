@@ -91,8 +91,8 @@ MPIDIR   = /share/mpi/icc/openmpi-1.6.3
 endif
 
 ifeq ("${COMPILER}","GNU")
-#MPIDIR   = /share/mpi/gcc/openmpi-1.6.3
-MPIDIR   = /usr/lib64/mpi/gcc/openmpi
+MPIDIR   = /share/mpi/gcc/openmpi-1.6.3
+#MPIDIR   = /usr/lib64/mpi/gcc/openmpi
 endif
 
 MPIARCH   = LINUX

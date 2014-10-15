@@ -9,9 +9,9 @@
 *******************************************************************************/
 #include "libExcept/except.hpp"
 #include "libOpenHyperFLOW2D/hyper_flow_airfoil.hpp"
-double SolidBoundAirfoil2D::mean_y(double t) { //mm=0.6;
+FP SolidBoundAirfoil2D::mean_y(FP t) { //mm=0.6;
 
-    double m0=0.0,    
+    FP m0=0.0,    
     m1=0.1,
     m2=0.1,    
     m3=0.1,    
@@ -20,9 +20,9 @@ double SolidBoundAirfoil2D::mean_y(double t) { //mm=0.6;
     return m0*mm*bez_d4_i0(t)+m1*mm*bez_d4_i1(t)+m2*mm*bez_d4_i2(t)+m3*mm*bez_d4_i3(t)+m4*mm*bez_d4_i4(t);
 }
 
-double SolidBoundAirfoil2D::mean_x(double t) { // pp=0.6,
+FP SolidBoundAirfoil2D::mean_x(FP t) { // pp=0.6,
 
-    double p0=0.0,
+    FP p0=0.0,
     p1=pp/2.,
     p2=pp,
     p3=(pp+1.)/2.,
@@ -31,8 +31,8 @@ double SolidBoundAirfoil2D::mean_x(double t) { // pp=0.6,
     return p0*bez_d4_i0(t)+p1*bez_d4_i1(t)+p2*bez_d4_i2(t)+p3*bez_d4_i3(t)+p4*bez_d4_i4(t);
 }
 
-double SolidBoundAirfoil2D::z_x(double x) {
-    double x0 = 0.0,
+FP SolidBoundAirfoil2D::z_x(FP x) {
+    FP x0 = 0.0,
     x1 = 0.0,
     x2 = 0.03571,
     x3 = 0.10714,
@@ -46,8 +46,8 @@ double SolidBoundAirfoil2D::z_x(double x) {
     x6*bez_d8_i6(x)+x7*bez_d8_i7(x)+x8*bez_d8_i8(x);
 }
 
-double SolidBoundAirfoil2D::z_y(double x, double tk) {
-    double y0 = 0.0,
+FP SolidBoundAirfoil2D::z_y(FP x, FP tk) {
+    FP y0 = 0.0,
     y1 = 0.18556,
     y2 = 0.34863,
     y3 = 0.48919,
@@ -62,40 +62,40 @@ double SolidBoundAirfoil2D::z_y(double x, double tk) {
     y6*tk*bez_d8_i6(x)+y7*tk*bez_d8_i7(x)+y8*tk*bez_d8_i8(x);
 }
 
-double SolidBoundAirfoil2D::airfoil_y1(double t,double thick) {
+FP SolidBoundAirfoil2D::airfoil_y1(FP t,FP thick) {
     return mean_y(z_x(t)) + z_y(t, thick);
 }
-double SolidBoundAirfoil2D::airfoil_y2(double t,double thick) {
+FP SolidBoundAirfoil2D::airfoil_y2(FP t,FP thick) {
     return mean_y(z_x(t)) - z_y(t, thick);
 }
-double SolidBoundAirfoil2D::airfoil_y(double t) {
+FP SolidBoundAirfoil2D::airfoil_y(FP t) {
     return mean_y(z_x(t));
 }
-double SolidBoundAirfoil2D::airfoil_x(double t) {
+FP SolidBoundAirfoil2D::airfoil_x(FP t) {
     return mean_x(z_x(t));
 }
 
 
 SolidBoundAirfoil2D::SolidBoundAirfoil2D(char* name,                    // Object name  
-                                         UMatrix2D< FlowNode2D< double, NUM_COMPONENTS> >* JM, // Computation area reference
-                                         double  x,                      // Start profile 
-                                         double  y,                      // coordinates (x,y)
-                                         double  m_m,                    //
-                                         double  p_p,                    //
-                                         double  thick,                  // airfoil thick
+                                         UMatrix2D< FlowNode2D< FP, NUM_COMPONENTS> >* JM, // Computation area reference
+                                         FP  x,                      // Start profile 
+                                         FP  y,                      // coordinates (x,y)
+                                         FP  m_m,                    //
+                                         FP  p_p,                    //
+                                         FP  thick,                  // airfoil thick
     #ifdef _UNIFORM_MESH_
-                                         double  dx,                     // dx - step
-                                         double  dy,                     // dy - step
+                                         FP  dx,                     // dx - step
+                                         FP  dy,                     // dy - step
     #else 
                                          unsigned int num_segments,
                                          Mesh2D* p_mesh,
     #endif // _UNIFORM_MESH_
                                          ulong   ct,                     // condition type
                                          Flow2D* pInFlow2D,              // init flow2d object on circle bound
-                                         double* Y,                      // component matrix
+                                         FP* Y,                      // component matrix
                                          ulong   bctt,                   // Bound contour turbulence type
-                                         double  scale,                  // airfoil scale
-                                         double  attack_angle,           // Angle of attack
+                                         FP  scale,                  // airfoil scale
+                                         FP  attack_angle,           // Angle of attack
                                          ostream* dbg_output):BoundContour2D(name,JM,
     #ifndef _UNIFORM_MESH_                                              
                                                                              p_mesh,x,y
@@ -110,7 +110,7 @@ SolidBoundAirfoil2D::SolidBoundAirfoil2D(char* name,                    // Objec
     #endif // _UNIFORM_MESH_
                                                                                       ) {
     int    k,i,ret;
-    double xx1,yy1,xx2,yy2,r,fi;
+    FP xx1,yy1,xx2,yy2,r,fi;
 #ifdef _UNIFORM_MESH_
     int    ix,iy;
     k = (int)(scale/dx);
@@ -118,7 +118,7 @@ SolidBoundAirfoil2D::SolidBoundAirfoil2D(char* name,                    // Objec
     k = num_segments;
 #endif // _UNIFORM_MESH_
 
-    double dcx,dcy,dt=2./k;
+    FP dcx,dcy,dt=2./k;
     xx1=yy1=xx2=yy2=0.;
     pp =  p_p;
     mm =  m_m;

@@ -5,16 +5,16 @@
 *************************************************/
 #include "libFlow/flow2d.hpp"
 
-Flow2D::Flow2D(double u, double v):Flow() {
-    double Tmp;
+Flow2D::Flow2D(FP u, FP v):Flow() {
+    FP Tmp;
     UU = u;
     VV = v;
     Tmp =sqrt(UU*UU+VV*VV+1.e-12);
     Wg(Tmp);
 }
 
-Flow2D::Flow2D(Flow& f,double u, double v):Flow(f) {
-    double Tmp;
+Flow2D::Flow2D(Flow& f,FP u, FP v):Flow(f) {
+    FP Tmp;
 
     UU = u;
     VV = v;
@@ -22,39 +22,39 @@ Flow2D::Flow2D(Flow& f,double u, double v):Flow(f) {
     Wg(Tmp);
 }
 
-Flow2D::Flow2D(double _mu,
-               double _lam,
-               double Cp,
-               double T,
-               double P,
-               double R,
-               double u,
-               double v):Flow(Cp,T,P,R,_lam,_mu) {
-    double Tmp;
+Flow2D::Flow2D(FP _mu,
+               FP _lam,
+               FP Cp,
+               FP T,
+               FP P,
+               FP R,
+               FP u,
+               FP v):Flow(Cp,T,P,R,_lam,_mu) {
+    FP Tmp;
     UU = u;
     VV = v;
     Tmp = sqrt(UU*UU+VV*VV+1.e-12);
     Wg(Tmp);
 }
 
-double Flow2D::U(double u) {
-    double Tmp;
+FP Flow2D::U(FP u) {
+    FP Tmp;
     UU = u;
     Tmp = sqrt(UU*UU+VV*VV+1.e-12);
     Wg(Tmp);
     return UU;
 }
 
-double Flow2D::V(double v) {
-    double Tmp;
+FP Flow2D::V(FP v) {
+    FP Tmp;
     VV = v;
     Tmp = sqrt(UU*UU+VV*VV+1.e-12);
     Wg(Tmp);
     return VV;
 }
 
-double Flow2D::Wg(double u, double v) {
-    double Tmp;
+FP Flow2D::Wg(FP u, FP v) {
+    FP Tmp;
     UU=u;
     VV=v;
     Tmp = sqrt(UU*UU+VV*VV+1.e-12);

@@ -91,17 +91,17 @@ class  XY_Table
  public:
 
  unsigned int         n;
- double*              x;
- double*              y;
+ FP*              x;
+ FP*              y;
 
  XY_Table(unsigned int N);
  ~XY_Table();
- double GetX(unsigned int i);
- double GetY(unsigned int i);
+ FP GetX(unsigned int i);
+ FP GetY(unsigned int i);
  unsigned int GetNumNodes();
 };
 
-extern  double GetVal(XY_Table*,double);
+extern  FP GetVal(XY_Table*,FP);
 
 class Data
 {
@@ -113,10 +113,10 @@ int      StrValSize;
 public:
 
 char*    StrVal;
-double   fVal;
+FP   fVal;
 int      iVal;
 
-Data(char* name, double val);
+Data(char* name, FP val);
 Data(char* name, int val);
 Data(char* name, char* val);
 
@@ -144,7 +144,7 @@ Table(char* name ,int N);
 ~Table();
 char*  GetName();
 void   SetName(char*);
-double GetVal(double _x );
+FP GetVal(FP _x );
 int    operator  > (Table);
 int    operator  < (Table);
 };
@@ -214,7 +214,7 @@ public:
                        , int rank = 0
 #endif //_MPI
                        );
- double      GetFloatVal(char* Name
+ FP      GetFloatVal(char* Name
 #ifdef _MPI
                        , int rank = 0
 #endif //_MPI
@@ -229,7 +229,7 @@ public:
                        , int rank = 0
 #endif //_MPI
                          );
- double      GetVal(char* Name, double par
+ FP      GetVal(char* Name, FP par
 #ifdef _MPI
                        , int rank = 0
 #endif //_MPI
