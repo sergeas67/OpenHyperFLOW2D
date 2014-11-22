@@ -25,7 +25,7 @@ void Abort_OpenHyperFLOW2D() {
 void Exit_OpenHyperFLOW2D() {
 #ifdef _MPI
     printf("\nTask[%d] stopped.\n",MPI::COMM_WORLD.Get_rank());
-    //MPI::COMM_WORLD.Abort(0);
+    MPI::COMM_WORLD.Abort(0);
     MPI::Finalize();
 #endif // _MPI
     exit(0);

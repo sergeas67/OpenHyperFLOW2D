@@ -76,47 +76,29 @@ FP SolidBoundAirfoil2D::airfoil_x(FP t) {
 }
 
 
-SolidBoundAirfoil2D::SolidBoundAirfoil2D(char* name,                    // Object name  
+SolidBoundAirfoil2D::SolidBoundAirfoil2D(char* name,                 // Object name  
                                          UMatrix2D< FlowNode2D< FP, NUM_COMPONENTS> >* JM, // Computation area reference
                                          FP  x,                      // Start profile 
                                          FP  y,                      // coordinates (x,y)
                                          FP  m_m,                    //
                                          FP  p_p,                    //
                                          FP  thick,                  // airfoil thick
-    #ifdef _UNIFORM_MESH_
                                          FP  dx,                     // dx - step
                                          FP  dy,                     // dy - step
-    #else 
-                                         unsigned int num_segments,
-                                         Mesh2D* p_mesh,
-    #endif // _UNIFORM_MESH_
-                                         ulong   ct,                     // condition type
-                                         Flow2D* pInFlow2D,              // init flow2d object on circle bound
+                                         ulong   ct,                 // condition type
+                                         Flow2D* pInFlow2D,          // init flow2d object on circle bound
                                          FP* Y,                      // component matrix
-                                         ulong   bctt,                   // Bound contour turbulence type
+                                         ulong   bctt,               // Bound contour turbulence type
                                          FP  scale,                  // airfoil scale
                                          FP  attack_angle,           // Angle of attack
                                          ostream* dbg_output):BoundContour2D(name,JM,
-    #ifndef _UNIFORM_MESH_                                              
-                                                                             p_mesh,x,y
-
-    #else
                                                                              (int)(x/dx+0.4999),
                                                                              (int)(y/dy+0.4999)
-    #endif // _UNIFORM_MESH_
-                                                                             ),Area2D(name,JM
-    #ifndef _UNIFORM_MESH_
-                                                                                      ,p_mesh
-    #endif // _UNIFORM_MESH_
-                                                                                      ) {
+                                                                             ),Area2D(name,JM) {
     int    k,i,ret;
     FP xx1,yy1,xx2,yy2,r,fi;
-#ifdef _UNIFORM_MESH_
     int    ix,iy;
     k = (int)(scale/dx);
-#else    
-    k = num_segments;
-#endif // _UNIFORM_MESH_
 
     FP dcx,dcy,dt=2./k;
     xx1=yy1=xx2=yy2=0.;
@@ -125,18 +107,14 @@ SolidBoundAirfoil2D::SolidBoundAirfoil2D(char* name,                    // Objec
 
     xx1 = x;
     yy1 = y;
-    for (i=0;i<k/2;i++) {        //    upper surface
+    for (i=0;i<k/2;i++) {                             //    upper surface
         xx2=x+scale*airfoil_x((i+1)*dt);
         yy2=y+scale*airfoil_y1((i+1)*dt,thick);
-#ifdef _UNIFORM_MESH_
         ix = (int)(xx2/dx+0.4999);
         iy = (int)(yy2/dy+0.4999);
-#endif // _UNIFORM_MESH_
+        
         if (dbg_output)
-            *dbg_output << "\ndebug: Add airfoil node ("<< xx1 <<","<< yy1 << ")" 
-#ifdef _UNIFORM_MESH_
-            "->[" << ix <<","<< iy << "]" 
-#endif // _UNIFORM_MESH_
+            *dbg_output << "\ndebug: Add airfoil node ("<< xx1 <<","<< yy1 << ")->[" << ix <<","<< iy << "]" 
             << flush;
 #ifdef _UNIFORM_MESH_
         AddBound2D(name, ix,iy,ct,NULL,pInFlow2D,Y,bctt);
@@ -149,15 +127,11 @@ SolidBoundAirfoil2D::SolidBoundAirfoil2D(char* name,                    // Objec
     for (;i>0;i--) {          //     lower surface
         xx2=x+scale*airfoil_x((i-1)*dt);
         yy2=y+scale*airfoil_y2((i-1)*dt,thick);
-#ifdef _UNIFORM_MESH_
+        
         ix = (int)(xx2/dx+0.4999);
         iy = (int)(yy2/dy+0.4999);
-#endif // _UNIFORM_MESH_
         if (dbg_output)
-            *dbg_output << "\ndebug: Add airfoil node ("<< xx1 <<","<< yy1 << ")" 
-#ifdef _UNIFORM_MESH_
-            "->[" << ix <<","<< iy << "]" 
-#endif // _UNIFORM_MESH_
+            *dbg_output << "\ndebug: Add airfoil node ("<< xx1 <<","<< yy1 << ")->[" << ix <<","<< iy << "]" 
             << flush;
 #ifdef _UNIFORM_MESH_
         AddBound2D(name,ix,iy,ct,NULL,pInFlow2D,Y,bctt);
@@ -186,15 +160,12 @@ SolidBoundAirfoil2D::SolidBoundAirfoil2D(char* name,                    // Objec
     } else {
         ret = 1;
     }
-#ifdef _UNIFORM_MESH_
+    
     ix = (int)(xx1/dx+0.4999);
     iy = (int)(yy1/dy+0.4999);
-#endif // _UNIFORM_MESH_
+    
     if (dbg_output)
-        *dbg_output << "\n \ndebug:Start point for fill airfoil ("<< xx1 <<","<< yy1 << ")"
-#ifdef _UNIFORM_MESH_
-        "->[" << ix <<","<< iy << "]\n" 
-#endif // _UNIFORM_MESH_
+        *dbg_output << "\n \ndebug:Start point for fill airfoil ("<< xx1 <<","<< yy1 << ")->[" << ix <<","<< iy << "]\n" 
         << flush;
     if (ret) {
         SetBounds();

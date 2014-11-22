@@ -121,37 +121,37 @@ void*                                        GasSwapData;
 int                                          TurbMod    = 0;
 int                                          EndFLAG    = 1;
 int                                          PrintFLAG;
-ofstream*                                    pInputData;      // Output data stream
-ofstream*                                    pRMS_OutFile;    // Output RMS stream
-ofstream*                                    pMonitors_OutFile;    // Output RMS stream
-ofstream*                                    pHeatFlux_OutFile; // Output HeatFlux stream
-unsigned int                                 iter = 0;        // iteration number
-unsigned int                                 last_iter=0;     // Global iteration number
-int                                          isStop=0;        // Stop flag
-InputData*                                   Data=NULL;       // Object data loader
-UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*  J=NULL;      // Main computation area
-UArray<Flow*>*                               FlowList=NULL;   // List of 'Flow' objects
-UArray<Flow2D*>*                             Flow2DList=NULL; // List of 'Flow2D' objects
-UArray<Bound2D*>                             SingleBoundsList;// Single Bounds List;
+ofstream*                                    pInputData;           // Output data stream
+ofstream*                                    pRMS_OutFile;         // Output RMS stream
+ofstream*                                    pMonitors_OutFile;    // Output Monitors stream
+ofstream*                                    pHeatFlux_OutFile;    // Output HeatFlux stream
+unsigned int                                 iter = 0;             // iteration number
+unsigned int                                 last_iter=0;          // Global iteration number
+int                                          isStop=0;             // Stop flag
+InputData*                                   Data=NULL;            // Object data loader
+UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*  J=NULL;               // Main computation area
+UArray<Flow*>*                               FlowList=NULL;        // List of 'Flow' objects
+UArray<Flow2D*>*                             Flow2DList=NULL;      // List of 'Flow2D' objects
+UArray<Bound2D*>                             SingleBoundsList;     // Single Bounds List;
 
-FP                                       dt;              // time step
-FP*                                      RoUx=NULL;
-FP*                                      RoVy=NULL;
-FP                                       GlobalTime=0.;
-FP                                       CurrentTimePart=0;
+FP                                           dt;                   // time step
+FP*                                          RoUx=NULL;
+FP*                                          RoVy=NULL;
+FP                                           GlobalTime=0.;
+FP                                           CurrentTimePart=0;
 
-ofstream*                                    pOutputData;     // output data stream (file)
+ofstream*                                    pOutputData;          // output data stream (file)
 
 int                                          I,NSaveStep;
-unsigned int                                 MaxX=0;          // X dimension of computation area
-unsigned int                                 MaxY=0;          // Y dimension of computation area
+unsigned int                                 MaxX=0;               // X dimension of computation area
+unsigned int                                 MaxY=0;               // Y dimension of computation area
 
-FP                                       dxdy,dx2,dy2;
-FP                                       Gig,SigW,SigF,delta_bl;
+FP                                           dxdy,dx2,dy2;
+FP                                           Gig,SigW,SigF,delta_bl;
 
-unsigned long FileSizeGas      = 0;
-int      isVerboseOutput       = 0;
-int      isTurbulenceReset     = 0;
+unsigned long                                FileSizeGas           = 0;
+int                                          isVerboseOutput       = 0;
+int                                          isTurbulenceReset     = 0;
 
 void InitSharedData(InputData* _data,
                     void* CRM_data
@@ -342,7 +342,7 @@ void InitSharedData(InputData* _data,
             
             }
 
-            beta0 = beta  = _data->GetFloatVal((char*)"beta");     // Base blending factor.
+            beta0 = beta  = _data->GetFloatVal((char*)"beta");       // Base blending factor.
             if ( _data->GetDataError()==-1 ) {
                 Abort_OpenHyperFLOW2D();
             }
@@ -352,7 +352,7 @@ void InitSharedData(InputData* _data,
                 Abort_OpenHyperFLOW2D();
             }
 
-            model_data->K0     = _data->GetFloatVal((char*)"K0"); // Stoichiometric ratio (OX/Fuel)
+            model_data->K0     = _data->GetFloatVal((char*)"K0");    // Stoichiometric ratio (OX/Fuel)
             if ( _data->GetDataError()==-1 ) {
                 Abort_OpenHyperFLOW2D();
             }
@@ -362,7 +362,7 @@ void InitSharedData(InputData* _data,
                 Abort_OpenHyperFLOW2D();
             }
 
-            model_data->Tf     = _data->GetFloatVal((char*)"Tf");   // Ignition temperature
+            model_data->Tf     = _data->GetFloatVal((char*)"Tf");    // Ignition temperature
             if ( _data->GetDataError()==-1 ) {
                 Abort_OpenHyperFLOW2D();
             }
@@ -700,8 +700,7 @@ void DEEPS2D_Run(ofstream* f_stream
 
 #ifdef _OPENMP
 #pragma omp barrier
-#pragma omp for private(CurrentNode,NextNode,UpNode,DownNode,LeftNode,RightNode)
-// schedule(dynamic) ordered nowait
+#pragma omp for private(CurrentNode,NextNode,UpNode,DownNode,LeftNode,RightNode) schedule(dynamic) ordered nowait
                 for(int ii=0;ii<n_s;ii++) {  // OpenMP version
 #endif //_OPENMP
 
@@ -1317,7 +1316,21 @@ void DEEPS2D_Run(ofstream* f_stream
 #endif // _OPENMP
 
 #ifdef _MPI
-      if(rank > 0) {
+      
+#ifdef _MPI_NB
+        if(rank < last_rank) {
+           HaloExchange[0].Wait();
+           HaloExchange[1].Wait();
+        }
+        
+        if(rank > 0) {
+           HaloExchange[3].Wait();
+           HaloExchange[2].Wait();
+        }
+#endif //_MPI_NB
+     
+     
+     if(rank > 0) {
 #ifdef _MPI_NB
            DD_Exchange[rank-1] = MPI::COMM_WORLD.Isend(&DD_max[rank],sizeof(Var_pack),MPI::BYTE,0,tag_DD);
 #else
@@ -1336,14 +1349,7 @@ void DEEPS2D_Run(ofstream* f_stream
        }
 
 #ifdef _MPI_NB
-        if(rank < last_rank) {
-           HaloExchange[0].Wait();
-           HaloExchange[1].Wait();
-        }
-        
         if(rank > 0) {
-           HaloExchange[3].Wait();
-           HaloExchange[2].Wait();
            DD_Exchange[rank-1].Wait();
         } else {
           for(int ii=1;ii<last_rank+1;ii++) 
@@ -1769,9 +1775,12 @@ if (rank == 0) {
                 *f_stream << "\nResults saved in file \"" << OutFileName << "\".\n" << flush;
                 f_stream->flush();
                 isRun = 0;
-                Exit_OpenHyperFLOW2D();
+                //Exit_OpenHyperFLOW2D();
 #ifdef _MPI
        }
+       
+        MPI::COMM_WORLD.Barrier();
+
 #endif //  _MPI
 #ifdef _DEBUG_0
        }__except( UMatrix2D<FP>*  m) {
@@ -2928,6 +2937,7 @@ void* InitDEEPS2D(void* lpvParam)
                 }
                 // 0 - static p, T
                 // 1 - total p*, T*
+                // 2 - reserved
                 // 3 - Mach
                 if(FlowMode == 0) {
                     TmpFlow2D->CorrectFlow(Tg,Pg,sqrt(Ug*Ug+Vg*Vg+1.e-30),FV_VELOCITY);
@@ -2938,7 +2948,8 @@ void* InitDEEPS2D(void* lpvParam)
                     if ( Data->GetDataError()==-1 ) {
                         Abort_OpenHyperFLOW2D();
                     }
-                    TmpFlow2D->CorrectFlow(Tg,Pg,Mach,FV_MACH);
+                    
+                    TmpFlow2D->MACH(Mach);
                 }
 
                 Flow2DList->AddElement(&TmpFlow2D);
@@ -3638,7 +3649,7 @@ void* InitDEEPS2D(void* lpvParam)
                           i_err = i;
                           j_err = j;
 #ifndef _UNIFORM_MESH_
-                            if ( meshType ) {
+                          if ( meshType ) {
                                 J->GetValue(i,j).dx  = dx;
                                 J->GetValue(i,j).dy  = dy;
                             }
