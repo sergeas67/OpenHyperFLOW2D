@@ -22,10 +22,6 @@ using namespace std;
 #include "obj_data/obj_data.hpp"
 #include "libOpenHyperFLOW2D/hyper_flow_node.hpp"
 
-#ifndef _UNIFORM_MESH_
-#include "libMesh/mesh.hpp"
-#endif  // _UNIFORM_MESH_
-
 #ifndef  max
     #define max(a,b) (((a)>(b))?(a):(b))
 #endif 
@@ -91,36 +87,30 @@ enum BoundMoveType {
 //  Bound2D object                              //
 //////////////////////////////////////////////////
 class Bound2D {
-    char*                           BoundName;            // Name of bound
+    char*                       BoundName;            // Name of bound
     UMatrix2D< FlowNode2D< FP, NUM_COMPONENTS> >* pMFN; //  N-components 
+    
     XY<FP>                      fStart;               //  X-Y coordinate  start  point of bound (meters)
     XY<FP>                      fEnd;                 //  X-Y coordinate  end  point of bound   (meters)
-#ifdef _UNIFORM_MESH_
-    XY<unsigned int>                Start;                //  X-Y coordinate  start  point of bound (nodes)
-    XY<unsigned int>                End;                  //  X-Y coordinate  end  point of bound   (nodes)
-    FP                          dx,dy;                //  dx and dy step...  
-#else
-    Mesh2D*                         pMesh;                //  anisotropic mesh
-#endif // _UNIFORM_MESH_
-    Flow2D*                         pBoundFlow2D;         //  Flow2D object (if it need) for this bound
-    Flow*                           pBoundFlow;           //  Flow  object (if it need) for this bound
+    
+    XY<unsigned int>            Start;                //  X-Y coordinate  start  point of bound (nodes)
+    XY<unsigned int>            End;                  //  X-Y coordinate  end  point of bound   (nodes)
+    
+    FP                          dx,dy, Alpha;         //  dx and dy step, angle  
+    
+    Flow2D*                     pBoundFlow2D;         //  Flow2D object (if it need) for this bound
+    Flow*                       pBoundFlow;           //  Flow  object (if it need) for this bound
     FP*                         pY;                   //  Y[a] - Y1,Y2,Y3,...,Ya
-    BoundState                      bs;                   //  Bound state
-    int                             BNT;                  //  Bound condition bit flag set 
-    int                             BTC;                  //  Bound turbulence condition bit flag set 
+    BoundState                  bs;                   //  Bound state
+    int                         BNT;                  //  Bound condition bit flag set 
+    int                         BTC;                  //  Bound turbulence condition bit flag set 
 
     void  InitBound(char* name, 
                     UMatrix2D< FlowNode2D< FP, NUM_COMPONENTS> >*,
-#ifndef _UNIFORM_MESH_
-                    Mesh2D* p_mesh,                       //  anisotropic mesh
-#endif // _UNIFORM_MESH_
                     int     bt,FP* y=0,int  btc=TCT_No_Turbulence_2D);
 public:
     Bound2D(char* name, 
           UMatrix2D< FlowNode2D< FP, NUM_COMPONENTS> >*,
-#ifndef _UNIFORM_MESH_
-          Mesh2D* p_mesh,                                 //  anisotropic mesh
-#endif // _UNIFORM_MESH_
           FP  x1,
           FP  y1,
           FP  x2,
@@ -132,9 +122,6 @@ public:
 
     Bound2D(char* name, 
           UMatrix2D< FlowNode2D< FP, NUM_COMPONENTS> >*,
-#ifndef _UNIFORM_MESH_
-          Mesh2D* p_mesh,                                 //  anisotropic mesh
-#endif // _UNIFORM_MESH_
           FP  x1,
           FP  y1,
           FP  x2,
@@ -170,9 +157,6 @@ public:
 
     Bound2D(char* name, 
           UMatrix2D< FlowNode2D< FP, NUM_COMPONENTS> >*,
-#ifndef _UNIFORM_MESH_
-          Mesh2D* p_mesh,                                 //  anisotropic mesh
-#endif // _UNIFORM_MESH_
           XY<FP>*  p_start,
           XY<FP>*  p_end,
           int          bt,
@@ -182,9 +166,6 @@ public:
 
     Bound2D(char* name, 
           UMatrix2D< FlowNode2D< FP, NUM_COMPONENTS> >*,
-#ifndef _UNIFORM_MESH_
-          Mesh2D*      p_mesh,                          //  anisotropic mesh
-#endif // _UNIFORM_MESH_
           XY<FP>*  p_start,
           XY<FP>*  p_end,
           int          bt,
@@ -218,24 +199,24 @@ public:
     BoundState   SetBound(UArray< FlowNode2D<FP, NUM_COMPONENTS>* >* node_array, int MaterialID=0);
     BoundState   GetBoundState();
     int          GetBoundCond();
-    FP*      GetYArray();
+    FP*          GetYArray();
     Flow*        GetBoundFlow();
     Flow2D*      GetBoundFlow2D();
 
     char*        GetBoundName() {return BoundName;}
     unsigned int GetNumComponents();
-#ifdef _UNIFORM_MESH_
+    
     unsigned int GetStartX();       
     unsigned int GetStartY();
     unsigned int GetEndX();      
     unsigned int GetEndY();
-#endif // _UNIFORM_MESH_
-    FP       GetStartFX();
-    FP       GetStartFY();
     
-    FP       GetEndFX();      
-    FP       GetEndFY();
-#ifdef _UNIFORM_MESH_
+    FP           GetStartFX();
+    FP           GetStartFY();
+    
+    FP           GetEndFX();      
+    FP           GetEndFY();
+    
     void         SetStartX(unsigned int x);
     void         SetStartY(unsigned int y);
     
@@ -244,7 +225,7 @@ public:
     
     void         SetStartXY(XY<unsigned int>* xy);
     void         SetEndXY(XY<unsigned int>* xy);
-#endif // _UNIFORM_MESH_
+    
     void         SetStartFX(FP x);
     void         SetStartFY(FP y);
     
@@ -261,15 +242,7 @@ public:
     int          TestRotateBound2D(FP x0,
                                    FP y0,
                                    FP angle);
-#ifndef _UNIFORM_MESH_
-    Mesh2D*
-    GetMesh() {
-        return pMesh;
-    }
-#endif // _UNIFORM_MESH_
 };
-// <------------- 2D --------------->           
-
 #endif // _hyper_flow_bound_hpp_
 
 

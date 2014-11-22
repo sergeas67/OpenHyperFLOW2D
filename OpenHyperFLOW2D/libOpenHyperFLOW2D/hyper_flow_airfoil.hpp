@@ -24,10 +24,6 @@ using namespace std;
 #include "libOpenHyperFLOW2D/hyper_flow_bound_contour.hpp"
 #include "libOpenHyperFLOW2D/hyper_flow_area.hpp"
 
-#ifndef _UNIFORM_MESH_
-#include "libMesh/mesh.hpp"
-#endif  // _UNIFORM_MESH_
-
 #ifndef  max
     #define max(a,b) (((a)>(b))?(a):(b))
 #endif 
@@ -87,15 +83,10 @@ public:
                       FP  m_m,                    //
                       FP  p_p,                    //
                       FP  thick,                  // airfoil thick
-#ifdef _UNIFORM_MESH_
                       FP  dx,                     // dx - step
                       FP  dy,                     // dy - step
-#else 
-                      unsigned int num_segments,
-                      Mesh2D* p_mesh,
-#endif // _UNIFORM_MESH_
-                      ulong   ct,                     // condition type
-                      Flow2D* pInFlow2D,              // init flow2d object on circle bound
+                      ulong   ct,                 // condition type
+                      Flow2D* pInFlow2D,          // init flow2d object on circle bound
                       FP* Y=NULL,                 // component matrix
                       ulong   bctt=TCT_No_Turbulence_2D, // Bound contour turbulence type
                       FP  scale=1.,               // airfoil scale
@@ -107,15 +98,10 @@ public:
                     FP  x,                      // Start profile 
                     FP  y,                      // coordinates (x,y)
                     UArray< XY<FP> >* airfoil_points,
-#ifdef _UNIFORM_MESH_
                     FP  dx,                     // dx - step
                     FP  dy,                     // dy - step
-#else 
-                    unsigned int num_segments,
-                    Mesh2D* p_mesh,
-#endif // _UNIFORM_MESH_
-                    ulong   ct,                     // condition type
-                    Flow2D* pInFlow2D,              // init flow2d object on circle bound
+                    ulong   ct,                 // condition type
+                    Flow2D* pInFlow2D,          // init flow2d object on circle bound
                     FP* Y=NULL,                 // component matrix
                     ulong   bctt=TCT_No_Turbulence_2D, // Bound contour turbulence type
                     FP  scale=1.,               // airfoil scale
@@ -126,11 +112,6 @@ public:
   char* GetSolidBoundAirfoilName2D() {
          return SolidBoundAirfoilName;
     }
-#ifndef _UNIFORM_MESH_
-    Mesh2D*    GetMesh() {
-        return pMesh;
-    }
-#endif // _UNIFORM_MESH_
 };
 
 #endif // _hyper_flow_airfoil_hpp_

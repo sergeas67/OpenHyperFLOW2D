@@ -135,10 +135,10 @@ FP CalcaverageTemperature2D(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* pJ,
 }
 
 FP CalcArea2D(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* pJ,             
-                  FP x0,  // initial X  point of probed area                  
-                  FP y0,  // initial Y  point of probed area                  
-                  FP dy   // diameter (or cross-section size) of probed area) 
-                 ) {                                                             
+              FP x0,  // initial X  point of probed area                  
+              FP y0,  // initial Y  point of probed area                  
+              FP dy   // radius (or cross-section size) of probed area 
+              ) {                                                             
 FP Sp=0.;
 unsigned int i = (unsigned int)(x0/FlowNode2D<FP,NUM_COMPONENTS>::dx);
 unsigned int jj_start = (unsigned int)(y0/FlowNode2D<FP,NUM_COMPONENTS>::dy);
@@ -163,10 +163,10 @@ unsigned int jj_end = (unsigned int)((y0+dy)/FlowNode2D<FP,NUM_COMPONENTS>::dy);
 }
 
 FP CalcMassFlowRateX2D(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* pJ,
-                           FP x0,  // initial X  point of probed area
-                           FP y0,  // initial Y  point of probed area
-                           FP dy   // diameter (or cross-section size) of probed area) 
-                           ) {
+                       FP x0,  // initial X  point of probed area
+                       FP y0,  // initial Y  point of probed area
+                       FP dy   // diameter (or cross-section size) of probed area) 
+                       ) {
 FP Mp=0.;
 unsigned int i = (unsigned int)(x0/FlowNode2D<FP,NUM_COMPONENTS>::dx);
 unsigned int jj_start = (unsigned int)(y0/FlowNode2D<FP,NUM_COMPONENTS>::dy);
@@ -192,10 +192,10 @@ unsigned int jj_end = (unsigned int)((y0+dy)/FlowNode2D<FP,NUM_COMPONENTS>::dy);
 
 
 FP CalcXForceYSym2D(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* pJ,
-                        FP x0, // initial point of probed area
-                        FP l,  // length of probed area
-                        FP d   // diameter (or cross-section size) of probed area
-                        ) {
+                    FP x0, // initial point of probed area
+                    FP l,  // length of probed area
+                    FP d   // diameter (or cross-section size) of probed area
+                    ) {
     FP Fp=0.; // pressure force
     FP Fd=0.; // drag force
 #ifdef _MPI_OPENMP 
@@ -249,11 +249,11 @@ FP CalcXForceYSym2D(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* pJ,
 }
 
 FP CalcXForce2D(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* pJ,
-                    FP x0, // X initial point of probed area
-                    FP y0, // Y initial point of probed area
-                    FP dx, // X size of probed area
-                    FP dy  // Y of probed area
-                   ) {
+                FP x0, // X initial point of probed area
+                FP y0, // Y initial point of probed area
+                FP dx, // X size of probed area
+                FP dy  // Y of probed area
+                ) {
     FP Fp=0.; // pressure force
     FP Fd=0.; // drag force
 #ifdef _MPI_OPENMP
@@ -737,11 +737,11 @@ void SaveYHeatFlux2D(ofstream* OutputData,
 }
 
 FP Calc_Cv(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* pJ,               
-               FP x0, // initial point of probed area                        
-               FP y0,                                                        
-               FP dy, // diameter (or cross-section size) of probed area)
-               FP p_amb,
-               Flow2D* pF) {
+           FP x0, // initial point of probed area                        
+           FP y0,                                                        
+           FP dy, // diameter (or cross-section size) of probed area)
+           FP p_amb,
+           Flow2D* pF) {
   
 FP Fv=0.;
 FP Mp=0;
@@ -758,27 +758,28 @@ unsigned int jj_end = (unsigned int)((y0+dy)/FlowNode2D<FP,NUM_COMPONENTS>::dy);
 
     for (int j=jj_start;j<(int)jj_end;j++ ) {
         if ( !pJ->GetValue(i,j).isCond2D(CT_SOLID_2D)) {
-            if (FlowNode2D<FP,NUM_COMPONENTS>::FT == FT_FLAT)
-                Fv+= FlowNode2D<FP,NUM_COMPONENTS>::dy*(pJ->GetValue(i,j).S[i2d_RoU]*pJ->GetValue(i,j).U+(pF->Pg() - p_amb));
-            else
-                Fv+= 2 * M_PI *FlowNode2D<FP,NUM_COMPONENTS>::dy*pJ->GetValue(i,j).r*(pJ->GetValue(i,j).S[i2d_RoU]*pJ->GetValue(i,j).U+(pF->Pg() - p_amb));
+            if (FlowNode2D<FP,NUM_COMPONENTS>::FT == FT_FLAT) {
+                Fv+= FlowNode2D<FP,NUM_COMPONENTS>::dy*(pJ->GetValue(i,j).S[i2d_RoU]*pJ->GetValue(i,j).U+(pJ->GetValue(i,j).p - p_amb));
+            } else {
+                Fv+= 2 * M_PI *FlowNode2D<FP,NUM_COMPONENTS>::dy*pJ->GetValue(i,j).r*(pJ->GetValue(i,j).S[i2d_RoU]*pJ->GetValue(i,j).U+(pJ->GetValue(i,j).p - p_amb));
+            }
         }
     }
     
     Mp = CalcMassFlowRateX2D(pJ,x0,y0,dy);
     
     if(Mp > 0.0)
-       return Fv/pF->U()/Mp;
+       return Fv/(pF->U()*Mp);
     else
        return 0;
 }
                                                                                  
 
 FP Calc_Cd(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* pJ,               
-               FP x0, // initial point of probed area                        
-               FP y0,                                                        
-               FP dy,   // diameter (or cross-section size) of probed area)   
-               Flow2D* pF) {
+           FP x0, // initial point of probed area                        
+           FP y0,                                                        
+           FP dy, // radius (or cross-section size) of probed area   
+           Flow2D* pF) {
 
     return CalcMassFlowRateX2D(pJ,x0,y0,dy)/pF->ROG()/pF->Wg()/CalcArea2D(pJ,x0,y0,dy);
 
