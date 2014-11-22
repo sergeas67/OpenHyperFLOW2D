@@ -18,11 +18,11 @@ enum FixedValue {
 
 class Flow {
 
-    FP  r;
-    FP  t0;
-    FP  p0;
-    FP  Lambda;
-    FP  k;
+    FP  r;                  
+    FP  t0;                 
+    FP  p0;                 
+    FP  Lambda;             
+    FP  k;                  
 
     FP LMax;
     FP LMin;
@@ -121,10 +121,10 @@ public:
 
     void   CorrectFlow(FP T, FP p, FP ref_val, FixedValue fv = FV_MACH );
 
-    Flow();
+    Flow();                                 
     Flow(FP Other_Cp,FP OtherT0, FP OtherP0, FP OtherR,  FP Other_lam=0.01, FP Other_mu=5.e-5 );
     Flow(Flow &OtherFlow);
-    virtual ~Flow();
+    virtual ~Flow();                        
 
     Flow& operator = (Flow &NewFlow);
 
