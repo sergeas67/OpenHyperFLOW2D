@@ -15,16 +15,64 @@ class   Flow2D: public Flow {
     FP VV;
 
     FP Wg(FP w) {
+<<<<<<< .mine
         return Flow::Wg(w);
+        /*
+        if(VV == 0.0) {
+           UU = Flow::Wg();
+        } else if (UU == 0.0) {
+           VV = Flow::Wg();
+        } else {
+          FP W0 = sqrt(UU*UU+VV*VV);
+          FP Ratio = Flow::Wg()/W0;
+          UU = UU * Ratio;
+          VV = VV * Ratio;
+        }
+        
+        return sqrt(UU*UU+VV*VV+1.e-30);
+        */
+=======
+        return Flow::Wg(w);
+>>>>>>> .r124
     }
     FP LAM(FP l) {
+<<<<<<< .mine
+        Flow::LAM(l);
+        if(VV == 0.0) {
+           UU = Flow::Wg();
+        } else if (UU == 0.0) {
+           VV = Flow::Wg();
+        } else {
+          FP W0 = sqrt(UU*UU+VV*VV);
+          FP Ratio = Flow::Wg()/W0;
+          UU = UU * Ratio;
+          VV = VV * Ratio;
+        }
+        return Flow::LAM();
+=======
         return Flow::LAM(l);
+>>>>>>> .r124
     }
 
 public:
 
     FP MACH(FP m) {
+<<<<<<< .mine
+        Flow::MACH(m);
+        if(VV == 0.0) {
+           UU = Flow::Wg();
+        } else if (UU == 0.0) {
+           VV = Flow::Wg();
+        } else {
+          FP W0 = sqrt(UU*UU+VV*VV);
+          FP Ratio = Flow::Wg()/W0;
+          UU = UU * Ratio;
+          VV = VV * Ratio;
+        }
+        return Flow::MACH();
+=======
         return Flow::MACH(m);
+>>>>>>> .r124
     }
     FP Wg() {
         return /*Flow::Wg()*/sqrt(UU*UU+VV*VV+1.e-5);
