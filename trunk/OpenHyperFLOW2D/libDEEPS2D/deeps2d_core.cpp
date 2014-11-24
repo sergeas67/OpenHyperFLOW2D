@@ -27,7 +27,7 @@ int            TurbStartIter;
 int            TurbExtModel;
 int            err_i, err_j;
 int            turb_mod_name_index = 0;
-FP         Ts0,A,W,Mach;
+FP             Ts0,A,W,Mach;
 
 UArray< XY<int> >* GlobalSubmatrix;
 UArray< XY<int> >* WallNodes;
@@ -37,7 +37,7 @@ UArray<UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >*>* CoreSubmatrixArray;
 UArray<XCut>*                                                XCutArray;
 
 int     Nstep;
-FP  ExitMonitorValue;
+FP      ExitMonitorValue;
 int     MonitorNumber;
 int     MonitorCondition; // 0 - equal
                           // 1 - less than
@@ -45,22 +45,22 @@ int     MonitorCondition; // 0 - equal
 UArray< MonitorPoint >*   MonitorPointsArray = NULL;
 
 unsigned int     AddSrcStartIter = 0;
-FP  beta;
-FP  beta0;
-FP  CFL;
+FP      beta;
+FP      beta0;
+FP      CFL;
 Table*  CFL_Scenario;
 Table*  beta_Scenario;
 #ifdef _OPEN_MP
-FP  DD_max_var;
+FP      DD_max_var;
 #endif // OPEN_MP
 
 //------------------------------------------
 // Cx,Cy,Cd,Cv,Cp,St
 //------------------------------------------
 int     is_Cx_calc,is_Cd_calc;
-FP  p_ambient;
-FP  x0_body,y0_body,dx_body,dy_body;
-FP  x0_nozzle,y0_nozzle,dy_nozzle;
+FP      p_ambient;
+FP      x0_body,y0_body,dx_body,dy_body;
+FP      x0_nozzle,y0_nozzle,dy_nozzle;
 
 int     Cx_Flow_index;
 int     Cd_Flow_index;
@@ -79,22 +79,22 @@ int     is_p_asterisk_out;
 ChemicalReactionsModelData2D chemical_reactions;
 BlendingFactorFunction     bFF;
 
-FP* Y=NULL;
-FP  Cp=0.;
-FP  lam=0.;
-FP  mu=0.;
-FP  Tg=0.;
-FP  Rg=0.;
-FP  Pg=0.;
-FP  Wg=0.;
-FP  Ug,Vg;
+FP*     Y=NULL;
+FP      Cp=0.;
+FP      lam=0.;
+FP      mu=0.;
+FP      Tg=0.;
+FP      Rg=0.;
+FP      Pg=0.;
+FP      Wg=0.;
+FP      Ug,Vg;
 int     CompIndex;
 
-FP Y_fuel[4]={1.,0.,0.,0.};  /* fuel */
-FP Y_ox[4]  ={0.,1.,0.,0.};  /* OX */
-FP Y_cp[4]  ={0.,0.,1.,0.};  /* cp */
-FP Y_air[4] ={0.,0.,0.,1.};  /* air */
-FP Y_mix[4] ={0.,0.,0.,0.};  /* mixture */
+FP      Y_fuel[4]={1.,0.,0.,0.};  /* fuel */
+FP      Y_ox[4]  ={0.,1.,0.,0.};  /* OX */
+FP      Y_cp[4]  ={0.,0.,1.,0.};  /* cp */
+FP      Y_air[4] ={0.,0.,0.,1.};  /* air */
+FP      Y_mix[4] ={0.,0.,0.,0.};  /* mixture */
 const  char*  RMS_Name[11] = {"Rho","Rho*U","Rho*V","Rho*E","Rho*Yfu","Rho*Yox","Rho*Ycp","Rho*k","Rho*eps","Rho*omega","nu_t"};
 int    useSwapFile=0;
 char   RMSFileName[255];
@@ -300,7 +300,7 @@ void InitSharedData(InputData* _data,
                 MonitorPoint TmpPoint;
                 for (int i=0;i<NumMonitorPoints;i++) {
                    char   point_str[256];
-                   FP point_xy;
+                   FP     point_xy;
                    snprintf(point_str,256,"Point-%i.X",i+1);
                    point_xy =  _data->GetFloatVal(point_str);
                    if ( _data->GetDataError()==-1 ) {
@@ -496,7 +496,7 @@ void DEEPS2D_Run(ofstream* f_stream
    // local variables
     FP   n_n,m_m,n_n_1,m_m_1;
     FP   dXX,dYY,AAA;
-    int      n1,n2,n3,n4;
+    int  n1,n2,n3,n4;
     unsigned int j,k;
     unsigned int StartXLocal,MaxXLocal;
     FP   dtdx;
@@ -507,7 +507,7 @@ void DEEPS2D_Run(ofstream* f_stream
     FP   d_time;
     FP   t,VCOMP;
     timeval  start, stop, mark1, mark2;
-    int      N1,N2,N3,N4;
+    int  N1,N2,N3,N4;
 #ifdef _OPEN_MP
     unsigned int i_max,j_max,k_max;
 #endif //_OPEN_MP
@@ -518,14 +518,14 @@ void DEEPS2D_Run(ofstream* f_stream
     FP   _beta;
     FP   DD_local[FlowNode2D<FP,NUM_COMPONENTS>::NumEq];
     FP   max_RMS;
-    int      k_max_RMS;
+    int  k_max_RMS;
 
 #ifndef _MPI
     UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*     pJ=NULL;
     UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >* pC=NULL;
     FP*   dt_min;
-    int*      i_c;
-    int*      j_c;
+    int*  i_c;
+    int*  j_c;
     FP    dtmin=1.0;
     FP    DD[FlowNode2D<FP,NUM_COMPONENTS>::NumEq];
     FP    sum_RMS[FlowNode2D<FP,NUM_COMPONENTS>::NumEq];
