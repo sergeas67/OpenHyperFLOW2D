@@ -6,7 +6,7 @@ System Requirements
 * OS:            Linux x86_64 (tested on OpenSUSE 10+, SLES 10+, CentOS 6+, Scientific Linux 5+);
 * C++ compiler:  GNU C++ 4.1+;
 * Drivers        Latest proprietary Nvidia driver
-* SDK            CUDA 5.5
+* SDK            CUDA 5.5+
 
 Installation
 ============
@@ -40,5 +40,5 @@ Run command 'make test' for run all test cases or run
 
   'make Wedge' for Wedge test case
 
-  'make sphere2d' for Sphere2D test case
+  'make Step' for Mach 3 forward step test case
 
