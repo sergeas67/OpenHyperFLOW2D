@@ -31,15 +31,15 @@ timeval mark1, mark2;
 // Arrays for multiGPU
 UArray< FlowNode2D<FP,NUM_COMPONENTS>* >*     cudaArraySubmatrix      = NULL;
 UArray< FlowNodeCore2D<FP,NUM_COMPONENTS>* >* cudaArrayCoreSubmatrix  = NULL;
-UArray< XY<int>  >*                               cudaDimArray            = NULL;
-UArray< XY<int>* >*                               cudaWallNodesArray      = NULL;
-UArray< ChemicalReactionsModelData2D* >*          cudaCRM2DArray          = NULL;
-XY<int>*                                          cudaWallNodes           = NULL;
+UArray< XY<int>  >*                           cudaDimArray            = NULL;
+UArray< XY<int>* >*                           cudaWallNodesArray      = NULL;
+UArray< ChemicalReactionsModelData2D* >*      cudaCRM2DArray          = NULL;
+XY<int>*                                      cudaWallNodes           = NULL;
 FlowNode2D<FP,NUM_COMPONENTS>*                cudaSubmatrix           = NULL;
 FlowNodeCore2D<FP,NUM_COMPONENTS>*            cudaCoreSubmatrix       = NULL;
-ChemicalReactionsModelData2D*                     cudaCRM2D               = NULL;
+ChemicalReactionsModelData2D*                 cudaCRM2D               = NULL;
 
-UArray< MonitorPoint >*                           MonitorPointsArray      = NULL;
+UArray< MonitorPoint >*                       MonitorPointsArray      = NULL;
 
 FP*                                           cudaHu;
 UArray<FP*>*                                  cudaHuArray;
@@ -57,7 +57,7 @@ cudaError_t cudaState;
 
 
 UArray< FP >*                                 WallNodesUw_2D = NULL;
-int                                               NumWallNodes;
+int                                           NumWallNodes;
                                                  
 /*                                               
 FP GPUConf {                                 
@@ -87,7 +87,7 @@ NodeConfig TmpNConf;
 
 int main( int argc, char **argv )
 {
-    const  FP                   ver=_VER;
+    const  FP                      ver=_VER;
     char                           inFile[256];
     ChemicalReactionsModelData2D   TmpCRM2D;
 
@@ -350,11 +350,11 @@ int main( int argc, char **argv )
             if(i == GlobalSubmatrix->GetNumElements()-1)
               r_Overlap = 0;
             else
-              r_Overlap = 2;
+              r_Overlap = 1;
             if(i == 0)
               l_Overlap = 0;
             else
-              l_Overlap = 2;
+              l_Overlap = 1;
 
             TmpMaxX = (SubMaxX-SubStartIndex) + r_Overlap;
 
@@ -391,11 +391,11 @@ int main( int argc, char **argv )
             if(i == GlobalSubmatrix->GetNumElements()-1)
               r_Overlap = 0;
             else
-              r_Overlap = 1+isHighOrder;
+              r_Overlap = 1;
             if(i == 0)
               l_Overlap = 0;
             else
-              l_Overlap = 1+isHighOrder;
+              l_Overlap = 1;
 
             SubStartIndex = GlobalSubmatrix->GetElementPtr(i)->GetX();  
             SubMaxX = GlobalSubmatrix->GetElementPtr(i)->GetY();
