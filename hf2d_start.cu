@@ -58,6 +58,7 @@ cudaError_t cudaState;
 
 UArray< FP >*                                 WallNodesUw_2D = NULL;
 int                                           NumWallNodes;
+int                                           isSingleGPU = 1;
                                                  
 /*                                               
 FP GPUConf {                                 
@@ -162,7 +163,16 @@ int main( int argc, char **argv )
         // Init shared data
         InitSharedData(Data,&chemical_reactions);        
         
-        num_threads = num_blocks = num_gpus;
+        if(isSingleGPU)
+           num_threads = num_blocks = num_gpus = 1;
+        else
+           num_threads = num_blocks = num_gpus;
+
+        if(num_gpus > 1) {
+           printf("Using multi GPU mode.\n\n");
+        } else {
+           printf("Using single GPU mode.\n\n");
+        }
        
        //Create arrays  
         cudaArraySubmatrix      =  new UArray<  FlowNode2D<FP,NUM_COMPONENTS>* >();
