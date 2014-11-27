@@ -31,6 +31,11 @@ void InitSharedData(InputData* _data,
             fd_g=0;
             GasSwapData         = NULL;
             TurbMod             = 0;
+            
+            isSingleGPU = _data->GetIntVal((char*)"isSingleGPU");
+            if ( _data->GetDataError()==-1 ) {
+                Abort_OpenHyperFLOW2D();
+            }
 
             isVerboseOutput = _data->GetIntVal((char*)"isVerboseOutput");
             if ( _data->GetDataError()==-1 ) {

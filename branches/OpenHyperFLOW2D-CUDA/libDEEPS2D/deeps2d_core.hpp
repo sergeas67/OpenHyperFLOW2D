@@ -135,75 +135,76 @@ extern int               NumWallNodes;
 extern FP                x0;
 // External variables
 extern SolverMode ProblemType;
-extern UArray< XY<int> >*                                           GlobalSubmatrix;
+extern UArray< XY<int> >*                                       GlobalSubmatrix;
 extern UArray<UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*>*     SubmatrixArray;
 extern UArray<UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >*>* CoreSubmatrixArray;
-extern InputData*                            Data;                     // Object data loader
-extern UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*     J;          // Main computation area
-extern UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >* C;          // Main core area
-extern UArray<Flow*>*                        FlowList;                 // Flow list
-extern unsigned int                          MaxX;
-extern unsigned int                          MaxY;
+extern InputData*                        Data;                   // Object data loader
+extern UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*     J;        // Main computation area
+extern UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >* C;        // Main core area
+extern UArray<Flow*>*                    FlowList;               // Flow list
+extern unsigned int                      MaxX;
+extern unsigned int                      MaxY;
 extern FP                                dx;
 extern FP                                dy;
-extern int                                   EndFLAG;
-extern int                                   PrintFLAG;
-extern int                                   isRecalcYplus;
-extern int                                   isVerboseOutput;
-extern unsigned int                          iter;
-extern SourceList2D*                         SrcList;
-extern int                                   TurbMod;
-extern BlendingFactorFunction                bFF;
-extern SourceList2D*                         SrcList;
-extern int                                   isHighOrder;
-extern int                                   isGasSource;
-extern int                                   TurbStartIter;
-extern int                                   TurbExtModel;
-extern int                                   err_i, err_j;
-extern int                                   turb_mod_name_index;
+extern int                               EndFLAG;
+extern int                               PrintFLAG;
+extern int                               isRecalcYplus;
+extern int                               isVerboseOutput;
+extern int                               isSingleGPU;
+extern unsigned int                      iter;
+extern SourceList2D*                     SrcList;
+extern int                               TurbMod;
+extern BlendingFactorFunction            bFF;
+extern SourceList2D*                     SrcList;
+extern int                               isHighOrder;
+extern int                               isGasSource;
+extern int                               TurbStartIter;
+extern int                               TurbExtModel;
+extern int                               err_i, err_j;
+extern int                               turb_mod_name_index;
 extern FP                                Ts0,A,W,Mach;
 extern FP                                SigW,SigF,delta_bl;
-extern int                                   isVerboseOutput;
-extern int                                   isTurbulenceReset;
+extern int                               isVerboseOutput;
+extern int                               isTurbulenceReset;
 extern FP                                CFL;
-extern Table*                                CFL_Scenario;
-extern Table*                                beta_Scenario;
-extern int                                   NSaveStep;
-extern int                                   NOutStep;
-extern int                                   isFirstStart;
-extern int                                   ScaleFLAG;
-extern int                                   isAdiabaticWall;
-extern int                                   isOutHeatFluxX;
-extern int                                   isOutHeatFluxY;
-extern int                                   is_p_asterisk_out;
-extern int                                   Nstep;
+extern Table*                            CFL_Scenario;
+extern Table*                            beta_Scenario;
+extern int                               NSaveStep;
+extern int                               NOutStep;
+extern int                               isFirstStart;
+extern int                               ScaleFLAG;
+extern int                               isAdiabaticWall;
+extern int                               isOutHeatFluxX;
+extern int                               isOutHeatFluxY;
+extern int                               is_p_asterisk_out;
+extern int                               Nstep;
 extern FP                                ExitMonitorValue;
-extern int                                   MonitorNumber;
-extern int                                   MonitorCondition;
-extern unsigned int                          AddSrcStartIter;
+extern int                               MonitorNumber;
+extern int                               MonitorCondition;
+extern unsigned int                      AddSrcStartIter;
 extern FP                                beta[6+NUM_COMPONENTS];
 extern FP                                beta0;
-extern int                                   NumContour;
-extern char*                                 ProjectName;
-extern char                                  GasSwapFileName[255];
-extern char                                  ErrFileName[255];
-extern char                                  OutFileName[255];
-extern char                                  TecPlotFileName[255];
-extern int                                   fd_g;
-extern void*                                 GasSwapData;
-extern int                                   TurbMod;
-extern int                                   EndFLAG;
-extern int                                   PrintFLAG;
-extern ofstream*                             pInputData;        // Output data stream
-extern ofstream*                             pHeatFlux_OutFile; // Output HeatFlux stream
-extern unsigned int                          iter;              // iteration number
-extern unsigned int                          last_ite;          // Global iteration number
+extern int                               NumContour;
+extern char*                             ProjectName;
+extern char                              GasSwapFileName[255];
+extern char                              ErrFileName[255];
+extern char                              OutFileName[255];
+extern char                              TecPlotFileName[255];
+extern int                               fd_g;
+extern void*                             GasSwapData;
+extern int                               TurbMod;
+extern int                               EndFLAG;
+extern int                               PrintFLAG;
+extern ofstream*                         pInputData;        // Output data stream
+extern ofstream*                         pHeatFlux_OutFile; // Output HeatFlux stream
+extern unsigned int                      iter;              // iteration number
+extern unsigned int                      last_ite;          // Global iteration number
 
-extern int                                   isStop;            // Stop flag
-extern InputData*                            Data;              // Object data loader
-extern UArray<Flow*>*                        FlowList;          // List of 'Flow' objects
-extern UArray<Flow2D*>*                      Flow2DList;        // List of 'Flow2D' objects
-extern UArray<Bound2D*>                      SingleBoundsList;  // Single Bounds List;
+extern int                               isStop;            // Stop flag
+extern InputData*                        Data;              // Object data loader
+extern UArray<Flow*>*                    FlowList;          // List of 'Flow' objects
+extern UArray<Flow2D*>*                  Flow2DList;        // List of 'Flow2D' objects
+extern UArray<Bound2D*>                  SingleBoundsList;  // Single Bounds List;
 
 extern FP                                dt;                // time step
 extern FP*                               RoUx;
@@ -229,46 +230,46 @@ extern FP                                Y_air[4] ;  /* air */
 extern FP                                Y_mix[4] ;  /* mixture */
                                               
 #ifdef _RMS_
-extern char                                  RMSFileName[255];
-extern ofstream*                             pRMS_OutFile;    // Output RMS stream
+extern char                              RMSFileName[255];
+extern ofstream*                         pRMS_OutFile;    // Output RMS stream
 #endif //_RMS_
-extern int                                   useSwapFile;
-extern char                                  OldSwapFileName[255];
-extern void*                                 OldSwapData;
-extern u_long                                OldFileSizeGas;
-extern int                                   Old_fd;
-extern int                                   isScan;
-extern int                                   MemLen;
-extern int                                   isRun;
-extern int                                   isDraw;
-extern int                                   isSnapshot;
-extern UArray<XCut>*                         XCutArray;
-extern unsigned int                          last_iter;     // Global iteration number
-extern int                                   is_Cx_calc;
+extern int                               useSwapFile;
+extern char                              OldSwapFileName[255];
+extern void*                             OldSwapData;
+extern u_long                            OldFileSizeGas;
+extern int                               Old_fd;
+extern int                               isScan;
+extern int                               MemLen;
+extern int                               isRun;
+extern int                               isDraw;
+extern int                               isSnapshot;
+extern UArray<XCut>*                     XCutArray;
+extern unsigned int                      last_iter;     // Global iteration number
+extern int                               is_Cx_calc;
 extern FP                                x0_body,y0_body,dx_body,dy_body;
-extern int                                   y_max,y_min;
-extern int                                   Cp_Flow_index;
-extern int                                   Cx_Flow_index;
-extern int                                   SigmaFi_Flow_index;
-extern int                                   num_threads;
-extern int                                   num_blocks;
-extern ofstream*                             pOutputData;     // output data stream (file)
-//extern FP                                MemFullness;
-extern unsigned int*                         dt_min_host;
-extern unsigned int*                         dt_min_device;
-extern UArray< unsigned int* >*              dt_min_host_Array;
-extern UArray< unsigned int* >*              dt_min_device_Array;
+extern int                               y_max,y_min;
+extern int                               Cp_Flow_index;
+extern int                               Cx_Flow_index;
+extern int                               SigmaFi_Flow_index;
+extern int                               num_threads;
+extern int                               num_blocks;
+extern ofstream*                         pOutputData;     // output data stream (file)
+//extern FP                              MemFullness;
+extern unsigned int*                     dt_min_host;
+extern unsigned int*                     dt_min_device;
+extern UArray< unsigned int* >*          dt_min_host_Array;
+extern UArray< unsigned int* >*          dt_min_device_Array;
 extern FP*                               cudaHu;  
 extern UArray< FP* >*                    cudaHuArray;  
 extern UArray< FlowNode2D<FP,NUM_COMPONENTS>* >*     cudaArraySubmatrix;
 extern UArray< FlowNodeCore2D<FP,NUM_COMPONENTS>* >* cudaArrayCoreSubmatrix ;
-extern UArray< XY<int> >*                                cudaDimArray;
-extern XY<int>*                                          cudaWallNodes;
+extern UArray< XY<int> >*                            cudaDimArray;
+extern XY<int>*                                      cudaWallNodes;
 extern FlowNode2D<FP,NUM_COMPONENTS>*                cudaSubmatrix;
 extern FlowNodeCore2D<FP,NUM_COMPONENTS>*            cudaCoreSubmatrix;
-extern int                                               warp_size;
-extern int                                               max_num_threads;
-extern int                                               num_gpus;  // number of CUDA GPUs
+extern int                                           warp_size;
+extern int                                           max_num_threads;
+extern int                                           num_gpus;  // number of CUDA GPUs
 
 // External functions
 
