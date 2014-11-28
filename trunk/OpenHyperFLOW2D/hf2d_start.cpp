@@ -20,11 +20,13 @@ UArray< UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* >* ArraySubmatrix  = NULL;
 FP  x0;
 #endif // _MPI
 
-FP  dx;
-FP  dy;
+SolverMode    ProblemType;
 
-UArray< FP >*     WallNodesUw_2D = NULL;
-int                   NumWallNodes;
+FP            dx;
+FP            dy;
+
+UArray< FP >* WallNodesUw_2D = NULL;
+int           NumWallNodes;
 
 int main( int argc, char **argv )
 {
@@ -107,22 +109,33 @@ rank      = MPI::COMM_WORLD.Get_rank();
 	    }
 	        InitSharedData(Data,&chemical_reactions,rank);        // Init shared data
             MPI::COMM_WORLD.Barrier();
+            
             if (rank == 0) {
                ArraySubmatrix = new UArray< UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* >();
                InitDEEPS2D((void*)o_stream);                       // Init solver (only for rank=0)
-               // Scan area for seek wall nodes      
-               WallNodes = GetWallNodes((ofstream*)o_stream,J,Data->GetIntVal((char*)"isVerboseOutput")); 
-#ifndef     _PARALLEL_RECALC_Y_PLUS_
-               *o_stream << "\nSerial calc min distance to wall..." << flush;
-               SetMinDistanceToWall2D(J,WallNodes);
-               *o_stream << "OK\n" << flush;
-               Recalc_y_plus(J,WallNodes);                        // Calculate initial y+ value         
-               SetInitBoundaryLayer(J,delta_bl);                  // Set Initial boundary layer profile
-#else
-               *o_stream << "\nParallel calc min distance to wall..." << endl;
+               
                gettimeofday(&mark2,NULL);
-#endif //   _PARALLEL_RECALC_Y_PLUS_
-               NumWallNodes = WallNodes->GetNumElements();
+
+               if(ProblemType == SM_NS) {
+                   // Scan area for seek wall nodes      
+                   *o_stream << "\nSolver Mode: Navier-Stokes.\n" << endl;
+                   WallNodes = GetWallNodes((ofstream*)o_stream,J,Data->GetIntVal((char*)"isVerboseOutput")); 
+
+ #ifndef     _PARALLEL_RECALC_Y_PLUS_
+                   *o_stream << "\nSerial calc min distance to wall..." << flush;
+                   SetMinDistanceToWall2D(J,WallNodes);
+                   *o_stream << "OK\n" << flush;
+                   Recalc_y_plus(J,WallNodes);                        // Calculate initial y+ value         
+
+                   SetInitBoundaryLayer(J,delta_bl);                  // Set Initial boundary layer profile
+ #else
+                   *o_stream << "\nParallel calc min distance to wall..." << endl;
+                   
+ #endif //   _PARALLEL_RECALC_Y_PLUS_
+                   NumWallNodes = WallNodes->GetNumElements();
+               } else {
+                   *o_stream << "\nSolver Mode: Euler.\n" << endl;
+               }
                
                TmpMatrixPtr=J->GetMatrixPtr();
                int SubStartIndex, SubMaxX,
@@ -137,11 +150,11 @@ rank      = MPI::COMM_WORLD.Get_rank();
                if(i == GlobalSubmatrix->GetNumElements()-1)
                  r_Overlap = 0;
                else
-                 r_Overlap = 1; //
+                 r_Overlap = 1; 
                if(i == 0)
                  l_Overlap = 0;
                else
-                 l_Overlap = 1; //
+                 l_Overlap = 1; 
 
                TmpMaxX = (SubMaxX-SubStartIndex)+r_Overlap;
                TmpMatrixPtr = (FlowNode2D<FP,NUM_COMPONENTS>*)((ulong)J->GetMatrixPtr()+(ulong)(sizeof(FlowNode2D<FP,NUM_COMPONENTS>)*(SubStartIndex)*MaxY));                      
@@ -150,30 +163,35 @@ rank      = MPI::COMM_WORLD.Get_rank();
                
                *o_stream << "SubMatrix("<<i<<")[" << TmpMaxX << "x" << MaxY << "]  Size=" << (ulong)(sizeof(FlowNode2D<FP,NUM_COMPONENTS>)*TmpMaxX*MaxY)/(1024*1024) << " Mb\n"; 
                TmpSubmatrix = new UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >(TmpMatrixPtr,TmpMaxX,MaxY);
-
+               
+               if(ProblemType == SM_NS) {
 #ifdef _PARALLEL_RECALC_Y_PLUS_
-               SetMinDistanceToWall2D(TmpSubmatrix,WallNodes,x0);
+                  SetMinDistanceToWall2D(TmpSubmatrix,WallNodes,x0);
 #endif // _PARALLEL_RECALC_Y_PLUS_
+               }
 
                ArraySubmatrix->AddElement(&TmpSubmatrix);
                o_stream->flush();
+               
                if(i>0) {
-                   MPI::COMM_WORLD.Send(&MaxY,1,MPI::INT,i,tag_MaxY);
-                   MPI::COMM_WORLD.Send(&TmpMaxX,1,MPI::INT,i,tag_MaxX);
+                  MPI::COMM_WORLD.Send(&MaxY,1,MPI::INT,i,tag_MaxY);
+                  MPI::COMM_WORLD.Send(&TmpMaxX,1,MPI::INT,i,tag_MaxX);
 #ifdef _IMPI_
-                   LongMatrixSend(i, TmpSubmatrix->GetMatrixPtr(), TmpSubmatrix->GetMatrixSize());// Low Mem Send subdomain
+                  LongMatrixSend(i, TmpSubmatrix->GetMatrixPtr(), TmpSubmatrix->GetMatrixSize());// Low Mem Send subdomain
 #else
-                   MPI::COMM_WORLD.Send(TmpSubmatrix->GetMatrixPtr(),
-                                        TmpSubmatrix->GetMatrixSize(),
-                                        MPI::BYTE,i,tag_Matrix); 
+                  MPI::COMM_WORLD.Send(TmpSubmatrix->GetMatrixPtr(),
+                                       TmpSubmatrix->GetMatrixSize(),
+                                       MPI::BYTE,i,tag_Matrix); 
 #endif // _IMPI_
-               
-                   MPI::COMM_WORLD.Send(&NumWallNodes,1,MPI::INT,i,tag_NumWallNodes);              // Send wall nodes array size
-                   MPI::COMM_WORLD.Send(WallNodes->GetArrayPtr(),NumWallNodes*sizeof(XY<int>),     // Send wall nodes array
-                                        MPI::BYTE,i,tag_WallNodesArray);
-                   MPI::COMM_WORLD.Send(&x0,1,MPI::DOUBLE,i,tag_X0);                               // Send x0 for submatrix
-               }
-               
+                  
+                  if(ProblemType == SM_NS) {
+                     MPI::COMM_WORLD.Send(&NumWallNodes,1,MPI::INT,i,tag_NumWallNodes);           // Send wall nodes array size
+                     MPI::COMM_WORLD.Send(WallNodes->GetArrayPtr(),NumWallNodes*sizeof(XY<int>),  // Send wall nodes array
+                                           MPI::BYTE,i,tag_WallNodesArray);
+                  }
+
+                  MPI::COMM_WORLD.Send(&x0,1,MPI::DOUBLE,i,tag_X0);                               // Send x0 for submatrix
+                }
                if(MonitorPointsArray) {
                    for(int ii_monitor=0;ii_monitor<(int)MonitorPointsArray->GetNumElements();ii_monitor++) {
                            if(MonitorPointsArray->GetElement(ii_monitor).MonitorXY.GetX() >= x0 &&
@@ -187,6 +205,7 @@ rank      = MPI::COMM_WORLD.Get_rank();
            MaxY         = ArraySubmatrix->GetElement(0)->GetY();
            TmpSubmatrix = ArraySubmatrix->GetElement(0);
         } else {
+           
            MPI::COMM_WORLD.Recv(&MaxY,1,MPI::INT,0,tag_MaxY);
            MPI::COMM_WORLD.Recv(&TmpMaxX,1,MPI::INT,0,tag_MaxX);
            TmpSubmatrix = new UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >(TmpMaxX,MaxY);
@@ -197,12 +216,15 @@ rank      = MPI::COMM_WORLD.Get_rank();
                                   TmpSubmatrix->GetMatrixSize(),
                                   MPI::BYTE,0,tag_Matrix);
 #endif // _IMPI_
-           MPI::COMM_WORLD.Recv(&NumWallNodes,1,MPI::INT,0,tag_NumWallNodes);                      // Recive wall nodes array size
-           WallNodes = new UArray< XY<int> >(NumWallNodes,-1);                                     // Create wall nodes array
-           MPI::COMM_WORLD.Recv(WallNodes->GetArrayPtr(),NumWallNodes*sizeof(XY<int>),             // Recive wall nodes array
-                                MPI::BYTE,0,tag_WallNodesArray);
-           WallNodesUw_2D = new UArray<FP>(NumWallNodes,-1);                                   // Create friction velosity array
-           MPI::COMM_WORLD.Recv(&x0,1,MPI::DOUBLE,0,tag_X0);                                       // Recive x0 for submatrix
+             if(ProblemType == SM_NS) {
+                 MPI::COMM_WORLD.Recv(&NumWallNodes,1,MPI::INT,0,tag_NumWallNodes);                      // Recive wall nodes array size
+                 WallNodes = new UArray< XY<int> >(NumWallNodes,-1);                                     // Create wall nodes array
+                 MPI::COMM_WORLD.Recv(WallNodes->GetArrayPtr(),NumWallNodes*sizeof(XY<int>),             // Recive wall nodes array
+                                      MPI::BYTE,0,tag_WallNodesArray);
+                 WallNodesUw_2D = new UArray<FP>(NumWallNodes,-1);                                       // Create friction velosity array
+             }
+
+             MPI::COMM_WORLD.Recv(&x0,1,MPI::DOUBLE,0,tag_X0);                                           // Recive x0 for submatrix
        }
         
         if(MonitorPointsArray && 
@@ -218,10 +240,12 @@ rank      = MPI::COMM_WORLD.Get_rank();
         
         MPI::COMM_WORLD.Barrier();
         TmpCoreSubmatrix = new UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >(TmpMaxX,MaxY);
-
+        
+        if(ProblemType == SM_NS) {
 #ifdef _PARALLEL_RECALC_Y_PLUS_
-        SetInitBoundaryLayer(TmpSubmatrix,delta_bl);                                                // Set Initial boundary layer profile
+           SetInitBoundaryLayer(TmpSubmatrix,delta_bl);                                                // Set Initial boundary layer profile
 #endif // _PARALLEL_RECALC_Y_PLUS_
+        }
      
         if(rank == 0) {
             gettimeofday(&mark1,NULL);
@@ -247,17 +271,20 @@ rank      = MPI::COMM_WORLD.Get_rank();
 //---------------------- OpenMP/Single thread version ----------------------
        InitSharedData(Data,&chemical_reactions);          // Init shared data
        InitDEEPS2D((void*)o_stream);                      // Init solver 
-       // Scan area for seek wall nodes
-       WallNodes = GetWallNodes((ofstream*)o_stream,J,Data->GetIntVal((char*)"isVerboseOutput")); 
-       SetMinDistanceToWall2D(J,WallNodes);
-       Recalc_y_plus(J,WallNodes);                        // Calculate initial y+ value
-       SetInitBoundaryLayer(J,delta_bl);                  // Set Initial boundary layer profile
-
+       
+       if(ProblemType == SM_NS) {
+           // Scan area for seek wall nodes
+           WallNodes = GetWallNodes((ofstream*)o_stream,J,Data->GetIntVal((char*)"isVerboseOutput")); 
+           SetMinDistanceToWall2D(J,WallNodes);
+           Recalc_y_plus(J,WallNodes);                        // Calculate initial y+ value
+           SetInitBoundaryLayer(J,delta_bl);                  // Set Initial boundary layer profile
+       }
        UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* TmpSubmatrix=NULL;
        UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >* TmpCoreSubmatrix=NULL;
        FlowNode2D<FP,NUM_COMPONENTS>* TmpMatrixPtr=J->GetMatrixPtr();
        int SubStartIndex, Overlap, SubMaxX;
        *o_stream << "Allocate SubMatrix:\n";
+       
        for (unsigned int i=0;i<GlobalSubmatrix->GetNumElements();i++) {
             SubStartIndex = GlobalSubmatrix->GetElementPtr(i)->GetX();  
             SubMaxX = GlobalSubmatrix->GetElementPtr(i)->GetY();

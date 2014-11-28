@@ -102,7 +102,7 @@ public:
 };
 
 template <class T>
-UMatrix2D<T>& UMatrix2D<T>::operator  = (UMatrix2D<T>& M)
+inline UMatrix2D<T>& UMatrix2D<T>::operator  = (UMatrix2D<T>& M)
                                         {
 #ifdef _SAFE_ACCESS_
     CheckLocker cl1(GetLocker());
@@ -202,7 +202,7 @@ UMatrix2D<T>::~UMatrix2D()
 }
 
 template <class T>
-T& UMatrix2D<T>::operator () (unsigned int x,unsigned int y)
+inline T& UMatrix2D<T>::operator () (unsigned int x,unsigned int y)
 {
 #ifdef _SAFE_ACCESS_
     CheckLocker cl(GetLocker());
@@ -220,7 +220,7 @@ T& UMatrix2D<T>::operator () (unsigned int x,unsigned int y)
 }
 
 template <class T>
-T& UMatrix2D<T>::GetValue(unsigned int x,unsigned int y)
+inline T& UMatrix2D<T>::GetValue(unsigned int x,unsigned int y)
 {
 #ifdef _SAFE_ACCESS_
     CheckLocker cl(GetLocker());

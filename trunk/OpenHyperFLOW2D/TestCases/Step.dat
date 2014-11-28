@@ -17,7 +17,13 @@
 <data/isOutHeatFluxY=0>
 ; is p* out ?
 <data/is_p_asterisk_out=0>
-<data/NumStreams=1>
+; Recalc y+  on each iterations
+<data/isRecalcYplus=0>
+
+;--------------------------------------------------;
+; is single GPU mode on ?                          ;
+;--------------------------------------------------;
+<data/isSingleGPU=0>
 
 ;------------------------------------------------------------------;
 ; General parameters                                               ;
@@ -55,7 +61,7 @@
 ; 4 - Rho*E residual
 ; 5 - Time
 <data/MonitorNumber=5>
-<data/ExitMonitorValue=4.0>
+<data/ExitMonitorValue=1.0>
 
 <data/NumMonitorPoints=0>
 

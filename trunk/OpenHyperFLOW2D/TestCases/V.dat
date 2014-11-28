@@ -1,0 +1,23 @@
+
+set view 0, 0, 1
+set nosurface
+#set contour
+set data style lines
+set grid
+set title "Velocity"
+set pm3d
+show title
+
+set terminal x11 1
+
+splot 'ObliqueShock.plt' u 1:2:4  t 'V'
+
+set terminal x11 2
+
+splot 'Wedge.plt' u 1:2:4  t 'V'
+
+set terminal x11 3
+
+splot 'Step.plt' u 1:2:4  t 'V'
+
+pause -1

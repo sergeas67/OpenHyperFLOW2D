@@ -45,14 +45,14 @@ endif
 
 
 NOPROFILE  = -fomit-frame-pointer
-DEBUG      =
+DEBUG      = -g
 PICFLAGS   = -fPIC
 #STATIC= -static
 
 ifeq ("$(SIMD)","AVX")
-ALIGN      = 32
-else
 ALIGN      = 16
+else
+ALIGN      = 8
 endif
 
 CPU        = native
@@ -61,7 +61,7 @@ CPU_EXT    = -m64 -ftree-vectorize  -msse3 -msse2 -msse -mmmx -mfpmath=sse -mtun
 CXXOPTIONS = -Wno-deprecated 
 COPTIONS   =
 
-OPTLEVEL   = 3
+OPTLEVEL   = 0
 
 ifeq     ($(OPTLEVEL),0)
 OPTIMIZE   = -O$(OPTLEVEL) -D_ALIGN=${ALIGN}

@@ -37,6 +37,11 @@ inline FP  Sgn(FP a)
 #define    h_cp      2
 #define    h_air     3
 
+enum  SolverMode {
+      SM_EULER = 0,
+      SM_NS
+};
+
 enum     FlowType {
          FT_FLAT,         // 2D-Flat flow
          FT_AXISYMMETRIC, // 2D-Axisymmetric flow
@@ -207,7 +212,7 @@ public:
     inline void   CopyFlowNodeCore2D(FlowNodeCore2D<T,a>& fnc);
     inline void   FillNode2D(int is_mu_t=0, int i=0, T sig_w=0.0, T sig_f=0.0, 
                              TurbulenceExtendedModel tem = TEM_k_eps_Std,
-                             T delta = 0.);
+                             T delta = 0., SolverMode sm = SM_NS);
     inline ulong  isCond2D(ulong);
     inline FlowNode2D<T,a>& operator = (FlowNode2D<T,a>& fn);
     inline FlowNode2D<T,a>& operator = (FlowNodeCore2D<T,a>& fc);
@@ -376,7 +381,8 @@ inline void FlowNode2D<T,a>::FillNode2D(int is_mu_t,
                                         T sig_w, 
                                         T sig_f, 
                                         TurbulenceExtendedModel tem, 
-                                        T delta) {
+                                        T delta,
+                                        SolverMode sm) {
 
     if(isCond2D(CT_SOLID_2D)) return;
 
@@ -408,9 +414,7 @@ inline void FlowNode2D<T,a>::FillNode2D(int is_mu_t,
 #endif //__ICC
 
     k = CP/(CP-R);
-
-    _mu = _lam = G = 0.;
-
+    
     if(isCond2D(CT_U_CONST_2D))
         FlowNodeCore2D<T,a>::S[i2d_RoU] = U*FlowNodeCore2D<T,a>::S[i2d_Ro];
     else
@@ -421,13 +425,17 @@ inline void FlowNode2D<T,a>::FillNode2D(int is_mu_t,
     else
         V    = FlowNodeCore2D<T,a>::S[i2d_RoV]/FlowNodeCore2D<T,a>::S[i2d_Ro];
 
-    if(is_init)
-       FlowNodeTurbulence2D<T,a>::mu_t = FlowNodeTurbulence2D<T,a>::lam_t = 0.;
+    if (sm == SM_NS) {
+        _mu = _lam = G = 0.;
+        if(is_init)
+           FlowNodeTurbulence2D<T,a>::mu_t = FlowNodeTurbulence2D<T,a>::lam_t = 0.;
+
+        TurbModRANS2D(is_mu_t,is_init,tem,delta);
+    }
  
-    TurbModRANS2D(is_mu_t,is_init,tem,delta);
 
     Tmp1   = FlowNodeCore2D<T,a>::S[i2d_Ro];
-
+    
     for(i=0;i<a;i++) {
         Tmp3+=Hu[i]*FlowNodeCore2D<T,a>::S[i+4];
         Tmp1-= FlowNodeCore2D<T,a>::S[i+4];
@@ -462,7 +470,7 @@ inline void FlowNode2D<T,a>::FillNode2D(int is_mu_t,
 
         U = Uw; // Gas move
         V = Vw; // together with wall
-
+        
         for(i=0;i<a;i++) {
             if(FlowNode2D<T,a>::isSrcAdd) {
                 SrcAdd[4+i] = SrcAdd[i2d_Ro]*Y[i];
@@ -470,6 +478,7 @@ inline void FlowNode2D<T,a>::FillNode2D(int is_mu_t,
                 SrcAdd[4+i] = 0.;
             }
         }
+        
         FlowNodeCore2D<T,a>::S[i2d_RoU] = U * FlowNodeCore2D<T,a>::S[i2d_Ro];
         FlowNodeCore2D<T,a>::S[i2d_RoV] = V * FlowNodeCore2D<T,a>::S[i2d_Ro];
     } else {
@@ -480,107 +489,112 @@ inline void FlowNode2D<T,a>::FillNode2D(int is_mu_t,
     p  = (k-1.)*(FlowNodeCore2D<T,a>::S[i2d_RoE]-FlowNodeCore2D<T,a>::S[i2d_Ro]*(U*U+V*V)*0.5-Tmp3);
     Tg = p/R/FlowNodeCore2D<T,a>::S[i2d_Ro];
 
-    FlowNodeTurbulence2D<T,a>::lam_t  = FlowNodeTurbulence2D<T,a>::mu_t*CP;
+    if (sm == SM_NS) {
+        FlowNodeTurbulence2D<T,a>::lam_t  = FlowNodeTurbulence2D<T,a>::mu_t*CP;
 
-    if(is_mu_t) {
-        if(isCond2D(CT_WALL_NO_SLIP_2D) || isCond2D(CT_WALL_SLIP_2D)){
-            _mu = mu+FlowNodeTurbulence2D<T,a>::mu_t*sig_w;
-            _lam   = lam+FlowNodeTurbulence2D<T,a>::lam_t*sig_w; 
+        if(is_mu_t) {
+            if(isCond2D(CT_WALL_NO_SLIP_2D) || isCond2D(CT_WALL_SLIP_2D)){
+                _mu = mu+FlowNodeTurbulence2D<T,a>::mu_t*sig_w;
+                _lam   = lam+FlowNodeTurbulence2D<T,a>::lam_t*sig_w; 
+            } else {
+                _mu = mu+FlowNodeTurbulence2D<T,a>::mu_t*sig_f;
+                _lam   = lam+FlowNodeTurbulence2D<T,a>::lam_t*sig_f; 
+            }
         } else {
-            _mu = mu+FlowNodeTurbulence2D<T,a>::mu_t*sig_f;
-            _lam   = lam+FlowNodeTurbulence2D<T,a>::lam_t*sig_f; 
+            _mu = mu;
+            _lam = lam;
         }
-    } else {
-        _mu = mu;
-        _lam = lam;
+
+        Diff   = _lam/CP;
+        L=(2./3.)*_mu;                  // 2-nd viscosity (dilatation)
+
+        if(FT == FT_AXISYMMETRIC)
+           Tmp2 = L*(dUdx+dVdy+FT*V/r); // L*dilatation (2D)
+        else
+           Tmp2 = L*(dUdx+dVdy);        // L*dilatation (2D)
+
     }
 
-    Diff   = _lam/CP;
-    L=(2./3.)*_mu;                  // 2-nd viscosity (dilatation)
+        A[i2d_Ro]  = FlowNodeCore2D<T,a>::S[i2d_RoU];
+        A[i2d_RoU] = p + FlowNodeCore2D<T,a>::S[i2d_RoU]*U;
+        A[i2d_RoV] = FlowNodeCore2D<T,a>::S[i2d_RoV]*U;
+        A[i2d_RoE] = (FlowNodeCore2D<T,a>::S[i2d_RoE]+p)*U;
 
-    if(FT == FT_AXISYMMETRIC)
-       Tmp2 = L*(dUdx+dVdy+FT*V/r); // L*dilatation (2D)
-    else
-       Tmp2 = L*(dUdx+dVdy);        // L*dilatation (2D)
+        B[i2d_Ro]  = FlowNodeCore2D<T,a>::S[i2d_RoV];
+        B[i2d_RoU] = A[i2d_RoV];
+        B[i2d_RoV] = p + FlowNodeCore2D<T,a>::S[i2d_RoV]*V;
+        B[i2d_RoE] = (FlowNodeCore2D<T,a>::S[i2d_RoE]+p)*V;
 
-    A[i2d_Ro]  = FlowNodeCore2D<T,a>::S[i2d_RoU];
-    A[i2d_RoU] = p + FlowNodeCore2D<T,a>::S[i2d_RoU]*U;
-    A[i2d_RoV] = FlowNodeCore2D<T,a>::S[i2d_RoV]*U;
-    A[i2d_RoE] = (FlowNodeCore2D<T,a>::S[i2d_RoE]+p)*U;
+        for(i = 4; i < 4+a; i++) {
+            B[i]=FlowNodeCore2D<T,a>::S[i]*V;
+            A[i]=FlowNodeCore2D<T,a>::S[i]*U;
+        }
 
-    B[i2d_Ro]  = FlowNodeCore2D<T,a>::S[i2d_RoV];
-    B[i2d_RoU] = A[i2d_RoV];
-    B[i2d_RoV] = p + FlowNodeCore2D<T,a>::S[i2d_RoV]*V;
-    B[i2d_RoE] = (FlowNodeCore2D<T,a>::S[i2d_RoE]+p)*V;
+        if( FT == 1 ) {
+            F[i2d_Ro]  = FT*B[i2d_Ro];  
+            F[i2d_RoU] = FT*A[i2d_RoV];
+            F[i2d_RoV] = FT*F[i2d_Ro]*V;
+            F[i2d_RoE] = FT*B[i2d_RoE]; 
 
-    for(i = 4; i < 4+a; i++) {
-        B[i]=FlowNodeCore2D<T,a>::S[i]*V;
-        A[i]=FlowNodeCore2D<T,a>::S[i]*U;
-    }
+            for(i = 4; i < 4+a;i++)
+                F[i]=FT*B[i]; 
+        }
+        
+        if (sm == SM_NS) {
 
-    if( FT == 1 ) {
-        F[i2d_Ro]  = FT*B[i2d_Ro];  
-        F[i2d_RoU] = FT*A[i2d_RoV];
-        F[i2d_RoV] = FT*F[i2d_Ro]*V;
-        F[i2d_RoE] = FT*B[i2d_RoE]; 
+            sxx   = 2.*_mu*dUdx - Tmp2; 
+            syy   = 2.*_mu*dVdy - Tmp2;
 
-        for(i = 4; i < 4+a;i++)
-            F[i]=FT*B[i]; 
-    }
+            txy   = _mu*(dUdy+dVdx);
 
-    sxx   = 2.*_mu*dUdx - Tmp2; 
-    syy   = 2.*_mu*dVdy - Tmp2;
+            qx    = _lam*dTdx;
+            qy    = _lam*dTdy;
 
-    txy   = _mu*(dUdy+dVdx);
+            for(i = 0; i < a+1; i++) {
+                qx += Diff*(CP*Tg+Hu[i])*droYdx[i];
+                qy += Diff*(CP*Tg+Hu[i])*droYdy[i];
+            }
 
-    qx    = _lam*dTdx;
-    qy    = _lam*dTdy;
+            RX[i2d_Ro]  = 0.;
+            RX[i2d_RoU] = sxx;
+            RX[i2d_RoV] = txy;
+            RX[i2d_RoE] = U*sxx+V*txy+qx;
 
-    for(i = 0; i < a+1; i++) {
-        qx += Diff*(CP*Tg+Hu[i])*droYdx[i];
-        qy += Diff*(CP*Tg+Hu[i])*droYdy[i];
-    }
+            RY[i2d_Ro]  = 0;
+            RY[i2d_RoU] = txy;
+            RY[i2d_RoV] = syy;
+            RY[i2d_RoE] = U*txy+V*syy+qy;
 
-    RX[i2d_Ro]  = 0.;
-    RX[i2d_RoU] = sxx;
-    RX[i2d_RoV] = txy;
-    RX[i2d_RoE] = U*sxx+V*txy+qx;
+            A[i2d_RoU] = A[i2d_RoU]-RX[i2d_RoU];
+            A[i2d_RoV] = A[i2d_RoV]-RX[i2d_RoV];
+            A[i2d_RoE] = A[i2d_RoE]-RX[i2d_RoE];
 
-    RY[i2d_Ro]  = 0;
-    RY[i2d_RoU] = txy;
-    RY[i2d_RoV] = syy;
-    RY[i2d_RoE] = U*txy+V*syy+qy;
+            B[i2d_RoU] = B[i2d_RoU]-RY[i2d_RoU];
+            B[i2d_RoV] = B[i2d_RoV]-RY[i2d_RoV];
+            B[i2d_RoE] = B[i2d_RoE]-RY[i2d_RoE];
 
-    A[i2d_RoU] = A[i2d_RoU]-RX[i2d_RoU];
-    A[i2d_RoV] = A[i2d_RoV]-RX[i2d_RoV];
-    A[i2d_RoE] = A[i2d_RoE]-RX[i2d_RoE];
+            for(i = 4; i < 4+a; i++) {
 
-    B[i2d_RoU] = B[i2d_RoU]-RY[i2d_RoU];
-    B[i2d_RoV] = B[i2d_RoV]-RY[i2d_RoV];
-    B[i2d_RoE] = B[i2d_RoE]-RY[i2d_RoE];
+                RX[i]=Diff*droYdx[i-4];
+                RY[i]=Diff*droYdy[i-4];
 
-    for(i = 4; i < 4+a; i++) {
+                A[i]=A[i]-RX[i];
+                B[i]=B[i]-RY[i];
+            }
 
-        RX[i]=Diff*droYdx[i-4];
-        RY[i]=Diff*droYdy[i-4];
-
-        A[i]=A[i]-RX[i];
-        B[i]=B[i]-RY[i];
-    }
-
-    if( FT == FT_AXISYMMETRIC ) {
-        t00   = 2*_mu*V/r - Tmp2;
-        F[i2d_RoU] -= RY[i2d_RoU];
-        F[i2d_RoV] -= RY[i2d_RoV]+t00;
-        F[i2d_RoE] -= RY[i2d_RoE];
-        for(i = 4; i < 4+a;i++)
-            F[i]-=RY[i];
-    } else {
-        for(int i=0;i<NumEq;i++)
-            F[i]=0.;
+            if( FT == FT_AXISYMMETRIC ) {
+                t00   = 2*_mu*V/r - Tmp2;
+                F[i2d_RoU] -= RY[i2d_RoU];
+                F[i2d_RoV] -= RY[i2d_RoV]+t00;
+                F[i2d_RoE] -= RY[i2d_RoE];
+                for(i = 4; i < 4+a;i++)
+                    F[i]-=RY[i];
+            } else {
+                for(int i=0;i<NumEq;i++)
+                    F[i]=0.;
+            }
     }
 }
-
 template <class T, int a>
 void  FlowNode2D<T,a>::TurbModRANS2D(int is_mu_t,
                                      int is_init,

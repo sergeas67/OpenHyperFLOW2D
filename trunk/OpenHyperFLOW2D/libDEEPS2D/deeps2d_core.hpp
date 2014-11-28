@@ -129,7 +129,8 @@ extern UArray< FP >*     WallNodesUw_2D;
 extern int                   NumWallNodes;
 //extern FP                x0;
 // External variables
-extern UArray< XY<int> >*                                           GlobalSubmatrix;
+extern SolverMode                                               ProblemType;
+extern UArray< XY<int> >*                                       GlobalSubmatrix;
 extern UArray<UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*>*     SubmatrixArray;
 extern UArray<UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >*>* CoreSubmatrixArray;
 extern InputData*                            Data;                     // Object data loader

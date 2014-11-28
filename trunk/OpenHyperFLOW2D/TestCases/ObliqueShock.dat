@@ -17,6 +17,13 @@
 <data/isOutHeatFluxY=0>
 ; is p* out ?
 <data/is_p_asterisk_out=0>
+; Recalc y+  on each iterations
+<data/isRecalcYplus=0>
+
+;--------------------------------------------------;
+; is single GPU mode on ?                          ;
+;--------------------------------------------------;
+<data/isSingleGPU=0> 
 
 ;--------------------------------------------------;
 ; General parameters                               ;
