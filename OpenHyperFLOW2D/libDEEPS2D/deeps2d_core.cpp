@@ -34,14 +34,14 @@ UArray< XY<int> >* WallNodes;
 
 UArray<UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*>*     SubmatrixArray;
 UArray<UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >*>* CoreSubmatrixArray;
-UArray<XCut>*                                                XCutArray;
+UArray<XCut>*                                            XCutArray;
 
-int     Nstep;
-FP      ExitMonitorValue;
-int     MonitorNumber;
-int     MonitorCondition; // 0 - equal
-                          // 1 - less than
-                          // 2 - great than
+int             Nstep;
+FP              ExitMonitorValue;
+int             MonitorNumber;
+int             MonitorCondition; // 0 - equal
+                                  // 1 - less than
+                                  // 2 - great than
 UArray< MonitorPoint >*   MonitorPointsArray = NULL;
 
 unsigned int     AddSrcStartIter = 0;
@@ -239,6 +239,11 @@ void InitSharedData(InputData* _data,
             }
 
             FlowNode2D<FP,NUM_COMPONENTS>::FT = (FlowType)(_data->GetIntVal((char*)"FlowType"));
+            if ( _data->GetDataError()==-1 ) {
+                Abort_OpenHyperFLOW2D();
+            }
+            
+            ProblemType = (SolverMode)(_data->GetIntVal((char*)"ProblemType"));
             if ( _data->GetDataError()==-1 ) {
                 Abort_OpenHyperFLOW2D();
             }
@@ -780,8 +785,8 @@ void DEEPS2D_Run(ofstream* f_stream
 
                               CurrentNode->time=GlobalTime;
 
-                                if(CurrentNode->isTurbulenceCond2D(TCT_Spalart_Allmaras_Model_2D))
-                                   turb_mod_name_index = 3;
+                              if(ProblemType == SM_NS && CurrentNode->isTurbulenceCond2D(TCT_Spalart_Allmaras_Model_2D))
+                                 turb_mod_name_index = 3;
 
 #ifdef _MPI
                                 CurrentNode->NodeID = rank;
@@ -838,7 +843,8 @@ void DEEPS2D_Run(ofstream* f_stream
                                         dy_flag  = CT_dYdy_NULL_2D;
                                         dx2_flag = CT_d2Ydx2_NULL_2D;
                                         dy2_flag = CT_d2Ydy2_NULL_2D;
-                                    } else if ((CurrentNode->isTurbulenceCond2D(TCT_k_eps_Model_2D) ||
+                                    } else if (ProblemType == SM_NS && 
+                                               (CurrentNode->isTurbulenceCond2D(TCT_k_eps_Model_2D) ||
                                                 CurrentNode->isTurbulenceCond2D(TCT_Spalart_Allmaras_Model_2D))) { //
                                       if( k == i2d_k) {
                                           c_flag   = TCT_k_CONST_2D     << (k-4-NUM_COMPONENTS); 
@@ -885,7 +891,8 @@ void DEEPS2D_Run(ofstream* f_stream
                                         } else {
                                             dy2_flag = 0;
                                         }
-                                    } else if((CurrentNode->isTurbulenceCond2D(TCT_k_eps_Model_2D) ||
+                                    } else if(ProblemType == SM_NS && 
+                                              (CurrentNode->isTurbulenceCond2D(TCT_k_eps_Model_2D) ||
                                                CurrentNode->isTurbulenceCond2D(TCT_Spalart_Allmaras_Model_2D)) ) {
                                         if ( CurrentNode->isTurbulenceCond2D((TurbulenceCondType2D)c_flag) )
                                             c_flag  = 0;
@@ -1001,7 +1008,7 @@ void DEEPS2D_Run(ofstream* f_stream
 
                               n_n_1 = 1./n_n;
                               m_m_1 = 1./m_m;
-
+                              
                               AddEq = SetTurbulenceModel(CurrentNode);
                               
                               int Num_Eq =  (FlowNode2D<FP,NUM_COMPONENTS>::NumEq-AddEq);
@@ -1014,7 +1021,8 @@ void DEEPS2D_Run(ofstream* f_stream
                                       c_flag  = CT_Ro_CONST_2D   << k;
                                   else if (k<(4+NUM_COMPONENTS))  // 7 ?
                                       c_flag  = CT_Y_CONST_2D;
-                                  else if((CurrentNode->isTurbulenceCond2D(TCT_k_eps_Model_2D) ||
+                                  else if( ProblemType == SM_NS  &&
+                                          (CurrentNode->isTurbulenceCond2D(TCT_k_eps_Model_2D) ||
                                            CurrentNode->isTurbulenceCond2D(TCT_Spalart_Allmaras_Model_2D) )) 
                                       c_flag  = TCT_k_CONST_2D << (k-4-NUM_COMPONENTS); 
 
@@ -1082,7 +1090,8 @@ void DEEPS2D_Run(ofstream* f_stream
                                         if (k<(4+NUM_COMPONENTS)) {
                                             if ( !CurrentNode->isCond2D((CondType2D)c_flag) )
                                                   CurrentNode->S[k]   = NextNode->S[k];
-                                        } else if ((CurrentNode->isTurbulenceCond2D(TCT_k_eps_Model_2D) ||
+                                        } else if (ProblemType == SM_NS  &&
+                                                   (CurrentNode->isTurbulenceCond2D(TCT_k_eps_Model_2D) ||
                                                     CurrentNode->isTurbulenceCond2D(TCT_Spalart_Allmaras_Model_2D)) ){
                                             if ( !CurrentNode->isTurbulenceCond2D((TurbulenceCondType2D)c_flag) )
                                                   CurrentNode->S[k]   =  NextNode->S[k];
@@ -1101,49 +1110,53 @@ void DEEPS2D_Run(ofstream* f_stream
                                               CurrentNode->droYdy[NUM_COMPONENTS]+=(DownNode->S[k]-UpNode->S[k])*dy_1*0.5;
                                         }
                                     }
+                                    
+                                    if(ProblemType == SM_NS) {
+                                        if (CurrentNode->isCond2D(CT_WALL_NO_SLIP_2D) || CurrentNode->isCond2D(CT_WALL_SLIP_2D) )  {
+                                            CurrentNode->dUdx=(RightNode->U*n1-LeftNode->U*n2)*dx_1*n_n_1;
+                                            CurrentNode->dVdx=(RightNode->V*n1-LeftNode->V*n2)*dx_1*n_n_1;
 
-                                    if (CurrentNode->isCond2D(CT_WALL_NO_SLIP_2D) || CurrentNode->isCond2D(CT_WALL_SLIP_2D) )  {
-                                        CurrentNode->dUdx=(RightNode->U*n1-LeftNode->U*n2)*dx_1*n_n_1;
-                                        CurrentNode->dVdx=(RightNode->V*n1-LeftNode->V*n2)*dx_1*n_n_1;
+                                            CurrentNode->dUdy=(UpNode->U*n3-DownNode->U*n4)*dy_1*m_m_1;
+                                            CurrentNode->dVdy=(UpNode->V*n3-DownNode->V*n4)*dy_1*m_m_1;
 
-                                        CurrentNode->dUdy=(UpNode->U*n3-DownNode->U*n4)*dy_1*m_m_1;
-                                        CurrentNode->dVdy=(UpNode->V*n3-DownNode->V*n4)*dy_1*m_m_1;
+                                            if(CurrentNode->isTurbulenceCond2D(TCT_k_eps_Model_2D)){
+                                              CurrentNode->dkdx   =(RightNode->S[i2d_k]*n1-LeftNode->S[i2d_k]*n2)*dx_1/CurrentNode->S[i2d_Ro]*n_n_1;
+                                              CurrentNode->depsdx =(RightNode->S[i2d_eps]*n1-LeftNode->S[i2d_eps]*n2)*dx_1/CurrentNode->S[i2d_Ro]*n_n_1;
 
-                                        if(CurrentNode->isTurbulenceCond2D(TCT_k_eps_Model_2D)){
-                                          CurrentNode->dkdx   =(RightNode->S[i2d_k]*n1-LeftNode->S[i2d_k]*n2)*dx_1/CurrentNode->S[i2d_Ro]*n_n_1;
-                                          CurrentNode->depsdx =(RightNode->S[i2d_eps]*n1-LeftNode->S[i2d_eps]*n2)*dx_1/CurrentNode->S[i2d_Ro]*n_n_1;
+                                              CurrentNode->dkdy   =(UpNode->S[i2d_k]*n3-DownNode->S[i2d_k]*n4)*dy_1/CurrentNode->S[i2d_Ro]*m_m_1;
+                                              CurrentNode->depsdy =(UpNode->S[i2d_eps]*n3-DownNode->S[i2d_eps]*n4)*dy_1/CurrentNode->S[i2d_Ro]*m_m_1;
+                                            } else if (CurrentNode->isTurbulenceCond2D(TCT_Spalart_Allmaras_Model_2D)) {
+                                                       CurrentNode->dkdx   =(RightNode->S[i2d_k]*n1-LeftNode->S[i2d_k]*n2)*dx_1/CurrentNode->S[i2d_Ro]*n_n_1;
+                                                       CurrentNode->dkdy   =(UpNode->S[i2d_k]*n3-DownNode->S[i2d_k]*n4)*dy_1/CurrentNode->S[i2d_Ro]*m_m_1;
+                                            }
+                                        } else {
+                                            CurrentNode->dUdx   =(RightNode->U-LeftNode->U)*dx_1*n_n_1;
+                                            CurrentNode->dVdx   =(RightNode->V-LeftNode->V)*dx_1*n_n_1;
 
-                                          CurrentNode->dkdy   =(UpNode->S[i2d_k]*n3-DownNode->S[i2d_k]*n4)*dy_1/CurrentNode->S[i2d_Ro]*m_m_1;
-                                          CurrentNode->depsdy =(UpNode->S[i2d_eps]*n3-DownNode->S[i2d_eps]*n4)*dy_1/CurrentNode->S[i2d_Ro]*m_m_1;
-                                        } else if (CurrentNode->isTurbulenceCond2D(TCT_Spalart_Allmaras_Model_2D)) {
-                                                   CurrentNode->dkdx   =(RightNode->S[i2d_k]*n1-LeftNode->S[i2d_k]*n2)*dx_1/CurrentNode->S[i2d_Ro]*n_n_1;
-                                                   CurrentNode->dkdy   =(UpNode->S[i2d_k]*n3-DownNode->S[i2d_k]*n4)*dy_1/CurrentNode->S[i2d_Ro]*m_m_1;
+                                            CurrentNode->dUdy   =(UpNode->U-DownNode->U)*dy_1*m_m_1;
+                                            CurrentNode->dVdy   =(UpNode->V-DownNode->V)*dy_1*m_m_1;
+                                            if(CurrentNode->isTurbulenceCond2D(TCT_k_eps_Model_2D)){
+                                              CurrentNode->dkdx   =(RightNode->S[i2d_k]-LeftNode->S[i2d_k])*dx_1/CurrentNode->S[i2d_Ro]*n_n_1;
+                                              CurrentNode->depsdx =(RightNode->S[i2d_eps]-LeftNode->S[i2d_eps])*dx_1/CurrentNode->S[i2d_Ro]*n_n_1;
+
+                                              CurrentNode->dkdy   =(UpNode->S[i2d_k]-DownNode->S[i2d_k])*dy_1/CurrentNode->S[i2d_Ro]*m_m_1;
+                                              CurrentNode->depsdy =(UpNode->S[i2d_eps]-DownNode->S[i2d_eps])*dy_1/CurrentNode->S[i2d_Ro]*m_m_1;
+                                            } else if (CurrentNode->isTurbulenceCond2D(TCT_Spalart_Allmaras_Model_2D)) {
+                                                       CurrentNode->dkdx   =(RightNode->S[i2d_k]-LeftNode->S[i2d_k])*dx_1/CurrentNode->S[i2d_Ro]*n_n_1;
+                                                       CurrentNode->dkdy   =(UpNode->S[i2d_k]-DownNode->S[i2d_k])*dy_1/CurrentNode->S[i2d_Ro]*m_m_1;
+                                            }
                                         }
-                                    } else {
-                                        CurrentNode->dUdx   =(RightNode->U-LeftNode->U)*dx_1*n_n_1;
-                                        CurrentNode->dVdx   =(RightNode->V-LeftNode->V)*dx_1*n_n_1;
 
-                                        CurrentNode->dUdy   =(UpNode->U-DownNode->U)*dy_1*m_m_1;
-                                        CurrentNode->dVdy   =(UpNode->V-DownNode->V)*dy_1*m_m_1;
-                                        if(CurrentNode->isTurbulenceCond2D(TCT_k_eps_Model_2D)){
-                                          CurrentNode->dkdx   =(RightNode->S[i2d_k]-LeftNode->S[i2d_k])*dx_1/CurrentNode->S[i2d_Ro]*n_n_1;
-                                          CurrentNode->depsdx =(RightNode->S[i2d_eps]-LeftNode->S[i2d_eps])*dx_1/CurrentNode->S[i2d_Ro]*n_n_1;
-
-                                          CurrentNode->dkdy   =(UpNode->S[i2d_k]-DownNode->S[i2d_k])*dy_1/CurrentNode->S[i2d_Ro]*m_m_1;
-                                          CurrentNode->depsdy =(UpNode->S[i2d_eps]-DownNode->S[i2d_eps])*dy_1/CurrentNode->S[i2d_Ro]*m_m_1;
-                                        } else if (CurrentNode->isTurbulenceCond2D(TCT_Spalart_Allmaras_Model_2D)) {
-                                                   CurrentNode->dkdx   =(RightNode->S[i2d_k]-LeftNode->S[i2d_k])*dx_1/CurrentNode->S[i2d_Ro]*n_n_1;
-                                                   CurrentNode->dkdy   =(UpNode->S[i2d_k]-DownNode->S[i2d_k])*dy_1/CurrentNode->S[i2d_Ro]*m_m_1;
-                                        }
+                                        CurrentNode->dTdx=(RightNode->Tg-LeftNode->Tg)*dx_1*n_n_1;
+                                        CurrentNode->dTdy=(UpNode->Tg-DownNode->Tg)*dy_1*m_m_1;
                                     }
-                                    CurrentNode->dTdx=(RightNode->Tg-LeftNode->Tg)*dx_1*n_n_1;
-                                    CurrentNode->dTdy=(UpNode->Tg-DownNode->Tg)*dy_1*m_m_1;
+                                    
                                     CalcChemicalReactions(CurrentNode,CRM_ZELDOVICH, (void*)(&chemical_reactions));
 
                                     if((int)(iter+last_iter) < TurbStartIter) {
-                                       CurrentNode->FillNode2D(0,1,SigW,SigF,(TurbulenceExtendedModel)TurbExtModel,delta_bl);
+                                       CurrentNode->FillNode2D(0,1,SigW,SigF,(TurbulenceExtendedModel)TurbExtModel,delta_bl,ProblemType);
                                     } else {
-                                       CurrentNode->FillNode2D(1,0,SigW,SigF,(TurbulenceExtendedModel)TurbExtModel,delta_bl);
+                                       CurrentNode->FillNode2D(1,0,SigW,SigF,(TurbulenceExtendedModel)TurbExtModel,delta_bl,ProblemType);
                                     }
 
                                     if( CurrentNode->Tg < 0. ) {
@@ -1362,7 +1375,7 @@ void DEEPS2D_Run(ofstream* f_stream
               for(int ii_monitor=0;ii_monitor<(int)MonitorPointsArray->GetNumElements();ii_monitor++) {
                   if(rank == MonitorPointsArray->GetElement(ii_monitor).rank) {
 
-                      int i_i = (MonitorPointsArray->GetElement(ii_monitor).MonitorXY.GetX() - x0)/FlowNode2D<FP,NUM_COMPONENTS>::dx;
+                      int i_i = (MonitorPointsArray->GetElement(ii_monitor).MonitorXY.GetX() - x0 - FlowNode2D<FP,NUM_COMPONENTS>::dx*0.5)/FlowNode2D<FP,NUM_COMPONENTS>::dx;
                       int j_j = MonitorPointsArray->GetElement(ii_monitor).MonitorXY.GetY()/FlowNode2D<FP,NUM_COMPONENTS>::dy;
                       MonitorPointsArray->GetElement(ii_monitor).p  = pJ->GetValue(i_i,j_j).p;
                       MonitorPointsArray->GetElement(ii_monitor).T  = pJ->GetValue(i_i,j_j).Tg;
@@ -1378,7 +1391,7 @@ void DEEPS2D_Run(ofstream* f_stream
                                         MPI::DOUBLE,
                                         MonitorPointsArray->GetElement(ii_monitor).rank);
               }
-          }
+        }
 
         if(rank == 0) {
             for(int ii=0,DD_max_var=0.;ii<last_rank+1;ii++) {
@@ -1546,38 +1559,49 @@ void DEEPS2D_Run(ofstream* f_stream
                                 MPI::BYTE,ii,tag_Matrix); 
 #endif // _IMPI_
         }
+        if(ProblemType == SM_NS) {
 #ifdef _PARALLEL_RECALC_Y_PLUS_
-        if(WallNodes && !WallNodesUw_2D && J) 
-             WallNodesUw_2D = GetWallFrictionVelocityArray2D(J,WallNodes);
-         else if(WallNodes && J)
-             RecalcWallFrictionVelocityArray2D(J,WallNodesUw_2D,WallNodes);
+           if(WallNodes && !WallNodesUw_2D && J) 
+               WallNodesUw_2D = GetWallFrictionVelocityArray2D(J,WallNodes);
+           else if(WallNodes && J)
+               RecalcWallFrictionVelocityArray2D(J,WallNodesUw_2D,WallNodes);
 #endif // _PARALLEL_RECALC_Y_PLUS_
-    }
-
-#ifdef _PARALLEL_RECALC_Y_PLUS_
-    if( rank == 0 ) {
-        *f_stream << "Parallel recalc y+...";
-        for(int ii = 1; (int)ii < last_rank + 1; ii++ ) {
-            MPI::COMM_WORLD.Send(WallNodesUw_2D->GetArrayPtr(),
-                                 WallNodesUw_2D->GetNumElements()*WallNodesUw_2D->GetElementSize(),
-                                 MPI::BYTE,ii,tag_WallFrictionVelocity);
+          }
         }
-    } else {
-            MPI::COMM_WORLD.Recv(WallNodesUw_2D->GetArrayPtr(),
-                                 WallNodesUw_2D->GetNumElements()*WallNodesUw_2D->GetElementSize(),
-                                 MPI::BYTE,0,tag_WallFrictionVelocity);
-    }
+        
+        if(ProblemType == SM_NS) {
+
+#ifdef _PARALLEL_RECALC_Y_PLUS_
+            if( rank == 0 ) {
+                *f_stream << "Parallel recalc y+...";
+                for(int ii = 1; (int)ii < last_rank + 1; ii++ ) {
+                    MPI::COMM_WORLD.Send(WallNodesUw_2D->GetArrayPtr(),
+                                         WallNodesUw_2D->GetNumElements()*WallNodesUw_2D->GetElementSize(),
+                                         MPI::BYTE,ii,tag_WallFrictionVelocity);
+                }
+            } else {
+                    MPI::COMM_WORLD.Recv(WallNodesUw_2D->GetArrayPtr(),
+                                         WallNodesUw_2D->GetNumElements()*WallNodesUw_2D->GetElementSize(),
+                                         MPI::BYTE,0,tag_WallFrictionVelocity);
+            }
 #endif // _PARALLEL_RECALC_Y_PLUS_
 
 #ifdef _PARALLEL_RECALC_Y_PLUS_
-        ParallelRecalc_y_plus(pJ,WallNodes,WallNodesUw_2D,x0);
+          ParallelRecalc_y_plus(pJ,WallNodes,WallNodesUw_2D,x0);
 #endif // _PARALLEL_RECALC_Y_PLUS_
+        }
+    //}
 
     if( rank == 0) {
+
+        
 #ifndef _PARALLEL_RECALC_Y_PLUS_
+      if(ProblemType == SM_NS) {
         *f_stream << "Recalc y+...";
          Recalc_y_plus(J,WallNodes);
+      }
 #endif // _PARALLEL_RECALC_Y_PLUS_
+
 #endif //  _MPI
          
         if ( isGasSource && SrcList) {
@@ -1678,14 +1702,18 @@ void DEEPS2D_Run(ofstream* f_stream
                              MPI::BYTE,0,tag_Matrix);
 #endif //_IMPI_
 #ifdef _PARALLEL_RECALC_Y_PLUS_
-        if(!WallNodesUw_2D)
-            WallNodesUw_2D = new UArray<FP>(NumWallNodes,-1);
+        
+        if(ProblemType == SM_NS) {
+            if(!WallNodesUw_2D)
+                WallNodesUw_2D = new UArray<FP>(NumWallNodes,-1);
 
-        MPI::COMM_WORLD.Recv(WallNodesUw_2D->GetArrayPtr(),
-                             NumWallNodes*sizeof(FP),
-                             MPI::BYTE,0,tag_WallFrictionVelocity);
+            MPI::COMM_WORLD.Recv(WallNodesUw_2D->GetArrayPtr(),
+                                 NumWallNodes*sizeof(FP),
+                                 MPI::BYTE,0,tag_WallFrictionVelocity);
+        }
 #endif // _PARALLEL_RECALC_Y_PLUS_
-    } else {
+    }
+     else {
       void*  tmp_SendPtr;
       u_long tmp_SendSize;
       for(int ii=1;ii<last_rank+1;ii++) {
@@ -1701,9 +1729,12 @@ void DEEPS2D_Run(ofstream* f_stream
                                MPI::BYTE,ii,tag_Matrix);
 #endif //_IMPI_ 
 #ifdef _PARALLEL_RECALC_Y_PLUS_
-          MPI::COMM_WORLD.Send(WallNodesUw_2D->GetArrayPtr(),
-                               NumWallNodes*sizeof(FP),
-                               MPI::BYTE,ii,tag_WallFrictionVelocity);
+          
+          if(ProblemType == SM_NS) {
+              MPI::COMM_WORLD.Send(WallNodesUw_2D->GetArrayPtr(),
+                                   NumWallNodes*sizeof(FP),
+                                   MPI::BYTE,ii,tag_WallFrictionVelocity);
+          }
 #endif // _PARALLEL_RECALC_Y_PLUS_
       }
     }
@@ -2016,7 +2047,7 @@ gettimeofday(&time2,NULL);
 num_active_nodes=0;
 ijsm.SetX(0);
 
-if(isTurbulenceReset) {
+if(isTurbulenceReset && ProblemType == SM_NS) {
    if ( TurbMod == 0 )
         TM = (TurbulenceCondType2D)(TCT_No_Turbulence_2D);
    else if ( TurbMod == 1 )
@@ -2038,7 +2069,7 @@ if(isTurbulenceReset) {
 for (int i=0;i<(int)MaxX;i++ ) {
         for (int j=0;j<(int)MaxY;j++ ) {
 
-                    if(isTurbulenceReset) {
+                    if(isTurbulenceReset && ProblemType == SM_NS) {
                        if(pJ->GetValue(i,j).isTurbulenceCond2D(TCT_Integral_Model_2D))
                           pJ->GetValue(i,j).CleanTurbulenceCond2D(TCT_Integral_Model_2D);
                        if(pJ->GetValue(i,j).isTurbulenceCond2D(TCT_Prandtl_Model_2D))
@@ -4353,7 +4384,10 @@ void* InitDEEPS2D(void* lpvParam)
 
             *f_stream << "\nInitial dt=" << dt << "sec." << endl;
 //------> place here <------*
-            SetWallNodes(f_stream, J);
+           if(ProblemType == SM_NS) { 
+               SetWallNodes(f_stream, J);
+           }
+            
             GlobalSubmatrix = ScanArea(f_stream,J, isVerboseOutput);
 /* Load additional sources */
              isGasSource  = Data->GetIntVal((char*)"NumSrc");
@@ -4363,11 +4397,14 @@ void* InitDEEPS2D(void* lpvParam)
                   SrcList = new SourceList2D(J,Data);
                   SrcList->SetSources2D();
              }
-             if(!PreloadFlag) {
-                *f_stream << "Set initial boundary layer...";
-                SetInitBoundaryLayer(J,delta_bl);
-                *f_stream << "OK" << endl; 
-               }
+             
+             if(ProblemType == SM_NS) {
+                 if(!PreloadFlag) {
+                    *f_stream << "Set initial boundary layer...";
+                    SetInitBoundaryLayer(J,delta_bl);
+                    *f_stream << "OK" << endl; 
+                   }
+             }
 
 #ifdef _DEBUG_0
         }__except(SysException e) {

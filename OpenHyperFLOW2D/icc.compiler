@@ -46,23 +46,27 @@ endif
 
 PROFILE    = -prof_dir . -prof_file icc.profile
 NOPROFILE  =
-DEBUG      = 
-
+DEBUG      =
+# 
 # -opt-multi-version-aggressive -opt-report3 -opt-report-phase:hpo -vec-report5
-# -opt-report -opt-report-phase:hpo -vec-report
+# -opt-report -opt-report-phase:hpo -vec-report   -no-vec 
 # -g -opt-multi-version-aggressive -opt-report -opt-report-phase:hpo -vec-report
 # -D_ICC_VER_${ICC_VER}
 
-ALIGN      = 16
 GCC_COMPAT = -m64 -gcc-version=${GCC_VER} -Wno-deprecated -diag-disable 576 -Wno-non-virtual-dtor 
 
-
+ifeq ("$(SIMD)","AVX")
+ALIGN      = 16
+ALIGN2     = 8
+else
+ALIGN      = 8
+ALIGN2     = 8
+endif
 
 ifeq ("$(SIMD)","SSE2")
 
 CPU        = pentium4
 CPU_EXT    = -xO
-ALIGN2     = 16
 
 endif
 
@@ -71,7 +75,6 @@ ifeq ("$(SIMD)","SSE3")
 
 CPU        = pentium4
 CPU_EXT    = -msse3
-ALIGN2     = 16
 
 endif
 
@@ -79,7 +82,6 @@ ifeq ("$(SIMD)","SSSE3")
 
 CPU        = core2
 CPU_EXT    = -xssse3 -mssse3
-ALIGN2     = 16
 
 endif
 
@@ -87,32 +89,33 @@ ifeq ("$(SIMD)","SSE41")
 
 CPU        = corei7
 CPU_EXT    = -xSSE4.1 -msse4.1
-ALIGN2     = 16
 
 endif
 
 ifeq ("$(SIMD)","SSE42")
 
 CPU        = corei7
-CPU_EXT    = -xSSE4.1 -msse4.2
-ALIGN2     = 16
+CPU_EXT    = -msse4.2
 
 endif
+
 
 ifeq ("$(SIMD)","AVX")
 
 CPU        = corei7-avx
 CPU_EXT    = -xavx -mavx -opt-prefetch=4
-ALIGN2     = 32
 
 endif
 
 ifeq ("$(SIMD)","AVX2")
 
 CPU        = core-avx-i
-CPU_EXT    = -m64 -xavx -mavx -xCORE-AVX-I -opt-prefetch=4
-ALIGN2     = 32
+CPU_EXT    = -m64 -xCORE-AVX-I -opt-prefetch=4
+ALIGN      = 16
+ALIGN2     = 16
+
 endif
+
 
 OPTLEVEL   = 3
 PICFLAGS   = -fPIC
@@ -124,7 +127,7 @@ ifeq ($(OPTLEVEL),0)
 OPTIMIZE  = -O$(OPTLEVEL) -D_ALIGN=${ALIGN2}
 else
 OPTIMIZE  = -O$(OPTLEVEL) -ip  -march=$(CPU) $(CPU_EXT)  -no-prec-div -fp-model fast=2 -fomit-frame-pointer  -unroll-aggressive -Zp$(ALIGN) \
-            -falign-functions=$(ALIGN) -D_ALIGN=${ALIGN2} -opt-multi-version-aggressive -Kc++eh -Krtti $(GCC_COMPAT) -D_HAS_TRADITIONAL_IOSTREAMS
+            -falign-functions=$(ALIGN) -D_ALIGN=${ALIGN2} -Kc++eh -Krtti $(GCC_COMPAT) -D_HAS_TRADITIONAL_IOSTREAMS
 endif
 
 OPTIONS  = $(DEBUG) $(FP_OPTS) -D_DEBUG_$(DEBUGLEVEL) $(PARALLEL) $(OPTIMIZE) $(NOPROFILE) -Wno-deprecated
@@ -132,6 +135,7 @@ OPTIONS  = $(DEBUG) $(FP_OPTS) -D_DEBUG_$(DEBUGLEVEL) $(PARALLEL) $(OPTIMIZE) $(
 ifeq    ("$(OPENMP)","-D_OPEN_MP")
 OPTIONS    += -openmp -D_OPEN_MP -D_OPENMP
 endif
+
 #-vec-guard-write   -opt-multi-version-aggressive
 #-mcmodel=large
 
