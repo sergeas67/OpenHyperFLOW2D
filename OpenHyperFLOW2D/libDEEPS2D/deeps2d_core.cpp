@@ -3894,13 +3894,14 @@ void* InitDEEPS2D(void* lpvParam)
                        delete SBR;
                      }
                   }
-            // Solid Bound Circles
+            // Bound Circles
             unsigned int numCircles=Data->GetIntVal((char*)"NumCircles");
             TurbulenceCondType2D TM;
-            SolidBoundCircle2D* SBC;
+            BoundCircle2D* SBC;
             if ( p_g==0 )
                 if ( numCircles ) {
                     for ( j=0;j<numCircles;j++ ) {
+                        
                         sprintf(NameContour,"Circle%i",j+1);
                         *f_stream << "Add object \""<< NameContour << "\"..." << flush;
 
@@ -3918,6 +3919,10 @@ void* InitDEEPS2D(void* lpvParam)
 
                         sprintf(NameContour,"Circle%i.Y0",j+1);
                         Y_0=Data->GetFloatVal(NameContour);
+                        if ( Data->GetDataError()==-1 ) Abort_OpenHyperFLOW2D();
+                        
+                        sprintf(NameContour,"Circle%i.MaterialID",j+1);
+                        int MaterialID=Data->GetIntVal(NameContour);
                         if ( Data->GetDataError()==-1 ) Abort_OpenHyperFLOW2D();
 
                         sprintf(NameContour,"Circle%i.TurbulenceModel",j+1);
@@ -3965,7 +3970,21 @@ void* InitDEEPS2D(void* lpvParam)
                             Abort_OpenHyperFLOW2D();
                         }
                         sprintf(NameContour,"Circle%i",j+1);
-                        SBC = new SolidBoundCircle2D(NameContour,J,Xstart,Ystart,X_0,Y_0,dx,dy,(CondType2D)NT_WNS_2D,pTestFlow2D,Y,TM);
+                        
+                        if(MaterialID) { // Solid
+                            SBC = new BoundCircle2D(NameContour,J,Xstart,Ystart,X_0,Y_0,dx,dy,(CondType2D)NT_WNS_2D,MaterialID,pTestFlow2D,Y,TM
+#ifdef _DEBUG_1
+                                                    ,f_stream
+#endif //_DEBUG_1 
+                                                    );
+                        } else {         // GAS
+                            SBC = new BoundCircle2D(NameContour,J,Xstart,Ystart,X_0,Y_0,dx,dy,(CondType2D)CT_NODE_IS_SET_2D,MaterialID,pTestFlow2D,Y,TM
+#ifdef _DEBUG_1
+                                                    ,f_stream
+#endif //_DEBUG_1 
+                                                    );
+                        }
+                        
                         *f_stream << "OK\n" << flush;
                         delete SBC;
                     }
