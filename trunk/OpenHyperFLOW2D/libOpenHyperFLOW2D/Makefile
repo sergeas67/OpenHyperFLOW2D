@@ -24,7 +24,7 @@ TARGET      = $(TARGET_2D)
 SOURCES_2D  = hyper_flow_bound.cpp \
 	      hyper_flow_bound_contour.cpp \
 	      hyper_flow_solid_bound_rect.cpp \
-	      hyper_flow_solid_bound_circle.cpp \
+	      hyper_flow_bound_circle.cpp \
 	      hyper_flow_airfoil.cpp \
 	      hyper_flow_area.cpp \
 	      hyper_flow_field.cpp \
@@ -33,7 +33,7 @@ SOURCES_2D  = hyper_flow_bound.cpp \
 OBJECTS_2D  = hyper_flow_bound.o \
 	      hyper_flow_bound_contour.o \
 	      hyper_flow_solid_bound_rect.o \
-	      hyper_flow_solid_bound_circle.o \
+	      hyper_flow_bound_circle.o \
 	      hyper_flow_airfoil.o \
 	      hyper_flow_area.o \
 	      hyper_flow_field.o \
@@ -44,7 +44,7 @@ INCLUDES_2D = hyper_flow2d.hpp \
 	      hyper_flow_bound.hpp \
 	      hyper_flow_bound_contour.hpp \
 	      hyper_flow_solid_bound_rect.hpp \
-	      hyper_flow_solid_bound_circle.hpp \
+	      hyper_flow_bound_circle.hpp \
 	      hyper_flow_airfoil.hpp \
 	      hyper_flow_area.hpp \
 	      hyper_flow_field.hpp \

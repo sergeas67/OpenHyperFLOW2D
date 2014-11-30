@@ -60,7 +60,6 @@ Area2D  {
     ulong                         ATT;                    // Area turbulence type
 
 public:
-#ifdef _UNIFORM_MESH_
     void FillArea2D(unsigned int x,
                     unsigned int y,
                     ulong,ulong att=TCT_No_Turbulence_2D,int MaterialID=GAS_ID);
@@ -79,17 +78,6 @@ public:
     void FillArea2D(FP x,
                     FP y,
                     ulong, Flow* pf, FP* Y=NULL,ulong att=TCT_No_Turbulence_2D,int MaterialID=GAS_ID);
-#else
-    void FillArea2D(FP x,
-                    FP y,
-                    ulong, int att=TCT_No_Turbulence_2D,int MaterialID=GAS_ID);
-    void FillArea2D(FP x,
-                    FP y,
-                    ulong, Flow2D* pf2d, FP* Y=NULL,ulong att=TCT_No_Turbulence_2D,int MaterialID=GAS_ID);
-    void FillArea2D(FP x,
-                    FP y,
-                    ulong, Flow* pf, FP* Y=NULL,ulong att=TCT_No_Turbulence_2D,int MaterialID=GAS_ID);
-#endif // _UNIFORM_MESH_
     Area2D(char* name, UMatrix2D<FlowNode2D< FP,NUM_COMPONENTS > >* p_j);
     ~Area2D();
     

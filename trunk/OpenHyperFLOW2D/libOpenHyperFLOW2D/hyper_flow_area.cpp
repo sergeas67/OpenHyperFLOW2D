@@ -35,7 +35,6 @@ Area2D::Area2D(char* name, UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* J):AreaNa
     ;
 }
 
-#ifdef _UNIFORM_MESH_
 // Fill area by Flow
 void Area2D::FillArea2D(unsigned int X,
                         unsigned int Y,
@@ -48,7 +47,7 @@ void Area2D::FillArea2D(unsigned int X,
     FillArea2D((unsigned int)X,(unsigned int)Y,
                bnt | CT_NODE_IS_SET_2D,&F2D,p_Y,att,MaterialID);
 }
-
+         
 // Fill area by custom type nodes
 void Area2D::FillArea2D(unsigned int X,unsigned int Y, 
                         ulong bnt,ulong att,
@@ -201,38 +200,6 @@ void Area2D::FillArea2D(FP  X,
              att,
              MaterialID);
 }
-
-#else
-void Area2D::FillArea2D(FP X,
-                        FP Y,
-                        ulong  bnt,
-                        Flow*   pf,
-                        FP* p_Y,
-                        ulong   att,
-                        int MaterialID) {
-    Flow2D F2D(*pf);
-    FillArea2D(X,Y,bnt | CT_NODE_IS_SET_2D,&F2D,p_Y,att,MaterialID);
-}
-
-// Fill area by custom type nodes
-void Area2D::FillArea2D(FP X,
-                        FP Y, 
-                        ulong  bnt,
-                        ulong  att,
-                        int MaterialID) {
-    FillArea(X,Y,bnt | CT_NODE_IS_SET_2D,(Flow2D*)NULL,NULL,att,MaterialID);
-}
-// Fill area by Flow2D
-void Area2D::FillArea2D(FP  X,
-                        FP  Y,
-                        ulong   bnt,
-                        Flow2D* pf2d,
-                        FP* p_Y,
-                        ulong   att,
-                        int MaterialID=GAS_ID) {
-// ...
-}
-#endif // _UNIFORM_MESH_
 
 //Area destructor
 Area2D::~Area2D() {

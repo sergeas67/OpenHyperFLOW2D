@@ -102,6 +102,9 @@ Step:
 	bin/OpenHyperFLOW2D.sh TestCases/Step ${NUM_NODES}
 Wedge:
 	bin/OpenHyperFLOW2D.sh TestCases/Wedge ${NUM_NODES}
+Bubble2D:
+	bin/OpenHyperFLOW2D.sh TestCases/Bubble2D ${NUM_NODES}
+
 ShowResults:
 	gnuplot TestCases/T.dat
 	gnuplot TestCases/pressure.dat
