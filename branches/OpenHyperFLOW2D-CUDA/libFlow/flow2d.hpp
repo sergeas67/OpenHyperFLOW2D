@@ -18,13 +18,35 @@ class   Flow2D: public Flow {
         return Flow::Wg(w);
     }
     FP LAM(FP l) {
-        return Flow::LAM(l);
+        Flow::LAM(l);
+        if(VV == 0.0) {
+           UU = Flow::Wg();
+        } else if (UU == 0.0) {
+           VV = Flow::Wg();
+        } else {
+          FP W0 = sqrt(UU*UU+VV*VV);
+          FP Ratio = Flow::Wg()/W0;
+          UU = UU * Ratio;
+          VV = VV * Ratio;
+        }
+        return Flow::LAM();
     }
 
 public:
 
     FP MACH(FP m) {
-        return Flow::MACH(m);
+        Flow::MACH(m);
+        if(VV == 0.0) {
+           UU = Flow::Wg();
+        } else if (UU == 0.0) {
+           VV = Flow::Wg();
+        } else {
+          FP W0 = sqrt(UU*UU+VV*VV);
+          FP Ratio = Flow::Wg()/W0;
+          UU = UU * Ratio;
+          VV = VV * Ratio;
+        }
+        return Flow::MACH();
     }
     FP Wg() {
         return /*Flow::Wg()*/sqrt(UU*UU+VV*VV+1.e-5);

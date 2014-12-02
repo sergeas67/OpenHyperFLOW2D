@@ -82,7 +82,8 @@ inline FP GetVal(Table* t,
         i = _n - 1;
         goto EndGetVal;
     }
-
+ 
+ #pragma unroll
     for ( i=1; i<_n; i++ ) {
         if ( (_x >= t->x[i-1]) && (_x < t->x[i]) )
             break;
@@ -99,7 +100,8 @@ inline FP GetVal(Table* t,
  __host__ __device__
 #endif //_CUDA_ 
 int cuda_CalcChemicalReactions(FlowNode2D<FP,NUM_COMPONENTS>* CalcNode,
-                               ChemicalReactionsModel cr_model, void* CRM_data) {
+                               ChemicalReactionsModel cr_model, void* CRM_data,
+                               SolverMode sm) {
     
     ChemicalReactionsModelData2D* model_data = (ChemicalReactionsModelData2D*)CRM_data;
     FP   Y0,Yfu,Yox,Ycp,Yair;
@@ -136,18 +138,20 @@ int cuda_CalcChemicalReactions(FlowNode2D<FP,NUM_COMPONENTS>* CalcNode,
                             model_data->R_OX*Yox+
                             model_data->R_cp*Ycp+
                             model_data->R_air*Yair;
-    CalcNode->mu  = GetVal(model_data->mu_Fuel,CalcNode->Tg)*Yfu+
-                    GetVal(model_data->mu_OX,CalcNode->Tg)*Yox+
-                    GetVal(model_data->mu_cp,CalcNode->Tg)*Ycp+
-                    GetVal(model_data->mu_air,CalcNode->Tg)*Yair;
     CalcNode->CP  = GetVal(model_data->Cp_Fuel,CalcNode->Tg)*Yfu+
                     GetVal(model_data->Cp_OX,CalcNode->Tg)*Yox+
                     GetVal(model_data->Cp_cp,CalcNode->Tg)*Ycp+
                     GetVal(model_data->Cp_air,CalcNode->Tg)*Yair;
-    CalcNode->lam = GetVal(model_data->lam_Fuel,CalcNode->Tg)*Yfu+
-                    GetVal(model_data->lam_OX,CalcNode->Tg)*Yox+
-                    GetVal(model_data->lam_cp,CalcNode->Tg)*Ycp+
-                    GetVal(model_data->lam_air,CalcNode->Tg)*Yair;
+    if ( sm == SM_NS ) {
+        CalcNode->mu  = GetVal(model_data->mu_Fuel,CalcNode->Tg)*Yfu+
+                        GetVal(model_data->mu_OX,CalcNode->Tg)*Yox+
+                        GetVal(model_data->mu_cp,CalcNode->Tg)*Ycp+
+                        GetVal(model_data->mu_air,CalcNode->Tg)*Yair;
+        CalcNode->lam = GetVal(model_data->lam_Fuel,CalcNode->Tg)*Yfu+
+                        GetVal(model_data->lam_OX,CalcNode->Tg)*Yox+
+                        GetVal(model_data->lam_cp,CalcNode->Tg)*Ycp+
+                        GetVal(model_data->lam_air,CalcNode->Tg)*Yair;
+    }
 
     if ( Yair<1.e-8 ) {
          Yair =0.;
@@ -455,8 +459,7 @@ cuda_Recalc_y_plus(FlowNode2D<FP,NUM_COMPONENTS>* pJ2D,
 
                FlowNode2D<FP,NUM_COMPONENTS>* WallNode = &pJ2D[wall_index];   // x*nY + y
 
-               FP tau_w = (fabs(WallNode->dUdy) +
-                               fabs(WallNode->dVdx)) * WallNode->mu;  
+               FP tau_w = (fabs(WallNode->dUdy) + fabs(WallNode->dVdx)) * WallNode->mu;  
 
                FP U_w   = sqrt(tau_w/WallNode->S[i2d_Ro]);
 
@@ -800,45 +803,47 @@ cuda_DEEPS2D_Stage2(FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
                   }
               }
 
-              if (CurrentNode->isCond2D(CT_WALL_NO_SLIP_2D) || CurrentNode->isCond2D(CT_WALL_LAW_2D) )  {
-                  CurrentNode->dUdx=(RightNode->U*n1-LeftNode->U*n2)*dx_1xn_n_1;
-                  CurrentNode->dVdx=(RightNode->V*n1-LeftNode->V*n2)*dx_1xn_n_1;
+              if(sm == SM_NS) {
+                  if (CurrentNode->isCond2D(CT_WALL_NO_SLIP_2D) || CurrentNode->isCond2D(CT_WALL_LAW_2D) )  {
+                      CurrentNode->dUdx=(RightNode->U*n1-LeftNode->U*n2)*dx_1xn_n_1;
+                      CurrentNode->dVdx=(RightNode->V*n1-LeftNode->V*n2)*dx_1xn_n_1;
 
-                  CurrentNode->dUdy=(UpNode->U*n3-DownNode->U*n4)*dy_1xm_m_1;
-                  CurrentNode->dVdy=(UpNode->V*n3-DownNode->V*n4)*dy_1xm_m_1;
+                      CurrentNode->dUdy=(UpNode->U*n3-DownNode->U*n4)*dy_1xm_m_1;
+                      CurrentNode->dVdy=(UpNode->V*n3-DownNode->V*n4)*dy_1xm_m_1;
 
-                  if(sm == SM_NS && CurrentNode->isTurbulenceCond2D(TCT_k_eps_Model_2D)){
-                    CurrentNode->dkdx   =(RightNode->S[i2d_k]*n1-LeftNode->S[i2d_k]*n2)*dx_1/CurrentNode->S[i2d_Ro]*n_n_1;
-                    CurrentNode->depsdx =(RightNode->S[i2d_eps]*n1-LeftNode->S[i2d_eps]*n2)*dx_1/CurrentNode->S[i2d_Ro]*n_n_1;
+                      if(CurrentNode->isTurbulenceCond2D(TCT_k_eps_Model_2D)){
+                        CurrentNode->dkdx   =(RightNode->S[i2d_k]*n1-LeftNode->S[i2d_k]*n2)*dx_1/CurrentNode->S[i2d_Ro]*n_n_1;
+                        CurrentNode->depsdx =(RightNode->S[i2d_eps]*n1-LeftNode->S[i2d_eps]*n2)*dx_1/CurrentNode->S[i2d_Ro]*n_n_1;
 
-                    CurrentNode->dkdy   =(UpNode->S[i2d_k]*n3-DownNode->S[i2d_k]*n4)*dy_1/CurrentNode->S[i2d_Ro]*m_m_1;
-                    CurrentNode->depsdy =(UpNode->S[i2d_eps]*n3-DownNode->S[i2d_eps]*n4)*dy_1/CurrentNode->S[i2d_Ro]*m_m_1;
-                  } else if (sm == SM_NS && CurrentNode->isTurbulenceCond2D(TCT_Spalart_Allmaras_Model_2D)) {
-                             CurrentNode->dkdx   =(RightNode->S[i2d_k]*n1-LeftNode->S[i2d_k]*n2)*dx_1/CurrentNode->S[i2d_Ro]*n_n_1;
-                             CurrentNode->dkdy   =(UpNode->S[i2d_k]*n3-DownNode->S[i2d_k]*n4)*dy_1/CurrentNode->S[i2d_Ro]*m_m_1;
+                        CurrentNode->dkdy   =(UpNode->S[i2d_k]*n3-DownNode->S[i2d_k]*n4)*dy_1/CurrentNode->S[i2d_Ro]*m_m_1;
+                        CurrentNode->depsdy =(UpNode->S[i2d_eps]*n3-DownNode->S[i2d_eps]*n4)*dy_1/CurrentNode->S[i2d_Ro]*m_m_1;
+                      } else if (CurrentNode->isTurbulenceCond2D(TCT_Spalart_Allmaras_Model_2D)) {
+                                 CurrentNode->dkdx   =(RightNode->S[i2d_k]*n1-LeftNode->S[i2d_k]*n2)*dx_1/CurrentNode->S[i2d_Ro]*n_n_1;
+                                 CurrentNode->dkdy   =(UpNode->S[i2d_k]*n3-DownNode->S[i2d_k]*n4)*dy_1/CurrentNode->S[i2d_Ro]*m_m_1;
+                      }
+                  } else {
+                      CurrentNode->dUdx   =(RightNode->U-LeftNode->U)*dx_1xn_n_1;
+                      CurrentNode->dVdx   =(RightNode->V-LeftNode->V)*dx_1xn_n_1;
+
+                      CurrentNode->dUdy   =(UpNode->U-DownNode->U)*dy_1xm_m_1;
+                      CurrentNode->dVdy   =(UpNode->V-DownNode->V)*dy_1xm_m_1;
+                      if(CurrentNode->isTurbulenceCond2D(TCT_k_eps_Model_2D)){
+                        CurrentNode->dkdx   =(RightNode->S[i2d_k]-LeftNode->S[i2d_k])*dx_1/CurrentNode->S[i2d_Ro]*n_n_1;
+                        CurrentNode->depsdx =(RightNode->S[i2d_eps]-LeftNode->S[i2d_eps])*dx_1/CurrentNode->S[i2d_Ro]*n_n_1;
+
+                        CurrentNode->dkdy   =(UpNode->S[i2d_k]-DownNode->S[i2d_k])*dy_1/CurrentNode->S[i2d_Ro]*m_m_1;
+                        CurrentNode->depsdy =(UpNode->S[i2d_eps]-DownNode->S[i2d_eps])*dy_1/CurrentNode->S[i2d_Ro]*m_m_1;
+                      } else if (CurrentNode->isTurbulenceCond2D(TCT_Spalart_Allmaras_Model_2D)) {
+                                 CurrentNode->dkdx   =(RightNode->S[i2d_k]-LeftNode->S[i2d_k])*dx_1/CurrentNode->S[i2d_Ro]*n_n_1;
+                                 CurrentNode->dkdy   =(UpNode->S[i2d_k]-DownNode->S[i2d_k])*dy_1/CurrentNode->S[i2d_Ro]*m_m_1;
+                      }
                   }
-              } else {
-                  CurrentNode->dUdx   =(RightNode->U-LeftNode->U)*dx_1xn_n_1;
-                  CurrentNode->dVdx   =(RightNode->V-LeftNode->V)*dx_1xn_n_1;
 
-                  CurrentNode->dUdy   =(UpNode->U-DownNode->U)*dy_1xm_m_1;
-                  CurrentNode->dVdy   =(UpNode->V-DownNode->V)*dy_1xm_m_1;
-                  if(sm == SM_NS && CurrentNode->isTurbulenceCond2D(TCT_k_eps_Model_2D)){
-                    CurrentNode->dkdx   =(RightNode->S[i2d_k]-LeftNode->S[i2d_k])*dx_1/CurrentNode->S[i2d_Ro]*n_n_1;
-                    CurrentNode->depsdx =(RightNode->S[i2d_eps]-LeftNode->S[i2d_eps])*dx_1/CurrentNode->S[i2d_Ro]*n_n_1;
-
-                    CurrentNode->dkdy   =(UpNode->S[i2d_k]-DownNode->S[i2d_k])*dy_1/CurrentNode->S[i2d_Ro]*m_m_1;
-                    CurrentNode->depsdy =(UpNode->S[i2d_eps]-DownNode->S[i2d_eps])*dy_1/CurrentNode->S[i2d_Ro]*m_m_1;
-                  } else if (sm == SM_NS && CurrentNode->isTurbulenceCond2D(TCT_Spalart_Allmaras_Model_2D)) {
-                             CurrentNode->dkdx   =(RightNode->S[i2d_k]-LeftNode->S[i2d_k])*dx_1/CurrentNode->S[i2d_Ro]*n_n_1;
-                             CurrentNode->dkdy   =(UpNode->S[i2d_k]-DownNode->S[i2d_k])*dy_1/CurrentNode->S[i2d_Ro]*m_m_1;
-                  }
+                  CurrentNode->dTdx=(RightNode->Tg-LeftNode->Tg)*dx_1xn_n_1;
+                  CurrentNode->dTdy=(UpNode->Tg-DownNode->Tg)*dy_1xm_m_1;
               }
-              
-              CurrentNode->dTdx=(RightNode->Tg-LeftNode->Tg)*dx_1xn_n_1;
-              CurrentNode->dTdy=(UpNode->Tg-DownNode->Tg)*dy_1xm_m_1;
 
-              cuda_CalcChemicalReactions(CurrentNode,CRM_ZELDOVICH, (void*)(pCRMD));
+              cuda_CalcChemicalReactions(CurrentNode,CRM_ZELDOVICH, (void*)(pCRMD),sm);
 
               if(noTurbCond) {
                  CurrentNode->FillNode2D(0,1,SigW,SigF,TurbExtModel,delta_bl,1.0/dx_1,1.0/dy_1,_Hu,_isSrcAdd,sm,_FT);

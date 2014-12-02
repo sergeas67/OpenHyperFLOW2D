@@ -195,8 +195,8 @@ void ChkCudaState(cudaError_t cudaState, char* name) {
     }
 }
 
-int CalibrateThreadBlockSize(int      cur_block_size,
-                             int*     opt_block_size,
+int CalibrateThreadBlockSize(int  cur_block_size,
+                             int* opt_block_size,
                              FP*  opt_round_trip,
                              FP   round_trip){
    if(opt_block_size[1] != 1) {
@@ -669,8 +669,8 @@ void DEEPS2D_Run(ofstream* f_stream,
                  UMatrix2D<FlowNodeCore2D<FP,NUM_COMPONENTS> >* pC,
                  UArray< FlowNode2D<FP,NUM_COMPONENTS>* >*      cudaSubmatrixArray,    
                  UArray< FlowNodeCore2D<FP,NUM_COMPONENTS>* >*  cudaCoreSubmatrixArray,
-                 UArray< XY<int> >*                                 cudaDimArray,
-                 UArray< ChemicalReactionsModelData2D* >*           cudaCRM2D,
+                 UArray< XY<int> >*                             cudaDimArray,
+                 UArray< ChemicalReactionsModelData2D* >*       cudaCRM2D,
                  int num_mp,                                                  
                  cudaStream_t *cuda_streams,
                  cudaEvent_t  *cuda_events,
@@ -683,36 +683,36 @@ void DEEPS2D_Run(ofstream* f_stream,
     int      TmpMaxX;
     int      current_div;
     int      opt_thread_block_size[2];
-    FP   opt_round_trip[1];
+    FP       opt_round_trip[1];
     
     int      num_cuda_threads;
     int      num_cuda_blocks; 
 
-    FP   dtdx;
-    FP   dtdy;
-    FP   dyy;
-    FP   dxx;
-    FP   dx_1,dy_1; // 1/dx, 1/dy
-    FP   d_time;
-    FP   VCOMP;
+    FP       dtdx;
+    FP       dtdy;
+    FP       dyy;
+    FP       dxx;
+    FP       dx_1,dy_1; // 1/dx, 1/dy
+    FP       d_time;
+    FP       VCOMP;
     timeval  start, stop, mark1, mark2;
-    FP   int2float_scale;
+    FP       int2float_scale;
 #ifdef _RMS_
-    FP   max_RMS;
+    FP       max_RMS;
     int      k_max_RMS;
 #endif //_RMS_
-    FP*   dt_min;
+    FP*       dt_min;
     int*      i_c;
     int*      j_c;
-    FP    dtmin=1.0;
-    //FP    DD[FlowNode2D<FP,NUM_COMPONENTS>::NumEq];
+    FP        dtmin=1.0;
+    //FP      DD[FlowNode2D<FP,NUM_COMPONENTS>::NumEq];
 #ifdef _RMS_
-    FP    sum_RMS[FlowNode2D<FP,NUM_COMPONENTS>::NumEq];
-    unsigned long sum_iRMS[FlowNode2D<FP,NUM_COMPONENTS>::NumEq];
-    UMatrix2D<FP> RMS(FlowNode2D<FP,NUM_COMPONENTS>::NumEq,cudaArraySubmatrix->GetNumElements());
+    FP                sum_RMS[FlowNode2D<FP,NUM_COMPONENTS>::NumEq];
+    unsigned long     sum_iRMS[FlowNode2D<FP,NUM_COMPONENTS>::NumEq];
+    UMatrix2D<FP>     RMS(FlowNode2D<FP,NUM_COMPONENTS>::NumEq,cudaArraySubmatrix->GetNumElements());
     UMatrix2D<int>    iRMS(FlowNode2D<FP,NUM_COMPONENTS>::NumEq,cudaArraySubmatrix->GetNumElements());
 #endif //_RMS_
-    UMatrix2D<FP> DD_max(FlowNode2D<FP,NUM_COMPONENTS>::NumEq,cudaDimArray->GetNumElements());
+    UMatrix2D<FP>     DD_max(FlowNode2D<FP,NUM_COMPONENTS>::NumEq,cudaDimArray->GetNumElements());
 
     isScan = 0;
     dyy    = dx/(dx+dy);
@@ -1102,18 +1102,20 @@ void DEEPS2D_Run(ofstream* f_stream,
        TmpMaxX = (SubMaxX-SubStartIndex) - r_Overlap;
        TmpMatrixPtr = (FlowNode2D<FP,NUM_COMPONENTS>*)((ulong)J->GetMatrixPtr()+(ulong)(sizeof(FlowNode2D<FP,NUM_COMPONENTS>)*(SubStartIndex)*MaxY));
 #ifdef _PARALLEL_RECALC_Y_PLUS_
-       *f_stream << "Parallel recalc y+..." << endl;    
-       cuda_Recalc_y_plus<<<num_cuda_blocks,num_cuda_threads, 0, cuda_streams[i]>>>(cudaJ,
-                                                                                    TmpMaxX*MaxY,
-                                                                                    cudaWallNodes,
-                                                                                    NumWallNodes,
-                                                                                    min(dx,dy),
-                                                                                    max((FlowNode2D<FP,NUM_COMPONENTS>::dx*MaxX), 
-                                                                                        (FlowNode2D<FP,NUM_COMPONENTS>::dy*MaxY)),
-                                                                                    FlowNode2D<FP,NUM_COMPONENTS>::dx,
-                                                                                    FlowNode2D<FP,NUM_COMPONENTS>::dy,
-                                                                                    MaxY);
-       CUDA_BARRIER((char*)"Copy device to host");
+       if(ProblemType == SM_NS) {
+           *f_stream << "Parallel recalc y+..." << endl;    
+           cuda_Recalc_y_plus<<<num_cuda_blocks,num_cuda_threads, 0, cuda_streams[i]>>>(cudaJ,
+                                                                                        TmpMaxX*MaxY,
+                                                                                        cudaWallNodes,
+                                                                                        NumWallNodes,
+                                                                                        min(dx,dy),
+                                                                                        max((FlowNode2D<FP,NUM_COMPONENTS>::dx*MaxX), 
+                                                                                            (FlowNode2D<FP,NUM_COMPONENTS>::dy*MaxY)),
+                                                                                        FlowNode2D<FP,NUM_COMPONENTS>::dx,
+                                                                                        FlowNode2D<FP,NUM_COMPONENTS>::dy,
+                                                                                        MaxY);
+           CUDA_BARRIER((char*)"Copy device to host");
+       }
 #endif // _PARALLEL_RECALC_Y_PLUS_
        CopyDeviceToHost(cudaArraySubmatrix->GetElement(i),TmpMatrixPtr,(sizeof(FlowNode2D<FP,NUM_COMPONENTS>))*(TmpMaxX*MaxY),cuda_streams[i]);
   }

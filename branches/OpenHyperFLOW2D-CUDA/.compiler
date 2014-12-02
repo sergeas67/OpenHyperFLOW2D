@@ -19,4 +19,4 @@ endif
 SIMD=AVX
 
 # Use 32 or 64 bit float point variables
-FP_OPTS  = -DFP=float
+FP_OPTS  = -DFP=double
