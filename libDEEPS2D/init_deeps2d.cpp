@@ -620,7 +620,27 @@ void* InitDEEPS2D(void* lpvParam)
                 }
 
                 TmpFlow2D = new Flow2D(lam,mu,Cp,Tg,Pg,Rg,Ug,Vg);
-                TmpFlow2D->CorrectFlow(Tg,Pg,sqrt(Ug*Ug+Vg*Vg+1.e-30),FV_VELOCITY);
+                snprintf(FlowStr,256,"Flow2D-%i.Mode",i+1); 
+                int FlowMode = Data->GetIntVal(FlowStr);
+                if ( Data->GetDataError()==-1 ) {
+                    Abort_OpenHyperFLOW2D();
+                }
+                // 0 - static p, T
+                // 1 - total p*, T*
+                // 2 - reserved
+                // 3 - Mach
+                if(FlowMode == 0) {
+                    TmpFlow2D->CorrectFlow(Tg,Pg,sqrt(Ug*Ug+Vg*Vg+1.e-30),FV_VELOCITY);
+                
+                } if(FlowMode == 3) {
+                    snprintf(FlowStr,256,"Flow2D-%i.Mach",i+1);
+                    FP Mach = Data->GetFloatVal(FlowStr);
+                    if ( Data->GetDataError()==-1 ) {
+                        Abort_OpenHyperFLOW2D();
+                    }
+                    
+                    TmpFlow2D->MACH(Mach);
+                }
 
                 Flow2DList->AddElement(&TmpFlow2D);
                 *f_stream << "Add object \"Flow2D-" << i+1 << " Mach=" << TmpFlow2D->MACH()
@@ -1521,7 +1541,7 @@ void* InitDEEPS2D(void* lpvParam)
             // Solid Bound Circles
             unsigned int numCircles=Data->GetIntVal((char*)"NumCircles");
             TurbulenceCondType2D TM;
-            SolidBoundCircle2D* SBC;
+            BoundCircle2D* SBC;
             if ( p_g==0 )
                 if ( numCircles ) {
                     for ( j=0;j<numCircles;j++ ) {
@@ -1542,6 +1562,10 @@ void* InitDEEPS2D(void* lpvParam)
 
                         sprintf(NameContour,"Circle%i.Y0",j+1);
                         Y_0=Data->GetFloatVal(NameContour);
+                        if ( Data->GetDataError()==-1 ) Abort_OpenHyperFLOW2D();
+                        
+                        sprintf(NameContour,"Circle%i.MaterialID",j+1);
+                        int MaterialID=Data->GetIntVal(NameContour);
                         if ( Data->GetDataError()==-1 ) Abort_OpenHyperFLOW2D();
 
                         sprintf(NameContour,"Circle%i.TurbulenceModel",j+1);
@@ -1589,7 +1613,19 @@ void* InitDEEPS2D(void* lpvParam)
                             Abort_OpenHyperFLOW2D();
                         }
                         sprintf(NameContour,"Circle%i",j+1);
-                        SBC = new SolidBoundCircle2D(NameContour,J,Xstart,Ystart,X_0,Y_0,dx,dy,(CondType2D)NT_WNS_2D,pTestFlow2D,Y,TM);
+                        if(MaterialID) { // Solid
+                            SBC = new BoundCircle2D(NameContour,J,Xstart,Ystart,X_0,Y_0,dx,dy,(CondType2D)NT_WNS_2D,MaterialID,pTestFlow2D,Y,TM
+#ifdef _DEBUG_1
+                                                    ,f_stream
+#endif //_DEBUG_1 
+                                                    );
+                        } else {         // GAS
+                            SBC = new BoundCircle2D(NameContour,J,Xstart,Ystart,X_0,Y_0,dx,dy,(CondType2D)CT_NODE_IS_SET_2D,MaterialID,pTestFlow2D,Y,TM
+#ifdef _DEBUG_1
+                                                    ,f_stream
+#endif //_DEBUG_1 
+                                                    );
+                        }
                         *f_stream << "OK\n" << flush;
                         delete SBC;
                     }

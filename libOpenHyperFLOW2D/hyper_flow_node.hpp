@@ -606,6 +606,7 @@ inline void FlowNode2D<T,a>::FillNode2D(int is_mu_t,
     }
     
     if (sm == SM_NS) {
+        
         sxx   = 2.*_mu*dUdx - Tmp2; 
         syy   = 2.*_mu*dVdy - Tmp2;
 
@@ -1452,15 +1453,6 @@ inline void FlowNode2D<T,a>::FillNode2D(int is_mu_t,
     else
         V    = FlowNodeCore2D<T,a>::S[i2d_RoV]/FlowNodeCore2D<T,a>::S[i2d_Ro];
     
-    if (sm == SM_NS) {
-        _mu = _lam = G = 0.;
-        if(is_init)
-           FlowNodeTurbulence2D<T,a>::mu_t = FlowNodeTurbulence2D<T,a>::lam_t = 0.;
-
-        TurbModRANS2D(is_mu_t,is_init,tem,delta);
-    }
-
-
     Tmp1   = FlowNodeCore2D<T,a>::S[i2d_Ro];
     
 #ifdef _CUDA_
@@ -1526,8 +1518,51 @@ inline void FlowNode2D<T,a>::FillNode2D(int is_mu_t,
     p  = (k-1.)*(FlowNodeCore2D<T,a>::S[i2d_RoE]-FlowNodeCore2D<T,a>::S[i2d_Ro]*(U*U+V*V)*0.5-Tmp3);
     Tg = p/R/FlowNodeCore2D<T,a>::S[i2d_Ro];
 
-    if (sm == SM_NS) {
+    A[i2d_Ro]  = FlowNodeCore2D<T,a>::S[i2d_RoU];
+    A[i2d_RoU] = p + FlowNodeCore2D<T,a>::S[i2d_RoU]*U;
+    A[i2d_RoV] = FlowNodeCore2D<T,a>::S[i2d_RoV]*U;
+    A[i2d_RoE] = (FlowNodeCore2D<T,a>::S[i2d_RoE]+p)*U;
 
+    B[i2d_Ro]  = FlowNodeCore2D<T,a>::S[i2d_RoV];
+    B[i2d_RoU] = A[i2d_RoV];
+    B[i2d_RoV] = p + FlowNodeCore2D<T,a>::S[i2d_RoV]*V;
+    B[i2d_RoE] = (FlowNodeCore2D<T,a>::S[i2d_RoE]+p)*V;
+    
+#ifdef _CUDA_
+#pragma unroll
+#endif // _CUDA_
+    for(i = 4; i < 4+a; i++) {
+        B[i]=FlowNodeCore2D<T,a>::S[i]*V;
+        A[i]=FlowNodeCore2D<T,a>::S[i]*U;
+    }
+
+    if( FT == FT_AXISYMMETRIC ) {
+        F[i2d_Ro]  = FT*B[i2d_Ro];  
+        F[i2d_RoU] = FT*A[i2d_RoV];
+        F[i2d_RoV] = FT*F[i2d_Ro]*V;
+        F[i2d_RoE] = FT*B[i2d_RoE]; 
+        
+#ifdef _CUDA_
+#pragma unroll
+#endif // _CUDA_
+        for(i = 4; i < 4+a;i++)
+            F[i]=FT*B[i]; 
+    } else if( sm == SM_EULER) {
+#ifdef _CUDA_
+#pragma unroll
+#endif // _CUDA_
+            for(int i=0;i<NumEq;i++)
+                F[i]=0.;
+    }
+    
+    if (sm == SM_NS) {
+        
+        _mu = _lam = G = 0.;
+        if(is_init)
+           FlowNodeTurbulence2D<T,a>::mu_t = FlowNodeTurbulence2D<T,a>::lam_t = 0.;
+
+        TurbModRANS2D(is_mu_t,is_init,tem,delta);
+        
         FlowNodeTurbulence2D<T,a>::lam_t  = FlowNodeTurbulence2D<T,a>::mu_t*CP;
 
         if(is_mu_t) {
@@ -1550,40 +1585,7 @@ inline void FlowNode2D<T,a>::FillNode2D(int is_mu_t,
            Tmp2 = L*(dUdx+dVdy+FT*V/r); // L*dilatation (2D)
         else
            Tmp2 = L*(dUdx+dVdy);        // L*dilatation (2D)
-    }
-
-    A[i2d_Ro]  = FlowNodeCore2D<T,a>::S[i2d_RoU];
-    A[i2d_RoU] = p + FlowNodeCore2D<T,a>::S[i2d_RoU]*U;
-    A[i2d_RoV] = FlowNodeCore2D<T,a>::S[i2d_RoV]*U;
-    A[i2d_RoE] = (FlowNodeCore2D<T,a>::S[i2d_RoE]+p)*U;
-
-    B[i2d_Ro]  = FlowNodeCore2D<T,a>::S[i2d_RoV];
-    B[i2d_RoU] = A[i2d_RoV];
-    B[i2d_RoV] = p + FlowNodeCore2D<T,a>::S[i2d_RoV]*V;
-    B[i2d_RoE] = (FlowNodeCore2D<T,a>::S[i2d_RoE]+p)*V;
-    
-#ifdef _CUDA_
-#pragma unroll
-#endif // _CUDA_
-    for(i = 4; i < 4+a; i++) {
-        B[i]=FlowNodeCore2D<T,a>::S[i]*V;
-        A[i]=FlowNodeCore2D<T,a>::S[i]*U;
-    }
-
-    if( FT == 1 ) {
-        F[i2d_Ro]  = FT*B[i2d_Ro];  
-        F[i2d_RoU] = FT*A[i2d_RoV];
-        F[i2d_RoV] = FT*F[i2d_Ro]*V;
-        F[i2d_RoE] = FT*B[i2d_RoE]; 
         
-#ifdef _CUDA_
-#pragma unroll
-#endif // _CUDA_
-        for(i = 4; i < 4+a;i++)
-            F[i]=FT*B[i]; 
-    }
-    
-    if (sm == SM_NS) {
         sxx   = 2.*_mu*dUdx - Tmp2; 
         syy   = 2.*_mu*dVdy - Tmp2;
 

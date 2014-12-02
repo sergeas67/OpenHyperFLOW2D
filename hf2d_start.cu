@@ -186,11 +186,17 @@ int main( int argc, char **argv )
 
         // Init solver (run on host)
         InitDEEPS2D((void*)o_stream);
+        
+        if(ProblemType == SM_NS) {                                          
+            *o_stream << "\nSolver Mode: Navier-Stokes.\n" << endl;
+        } else {
+            *o_stream << "\nSolver Mode: Euler.\n" << endl;
+        }
 
-       cudaStream_t *cuda_streams = (cudaStream_t *) malloc(num_gpus * sizeof(cudaStream_t));
-       cudaEvent_t  *cuda_events = (cudaEvent_t *) malloc(num_gpus * sizeof(cudaEvent_t));
+        cudaStream_t *cuda_streams = (cudaStream_t *) malloc(num_gpus * sizeof(cudaStream_t));
+        cudaEvent_t  *cuda_events = (cudaEvent_t *) malloc(num_gpus * sizeof(cudaEvent_t));
 
-       for (int i = 0; i < num_gpus; i++) {
+        for (int i = 0; i < num_gpus; i++) {
 
            if(cudaSetDevice(i) != cudaSuccess ) {
               *o_stream << "\nError set CUDA device no: "<< i << endl;
@@ -217,15 +223,17 @@ int main( int argc, char **argv )
            LoadTable2GPU(chemical_reactions.Cp_cp,   TmpCRM2D.Cp_cp,   i);
            LoadTable2GPU(chemical_reactions.Cp_air,  TmpCRM2D.Cp_air,  i);
                                                      
-           LoadTable2GPU(chemical_reactions.lam_air, TmpCRM2D.lam_air, i);
-           LoadTable2GPU(chemical_reactions.lam_cp,  TmpCRM2D.lam_cp,  i);
-           LoadTable2GPU(chemical_reactions.lam_Fuel,TmpCRM2D.lam_Fuel,i);
-           LoadTable2GPU(chemical_reactions.lam_OX,  TmpCRM2D.lam_OX,  i);
-                                                     
            LoadTable2GPU(chemical_reactions.mu_air,  TmpCRM2D.mu_air,  i);
            LoadTable2GPU(chemical_reactions.mu_cp,   TmpCRM2D.mu_cp,   i);
            LoadTable2GPU(chemical_reactions.mu_Fuel, TmpCRM2D.mu_Fuel, i);
            LoadTable2GPU(chemical_reactions.mu_OX,   TmpCRM2D.mu_OX,   i);
+           
+           if(ProblemType == SM_NS) {                                          
+               LoadTable2GPU(chemical_reactions.lam_air, TmpCRM2D.lam_air, i);
+               LoadTable2GPU(chemical_reactions.lam_cp,  TmpCRM2D.lam_cp,  i);
+               LoadTable2GPU(chemical_reactions.lam_Fuel,TmpCRM2D.lam_Fuel,i);
+               LoadTable2GPU(chemical_reactions.lam_OX,  TmpCRM2D.lam_OX,  i);
+           }
 
            TmpCRM2D.H_air  = chemical_reactions.H_air;
            TmpCRM2D.H_cp   = chemical_reactions.H_cp;
@@ -304,13 +312,16 @@ int main( int argc, char **argv )
             }
 #endif // _DEVICE_MMAP_
         }
+        
+        if(ProblemType == SM_NS) {                                          
 
-        // Scan area for seek wall nodes      
-        WallNodes = GetWallNodes((ofstream*)o_stream,J,Data->GetIntVal((char*)"isVerboseOutput")); 
+            // Scan area for seek wall nodes      
+            WallNodes = GetWallNodes((ofstream*)o_stream,J,Data->GetIntVal((char*)"isVerboseOutput")); 
 
-        NumWallNodes = WallNodes->GetNumElements();
-        *o_stream << NumWallNodes << " wall nodes found" << endl; 
-
+            NumWallNodes = WallNodes->GetNumElements();
+            *o_stream << NumWallNodes << " wall nodes found" << endl; 
+        }
+        
         gettimeofday(&mark2,NULL);
 
         for (int i_dev=0; i_dev < num_gpus;i_dev++) {
@@ -320,7 +331,8 @@ int main( int argc, char **argv )
                Exit_OpenHyperFLOW2D(num_gpus);
             }
 
-            if(NumWallNodes > 0) {
+            if(ProblemType == SM_NS && NumWallNodes > 0) {
+                
                 cudaState = cudaMalloc( (void**)&cudaWallNodes, sizeof(XY<int>)*NumWallNodes );
                 if(cudaState == cudaErrorMemoryAllocation) {
                    *o_stream << "\nError allocate GPU memory for WallNodes array." << endl;
@@ -426,14 +438,18 @@ int main( int argc, char **argv )
             cudaSubmatrix = cudaArraySubmatrix->GetElement(i);
 
             CopyHostToDevice(TmpMatrixPtr,cudaSubmatrix,(sizeof(FlowNode2D<FP,NUM_COMPONENTS>))*(TmpMaxX*MaxY));
+            
+            cudaHu =  cudaHuArray->GetElement(i);
 
-            if(NumWallNodes > 0) {
+            if(NumWallNodes > 0 &&
+               ProblemType == SM_NS ) {
 
                 cudaWallNodes = cudaWallNodesArray->GetElement(i);
 
                 *o_stream << "GPU no: " << i << endl; 
                 *o_stream << "CUDA threads: " << num_cuda_threads << endl;
                 *o_stream << "CUDA thread blocks : " << num_cuda_blocks << endl;
+
                 *o_stream << "\nParallel calc min distance to wall..." << endl;
                 *o_stream << "Run cuda_SetMinDistanceToWall2D kernel..." << flush;
 
@@ -465,13 +481,10 @@ int main( int argc, char **argv )
 
                  CUDA_BARRIER((char*)"cuda_Recalc_y_plus");
                  *o_stream << "OK" << endl;
-
-
-           }
-
+            }
+          
             *o_stream << "Run cuda_SetInitBoundaryLayer kernel..." << flush;
 
-            cudaHu =  cudaHuArray->GetElement(i);
 
             cuda_SetInitBoundaryLayer<<<num_cuda_blocks,num_cuda_threads, 0, cuda_streams[i]>>>(cudaSubmatrix,
                                                                                                 TmpMaxX*MaxY, iX0, MaxY,
@@ -486,6 +499,7 @@ int main( int argc, char **argv )
 
             CUDA_BARRIER((char*)"cuda_SetInitBoundaryLayer");
             *o_stream << "OK" << endl;
+
 
             CopyDeviceToHost(cudaSubmatrix,TmpMatrixPtr,(sizeof(FlowNode2D<FP,NUM_COMPONENTS>))*(TmpMaxX*MaxY));
 
@@ -520,6 +534,7 @@ int main( int argc, char **argv )
                    cuda_streams,
                    cuda_events,
                    max_thread_block);          // int max_thread_block
+       
        for (int i = 0; i < num_gpus; i++)  {
 
            if(cudaSetDevice(i) != cudaSuccess ) {

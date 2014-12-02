@@ -14,7 +14,7 @@
 #include "libOpenHyperFLOW2D/hyper_flow_bound.hpp"
 #include "libOpenHyperFLOW2D/hyper_flow_bound_contour.hpp"
 #include "libOpenHyperFLOW2D/hyper_flow_solid_bound_rect.hpp"
-#include "libOpenHyperFLOW2D/hyper_flow_solid_bound_circle.hpp"
+#include "libOpenHyperFLOW2D/hyper_flow_bound_circle.hpp"
 #include "libOpenHyperFLOW2D/hyper_flow_airfoil.hpp"
 #include "libOpenHyperFLOW2D/hyper_flow_field.hpp"
 #include "libOpenHyperFLOW2D/hyper_flow_area.hpp"
