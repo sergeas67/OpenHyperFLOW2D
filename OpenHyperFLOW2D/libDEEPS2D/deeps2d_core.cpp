@@ -4507,18 +4507,20 @@ inline int CalcChemicalReactions(FlowNode2D<FP,NUM_COMPONENTS>* CalcNode,
                             model_data->R_OX*Yox+
                             model_data->R_cp*Ycp+
                             model_data->R_air*Yair;
-    CalcNode->mu  = model_data->mu_Fuel->GetVal(CalcNode->Tg)*Yfu+
-                            model_data->mu_OX->GetVal(CalcNode->Tg)*Yox+
-                            model_data->mu_cp->GetVal(CalcNode->Tg)*Ycp+
-                            model_data->mu_air->GetVal(CalcNode->Tg)*Yair;
     CalcNode->CP  = model_data->Cp_Fuel->GetVal(CalcNode->Tg)*Yfu+
                             model_data->Cp_OX->GetVal(CalcNode->Tg)*Yox+
                             model_data->Cp_cp->GetVal(CalcNode->Tg)*Ycp+
                             model_data->Cp_air->GetVal(CalcNode->Tg)*Yair;
-    CalcNode->lam = model_data->lam_Fuel->GetVal(CalcNode->Tg)*Yfu+
-                            model_data->lam_OX->GetVal(CalcNode->Tg)*Yox+
-                            model_data->lam_cp->GetVal(CalcNode->Tg)*Ycp+
-                            model_data->lam_air->GetVal(CalcNode->Tg)*Yair;
+    if( ProblemType == SM_NS ) {
+        CalcNode->lam = model_data->lam_Fuel->GetVal(CalcNode->Tg)*Yfu+
+                                model_data->lam_OX->GetVal(CalcNode->Tg)*Yox+
+                                model_data->lam_cp->GetVal(CalcNode->Tg)*Ycp+
+                                model_data->lam_air->GetVal(CalcNode->Tg)*Yair;
+        CalcNode->mu  = model_data->mu_Fuel->GetVal(CalcNode->Tg)*Yfu+
+                                model_data->mu_OX->GetVal(CalcNode->Tg)*Yox+
+                                model_data->mu_cp->GetVal(CalcNode->Tg)*Ycp+
+                                model_data->mu_air->GetVal(CalcNode->Tg)*Yair;
+    }
 
     if ( Yair<1.e-5 ) {
          Yair =0.;
