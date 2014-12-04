@@ -29,7 +29,7 @@
 ; Problem Type
 ; 0 - Euler
 ; 1 - Navier-Stokes
-<data/ProblemType=1>
+<data/ProblemType=0>
 
 ;FlowType
 ; 0 - FLAT
@@ -109,7 +109,7 @@
 ; 8 -  Local gradient depended BFF
 ; 9 -  Mixed (square+local gradient) BFF
 ; 10 - Hybrid (square+local gradient+Mach number inverse depended) BFF
-<data/BFF=5>
+<data/BFF=4>
 ;-------------------------------------------------
 ; Turbulence models
 ;-------------------------------------------------
@@ -418,7 +418,7 @@
 <data/NumFlow2D=3>
 
 ;---- Flow2D 1 -------
-<data/Flow2D-1.CompIndex=2>
+<data/Flow2D-1.CompIndex=3>
 <data/Flow2D-1.Mode=3>
 
 ; Flow pressure (p*) , Pa.
