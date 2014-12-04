@@ -49,7 +49,6 @@ FP                                            dy;
 
 int num_gpus = 0;   // number of CUDA GPUs
 int max_num_threads = 0;
-int max_thread_block = 0;
 size_t max_gpu_memsize = 0;
 
 size_t task_size;
@@ -149,9 +148,7 @@ int main( int argc, char **argv )
          printf("\t   %d: %s\n", i, dprop.name);
          max_num_threads  = dprop.maxThreadsPerBlock;
          printf("\t   Max threads per block: %d:\n", max_num_threads);
-         max_thread_block = dprop.maxThreadsDim[0];
-         printf("\t   Max blocks count: %d:\n", max_thread_block);
-         max_gpu_memsize = dprop.memPitch;
+         max_gpu_memsize = dprop.totalGlobalMem;
          printf("\t   Max GPU memory size: %lu\n", max_gpu_memsize);
          printf("\t   Number of  multiprocessors: %d\n",dprop.multiProcessorCount);
          printf("\t   Is kernels concurrent: %d\n",dprop.concurrentKernels);
@@ -175,9 +172,9 @@ int main( int argc, char **argv )
         }
        
        //Create arrays  
-        cudaArraySubmatrix      =  new UArray<  FlowNode2D<FP,NUM_COMPONENTS>* >();
-        cudaArrayCoreSubmatrix  =  new UArray<  FlowNodeCore2D<FP,NUM_COMPONENTS>* >();
-        cudaDimArray            =  new UArray<  XY<int> >();
+        cudaArraySubmatrix      =  new UArray< FlowNode2D<FP,NUM_COMPONENTS>* >();
+        cudaArrayCoreSubmatrix  =  new UArray< FlowNodeCore2D<FP,NUM_COMPONENTS>* >();
+        cudaDimArray            =  new UArray< XY<int> >();
         cudaHuArray             =  new UArray< FP* >();
         dt_min_host_Array       =  new UArray<unsigned int*>();   
         dt_min_device_Array     =  new UArray<unsigned int*>();
@@ -532,8 +529,7 @@ int main( int argc, char **argv )
                    cudaCRM2DArray,
                    num_gpus,
                    cuda_streams,
-                   cuda_events,
-                   max_thread_block);          // int max_thread_block
+                   cuda_events);          
        
        for (int i = 0; i < num_gpus; i++)  {
 

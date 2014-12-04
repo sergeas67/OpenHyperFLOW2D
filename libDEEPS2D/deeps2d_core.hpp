@@ -359,8 +359,7 @@ extern void DEEPS2D_Run(ofstream* f_stream,
                         UArray< ChemicalReactionsModelData2D* >*           cudaCRM2D,
                         int                                                num_mp,
                         cudaStream_t*                                      cuda_streams,
-                        cudaEvent_t*                                       cuda_events,
-                        int                                                max_thread_block);
+                        cudaEvent_t*                                       cuda_events);
 
 extern __global__  void  
 cuda_DEEPS2D_Stage1(FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,

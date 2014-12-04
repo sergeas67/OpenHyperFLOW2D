@@ -150,11 +150,11 @@ UArray<Flow*>*                               FlowList=NULL;     // List of 'Flow
 UArray<Flow2D*>*                             Flow2DList=NULL;   // List of 'Flow2D' objects
 UArray<Bound2D*>                             SingleBoundsList;  // Single Bounds List;
 
-FP                                       dt;                // time step
-FP*                                      RoUx=NULL;
-FP*                                      RoVy=NULL;
-FP                                       GlobalTime=0.;
-FP                                       CurrentTimePart=0;
+FP                                           dt;                // time step
+FP*                                          RoUx=NULL;
+FP*                                          RoVy=NULL;
+FP                                           GlobalTime=0.;
+FP                                           CurrentTimePart=0;
 
 ofstream*                                    pOutputData;     // output data stream (file)
 
@@ -162,8 +162,8 @@ int                                          I,NSaveStep;
 unsigned int                                 MaxX=0;          // X dimension of computation area
 unsigned int                                 MaxY=0;          // Y dimension of computation area
 
-FP                                       dxdy,dx2,dy2;
-FP                                       SigW,SigF,delta_bl;
+FP                                           dxdy,dx2,dy2;
+FP                                           SigW,SigF,delta_bl;
 
 unsigned long FileSizeGas      = 0;
 int      isVerboseOutput       = 0;
@@ -217,7 +217,6 @@ int CalibrateThreadBlockSize(int  cur_block_size,
    else
      return max(1,opt_block_size[1]);
 };
-
 
 inline void  DEEPS2D_Stage1(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*     pLJ,
                      UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >* pLC,
@@ -673,8 +672,7 @@ void DEEPS2D_Run(ofstream* f_stream,
                  UArray< ChemicalReactionsModelData2D* >*       cudaCRM2D,
                  int num_mp,                                                  
                  cudaStream_t *cuda_streams,
-                 cudaEvent_t  *cuda_events,
-                 int max_thread_block) {
+                 cudaEvent_t  *cuda_events) {
 
    // local variables
     FlowNode2D<FP,NUM_COMPONENTS>* TmpMatrixPtr;
