@@ -1,6 +1,6 @@
 #!/bin/bash
 #LD_LIBRARY_PATH=${MPILIB}
-HYPERFLOW2D=bin/OpenHyperFLOW2D-1.01
+HYPERFLOW2D=bin/OpenHyperFLOW2D-1.02
 ProjectName=$1
 MPILIB=`cat ./.mpilib`
 MPI=`$HYPERFLOW2D | grep parallel | grep MPI`
