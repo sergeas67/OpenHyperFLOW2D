@@ -1,10 +1,10 @@
-/************************************************************
-*  UNKNOWN TEMPLATES LIBRARY (UTL) v1.3                     *
-*  Copyright (C) 1994-2010 Serge A. Suchkov                 *
-*  Copyright policy: LGPL V2.0                              *
-*  Matrix2D template.                                       *
-*  Please report all bugs and problems to "sergeas67@gmail.com". *
-************************************************************/
+/****************************************************************
+*  UNKNOWN TEMPLATES LIBRARY (UTL) v1.3                         *
+*  Copyright (C) 1994-2010 Serge A. Suchkov                     *
+*  Copyright policy: LGPL V2.0                                  *
+*  Matrix2D template.                                           *
+*  Please report all bugs and problems to "sergeas67@gmail.com".*
+*****************************************************************/
 #ifndef _umatrix2d_hpp_
 #define _umatrix2d_hpp_
 
