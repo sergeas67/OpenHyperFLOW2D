@@ -3,7 +3,7 @@
 *  Copyright (C) 1994-2010 Serge A. Suchkov                 *
 *  Copyright policy: LGPL V2.0                              *
 *  Stack template (LIFO object).                            *
-*  Please report all bugs and problems to "ss@e1.bmstu.ru". *
+*  Please report all bugs and problems to "sergeas67@gmail.com". *
 ************************************************************/
 #ifndef _ustack_hpp_
     #define _ustack_hpp_

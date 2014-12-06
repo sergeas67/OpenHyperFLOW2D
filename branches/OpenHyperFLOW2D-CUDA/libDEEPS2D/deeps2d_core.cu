@@ -3,13 +3,13 @@
 *                                                                              *
 *   Transient, Density based Effective Explicit Parallel Hybrid Solver         *
 *   TDEEPHS (CUDA+MPI)                                                         *
-*   Version  1.0.1                                                             *
+*   Version  1.0.2                                                             *
 *   Copyright (C)  1995-2014 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
 *                                                                              *
 *   deeps2d_core.cpp: OpenHyperFLOW2D solver core code....                     *
 *                                                                              *
-*  last update: 01/07/2014                                                     *
+*  last update: 06/12/2014                                                     *
 ********************************************************************************/
 #include "deeps2d_core.hpp"
 
@@ -33,8 +33,8 @@ int            err_i, err_j;
 int            turb_mod_name_index = 0;
 FP             Ts0,A,W,Mach;
 
-unsigned int* dt_min_host;
-unsigned int* dt_min_device;
+unsigned int*  dt_min_host;
+unsigned int*  dt_min_device;
 
 UArray< unsigned int* >* dt_min_host_Array;
 UArray< unsigned int* >* dt_min_device_Array;

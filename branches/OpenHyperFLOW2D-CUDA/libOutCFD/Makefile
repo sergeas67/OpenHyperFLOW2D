@@ -1,5 +1,5 @@
 #   OpenHyperFLOW2D                                                            
-#   Version  1.0.1                                                             
+#   Version  1.0.2                                                             
 #   Copyright (C)  1995-2014 by Serge A. Suchkov                               
 #   Copyright policy: LGPL V3                                                  
 
