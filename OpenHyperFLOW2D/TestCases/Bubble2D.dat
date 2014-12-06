@@ -418,7 +418,7 @@
 <data/NumFlow2D=3>
 
 ;---- Flow2D 1 -------
-<data/Flow2D-1.CompIndex=3>
+<data/Flow2D-1.CompIndex=2>
 <data/Flow2D-1.Mode=3>
 
 ; Flow pressure (p*) , Pa.
@@ -435,7 +435,7 @@
 
 
 ;---- Flow2D 2 -------
-<data/Flow2D-2.CompIndex=3>
+<data/Flow2D-2.CompIndex=2>
 
 ; Flow pressure (p*) , Pa.
 <data/Flow2D-2.p=101325.0>
@@ -449,7 +449,7 @@
 <data/Flow2D-2.V=0.0>
 
 ;---- Flow2D 3 -------
-<data/Flow2D-3.CompIndex=2>
+<data/Flow2D-3.CompIndex=3>
 
 ; Flow pressure (p*) , Pa.
 <data/Flow2D-3.p=101325.0>

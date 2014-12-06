@@ -1,11 +1,10 @@
-/************************************************************
-*  UNKNOWN TEMPLATES LIBRARY (UTL) v1.3L                    *
-*  Copyright (C) 1994-2013 Serge A. Suchkov                 *
-*  Copyright policy: LGPL V3                                *
-*  Threads Locker base class.                               *
-*                                                           *
-*  Please report all bugs and problems to "ss@e1.bmstu.ru". *
-************************************************************/
+/****************************************************************
+*  UNKNOWN TEMPLATES LIBRARY (UTL) v1.3                         *
+*  Copyright (C) 1994-2010 Serge A. Suchkov                     *
+*  Copyright policy: LGPL V2.0                                  *
+*  Threads Locker base class.                                   *
+*  Please report all bugs and problems to "sergeas67@gmail.com".*
+*****************************************************************/
 
 #ifndef _locker_hpp_
 #define _locker_hpp_

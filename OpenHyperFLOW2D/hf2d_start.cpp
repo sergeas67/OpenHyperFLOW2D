@@ -7,7 +7,7 @@
 *                                                                              *
 *  hf2d_start.cpp: OpenHyperFLOW2D solver init code....                        *
 *                                                                              *
-*  last update: 25/02/2014                                                     *
+*  last update: 06/12/2014                                                     *
 ********************************************************************************/
 #include "libDEEPS2D/deeps2d_core.hpp"
 #include <sys/time.h>
