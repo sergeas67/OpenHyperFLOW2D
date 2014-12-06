@@ -4,7 +4,7 @@
 *  Copyright policy: LGPL V3                                *
 *  Threads Locker base class.                               *
 *                                                           *
-*  Please report all bugs and problems to "ss@e1.bmstu.ru". *
+*  Please report all bugs and problems to "sergeas67@gmail.com". *
 ************************************************************/
 
 #ifndef _locker_hpp_

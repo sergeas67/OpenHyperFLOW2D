@@ -1,13 +1,13 @@
 /*******************************************************************************
 *   OpenHyperFLOW2D-CUDA                                                       *
 *                                                                              *
-*   Version  1.0.1                                                             *
+*   Version  1.0.2                                                             *
 *   Copyright (C)  1995-2014 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
 *                                                                              *
-*  hf2d_start.cpp: OpenHyperFLOW2D solver init code....                        *
+*   hf2d_start.cpp: OpenHyperFLOW2D solver init code....                       *
 *                                                                              *
-*  last update: 01/07/2014                                                     *
+*  last update: 06/12/2014                                                     *
 ********************************************************************************/
 #ifdef _CUDA_
 #define _PARALLEL_ONLY
