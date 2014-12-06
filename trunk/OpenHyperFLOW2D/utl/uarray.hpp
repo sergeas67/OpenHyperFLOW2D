@@ -1,10 +1,10 @@
-/************************************************************
-*  UNKNOWN TEMPLATES LIBRARY (UTL) v1.3                     *
-*  Copyright (C) 1994-2010 Serge A. Suchkov                 *
-*  Copyright policy: LGPL V2.0                              *
-*  Array  template.                                         *
-*  Please report all bugs and problems to "ss@e1.bmstu.ru". *
-************************************************************/
+/****************************************************************
+*  UNKNOWN TEMPLATES LIBRARY (UTL) v1.3                         *
+*  Copyright (C) 1994-2010 Serge A. Suchkov                     *
+*  Copyright policy: LGPL V2.0                                  *
+*  Array  template.                                             *
+*  Please report all bugs and problems to "sergeas67@gmail.com".*
+*****************************************************************/
 
 #ifndef _uarray_hpp_
 #define _uarray_hpp_

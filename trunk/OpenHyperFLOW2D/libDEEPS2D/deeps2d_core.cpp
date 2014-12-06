@@ -9,7 +9,7 @@
 *                                                                              *
 *  deeps2d_core.cpp: OpenHyperFLOW2D solver core code....                      *
 *                                                                              *
-*  last update: 25/02/2014                                                     *
+*  last update: 06/12/2014                                                     *
 ********************************************************************************/
 #include "deeps2d_core.hpp"
 
