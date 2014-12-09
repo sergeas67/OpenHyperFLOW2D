@@ -4,12 +4,12 @@
 Copyright (C)  1995-2014 by Serge A. Suchkov (sergeas67@gmail.com)
                 Copyright policy: LGPL V3
 
-CFD code for simulation 2D (flat/axisymmetrical) transient viscous
+CFD code for simulation 2D (flat/axisymmetric) transient viscous
 compressible multicomponent sub/trans/supersonic reacting gas flows.
 
 Basic features
 ==============
-
+  - 2D (flat and axisymmetric) formulation for non stationary Euler/Navier-Stokes equations
 	- BC of I, II and III type for any of the dependent variables;
 	- no-slip BC on walls;
 	- multicomponent flow (4 base components);
@@ -39,7 +39,7 @@ Experimental features
 2. Separate local blending factor (LBF) for each equation, may be unstable in some cases.
 3. CUDA based computational core.
 
-*Prebuilded binary executble compiled for sm 3.0
+*Prebuilded binary executble compiled for sm 3.0, 3.5 and 3.7
 
 OpenHyperFLOW2D it is open source clone of HyperFLOW2D (in-house CFD code)
 with reduced functionality, and can be used without restriction for educational
