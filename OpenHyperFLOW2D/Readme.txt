@@ -3,10 +3,11 @@
 Copyright (C)  1995-2014 by Serge A. Suchkov (sergeas67@gmail.com)
                 Copyright policy: LGPL V3
 
-CFD code for simulation 2D (flat/axisymmetrical) transient viscous
+CFD code for simulation 2D (flat/axisymmetric) transient viscous
 compressible multicomponent sub/trans/supersonic reacting gas flows.
 
 include:
+  - 2D (flat and axisymmetric) formulation for non stationary Euler/Navier-Stokes equations
 	- BC of I, II and III type for any of the dependent variables;
 	- no-slip BC on walls;
 	- multicomponent flow (4 base components);
