@@ -16,4 +16,4 @@ MODELS += -D_PARALLEL_RECALC_Y_PLUS_
 #MODELS += -D_UVA_
 
 # Use P2P access for multiGPU configs
-MODELS += -D_P2P_ACCESS_
+#MODELS += -D_P2P_ACCESS_

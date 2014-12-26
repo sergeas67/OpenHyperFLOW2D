@@ -238,6 +238,8 @@ void DisableP2PAccess(int dev1, int dev2) {
  cudaError_t cudaState;
  int canAccess = 0;
 
+ cudaSetDevice(dev1);
+
  cudaState = cudaDeviceCanAccessPeer(&canAccess,dev1,dev2);
 
  if(cudaState != cudaSuccess) {
