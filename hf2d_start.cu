@@ -183,7 +183,7 @@ int main( int argc, char **argv )
 
         // Init solver (run on host)
         InitDEEPS2D((void*)o_stream);
-        
+
         if(ProblemType == SM_NS) {                                          
             *o_stream << "\nSolver Mode: Navier-Stokes.\n" << endl;
         } else {
@@ -464,20 +464,25 @@ int main( int argc, char **argv )
                  *o_stream << "OK" << endl;
 
 
-                 *o_stream << "Run cuda_Recalc_y_plus kernel..." << flush;
-                 cuda_Recalc_y_plus<<<num_cuda_blocks,num_cuda_threads, 0, cuda_streams[i]>>>(cudaSubmatrix,
-                                                                                              TmpMaxX*MaxY,
-                                                                                              cudaWallNodes,
-                                                                                              NumWallNodes,
-                                                                                              min(dx,dy),
-                                                                                              max((x0+FlowNode2D<FP,NUM_COMPONENTS>::dx*TmpMaxX), 
-                                                                                                  (FlowNode2D<FP,NUM_COMPONENTS>::dy*MaxY)),
-                                                                                              FlowNode2D<FP,NUM_COMPONENTS>::dx,
-                                                                                              FlowNode2D<FP,NUM_COMPONENTS>::dy,
-                                                                                              MaxY);
+                 if( TurbExtModel == TEM_Spalart_Allmaras ||
+                     TurbExtModel == TEM_vanDriest ||
+                     TurbExtModel == TEM_k_eps_Chien ) {
 
-                 CUDA_BARRIER((char*)"cuda_Recalc_y_plus");
-                 *o_stream << "OK" << endl;
+                      *o_stream << "Run cuda_Recalc_y_plus kernel..." << flush;
+                      cuda_Recalc_y_plus<<<num_cuda_blocks,num_cuda_threads, 0, cuda_streams[i]>>>(cudaSubmatrix,
+                                                                                                   TmpMaxX*MaxY,
+                                                                                                   cudaWallNodes,
+                                                                                                   NumWallNodes,
+                                                                                                   min(dx,dy),
+                                                                                                   max((x0+FlowNode2D<FP,NUM_COMPONENTS>::dx*TmpMaxX), 
+                                                                                                       (FlowNode2D<FP,NUM_COMPONENTS>::dy*MaxY)),
+                                                                                                   FlowNode2D<FP,NUM_COMPONENTS>::dx,
+                                                                                                   FlowNode2D<FP,NUM_COMPONENTS>::dy,
+                                                                                                   MaxY);
+
+                      CUDA_BARRIER((char*)"cuda_Recalc_y_plus");
+                      *o_stream << "OK" << endl;
+                     }
             }
           
             *o_stream << "Run cuda_SetInitBoundaryLayer kernel..." << flush;
