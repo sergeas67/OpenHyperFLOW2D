@@ -435,7 +435,7 @@ int main( int argc, char **argv )
             cudaSubmatrix = cudaArraySubmatrix->GetElement(i);
 
             CopyHostToDevice(TmpMatrixPtr,cudaSubmatrix,(sizeof(FlowNode2D<FP,NUM_COMPONENTS>))*(TmpMaxX*MaxY));
-            
+
             cudaHu =  cudaHuArray->GetElement(i);
 
             if(NumWallNodes > 0 &&
@@ -468,23 +468,25 @@ int main( int argc, char **argv )
                      TurbExtModel == TEM_vanDriest ||
                      TurbExtModel == TEM_k_eps_Chien ) {
 
-                      *o_stream << "Run cuda_Recalc_y_plus kernel..." << flush;
+                      *o_stream << "Run cuda_Recalc_y_plus kernel on CUDA device No " << i << flush;
+
+
                       cuda_Recalc_y_plus<<<num_cuda_blocks,num_cuda_threads, 0, cuda_streams[i]>>>(cudaSubmatrix,
                                                                                                    TmpMaxX*MaxY,
                                                                                                    cudaWallNodes,
                                                                                                    NumWallNodes,
                                                                                                    min(dx,dy),
-                                                                                                   max((x0+FlowNode2D<FP,NUM_COMPONENTS>::dx*TmpMaxX), 
+                                                                                                   max((x0+FlowNode2D<FP,NUM_COMPONENTS>::dx*TmpMaxX),
                                                                                                        (FlowNode2D<FP,NUM_COMPONENTS>::dy*MaxY)),
                                                                                                    FlowNode2D<FP,NUM_COMPONENTS>::dx,
                                                                                                    FlowNode2D<FP,NUM_COMPONENTS>::dy,
                                                                                                    MaxY);
 
                       CUDA_BARRIER((char*)"cuda_Recalc_y_plus");
-                      *o_stream << "OK" << endl;
+                      *o_stream << "...OK" << endl;
                      }
             }
-          
+
             *o_stream << "Run cuda_SetInitBoundaryLayer kernel..." << flush;
 
 
@@ -517,7 +519,6 @@ int main( int argc, char **argv )
                         }
                 }
             }
-       
         }
 
         gettimeofday(&mark1,NULL);
@@ -531,6 +532,7 @@ int main( int argc, char **argv )
                    cudaArraySubmatrix,         // UArray< FlowNode2D< FP,NUM_COMPONENTS >* >*
                    cudaArrayCoreSubmatrix,     // UArray< FlowNodeCore2D< FP,NUM_COMPONENTS >* >*
                    cudaDimArray,               // UArray< XY<int> >*
+                   cudaWallNodesArray,         // UArray< XY<int>* >*
                    cudaCRM2DArray,
                    num_gpus,
                    cuda_streams,

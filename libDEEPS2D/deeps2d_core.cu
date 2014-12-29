@@ -669,6 +669,7 @@ void DEEPS2D_Run(ofstream* f_stream,
                  UArray< FlowNode2D<FP,NUM_COMPONENTS>* >*      cudaSubmatrixArray,
                  UArray< FlowNodeCore2D<FP,NUM_COMPONENTS>* >*  cudaCoreSubmatrixArray,
                  UArray< XY<int> >*                             cudaDimArray,
+                 UArray< XY<int>* >*                            cudaWallNodesArray,
                  UArray< ChemicalReactionsModelData2D* >*       cudaCRM2D,
                  int num_mp,
                  cudaStream_t *cuda_streams,
@@ -682,7 +683,7 @@ void DEEPS2D_Run(ofstream* f_stream,
     int      current_div;
     int      opt_thread_block_size[2];
     FP       opt_round_trip[1];
-    
+
     int      num_cuda_threads;
     int      num_cuda_blocks; 
 
@@ -1080,9 +1081,8 @@ void DEEPS2D_Run(ofstream* f_stream,
   for (unsigned int i=0;i<GlobalSubmatrix->GetNumElements();i++) {
 
       int r_Overlap, l_Overlap;
-      int SubStartIndex = GlobalSubmatrix->GetElementPtr(i)->GetX();  
+      int SubStartIndex = GlobalSubmatrix->GetElementPtr(i)->GetX();
       int SubMaxX = GlobalSubmatrix->GetElementPtr(i)->GetY();
-      FP  x0 = SubStartIndex*FlowNode2D<FP,NUM_COMPONENTS>::dx;
 
       if(cudaSetDevice(i) != cudaSuccess ) {
           *f_stream << "\nError set CUDA device no: "<< i << endl;
@@ -1108,11 +1108,13 @@ void DEEPS2D_Run(ofstream* f_stream,
            TurbExtModel == TEM_vanDriest ||
            TurbExtModel == TEM_k_eps_Chien)) {
 
-           *f_stream << "Parallel recalc y+..." << endl;
+           FP  x0 = SubStartIndex*FlowNode2D<FP,NUM_COMPONENTS>::dx;
 
-           cuda_Recalc_y_plus<<<num_cuda_blocks,num_cuda_threads, 0, cuda_streams[i]>>>(cudaJ,
+           *f_stream << "Parallel recalc y+ on CUDA device No  " << i  << endl;
+
+           cuda_Recalc_y_plus<<<num_cuda_blocks,num_cuda_threads, 0, cuda_streams[i]>>>(cudaSubmatrixArray->GetElement(i),
                                                                                         TmpMaxX*MaxY,
-                                                                                        cudaWallNodes,
+                                                                                        cudaWallNodesArray->GetElement(i),
                                                                                         NumWallNodes,
                                                                                         min(dx,dy),
                                                                                         max((x0+FlowNode2D<FP,NUM_COMPONENTS>::dx*TmpMaxX),
@@ -1120,7 +1122,7 @@ void DEEPS2D_Run(ofstream* f_stream,
                                                                                         FlowNode2D<FP,NUM_COMPONENTS>::dx,
                                                                                         FlowNode2D<FP,NUM_COMPONENTS>::dy,
                                                                                         MaxY);
-           CUDA_BARRIER((char*)"Copy device to host");
+           CUDA_BARRIER((char*)"y+ recalc");
        }
 
 #endif // _PARALLEL_RECALC_Y_PLUS_
