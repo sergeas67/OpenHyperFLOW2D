@@ -38,16 +38,15 @@ DEBUG      =
 PICFLAGS   = -fPIC
 #STATIC= -static
 
-ifeq ("$(SIMD)","AVX2")
-ALIGN      = 16
+ifeq ("$(SIMD)","AVX")
+ALIGN      = 8
 else
 ALIGN      = 8
 endif
 
 CPU        = native
-CPU_EXT    = -m64 -ftree-vectorize -mavx2 -mmmx -mfpmath=sse -mtune=$(CPU)
-
-#-mavx -mfma  -msse4.1 -msse4 -msse3 -msse2 -msse
+CPU_EXT    = -m64 -ftree-vectorize -mavx -msse4.1 -msse4 -msse3 -msse2 -msse -mmmx  -mfpmath=sse -mtune=$(CPU)
+#-mavx -mfma 
 
 CXXOPTIONS = -Wno-deprecated   -Wall  -Wno-unused-parameter -Wno-unused-but-set-variable -W
 

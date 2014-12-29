@@ -355,11 +355,12 @@ extern void DEEPS2D_Run(ofstream* f_stream,
                         UMatrix2D<FlowNodeCore2D<FP,NUM_COMPONENTS> >* pC,
                         UArray< FlowNode2D<FP,NUM_COMPONENTS>* >*      cudaSubmatrix,
                         UArray< FlowNodeCore2D<FP,NUM_COMPONENTS>* >*  cudaCoreSubmatrix,
-                        UArray< XY<int> >*                                 cudaDimArray,
-                        UArray< ChemicalReactionsModelData2D* >*           cudaCRM2D,
-                        int                                                num_mp,
-                        cudaStream_t*                                      cuda_streams,
-                        cudaEvent_t*                                       cuda_events);
+                        UArray< XY<int> >*                             cudaDimArray,
+                        UArray< XY<int>* >*                            cudaWallNodesArray,
+                        UArray< ChemicalReactionsModelData2D* >*       cudaCRM2D,
+                        int                                            num_mp,
+                        cudaStream_t*                                  cuda_streams,
+                        cudaEvent_t*                                   cuda_events);
 
 extern __global__  void  
 cuda_DEEPS2D_Stage1(FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
