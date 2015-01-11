@@ -4,12 +4,12 @@
 *   Transient, Density based Effective Explicit Parallel Solver (T-DEEPS2D)    *
 *                                                                              *
 *   Version  1.0.2                                                             *
-*   Copyright (C)  1995-2014 by Serge A. Suchkov                               *
+*   Copyright (C)  1995-2015 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
 *                                                                              *
 * Common function declarations file.                                           *
 *                                                                              *
-*  last update: 06/12/2014                                                     *
+*  last update: 11/01/2015                                                     *
 ********************************************************************************/
 #ifdef _MPI
 #include <mpi.h>

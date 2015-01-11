@@ -2,10 +2,10 @@
 *   OpenHyperFLOW2D                                                            *
 *                                                                              *
 *   Version  1.0.2                                                             *
-*   Copyright (C)  1995-2014 by Serge A. Suchkov                               *
+*   Copyright (C)  1995-2015 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
 *                                                                              *
-*   last update: 06/12/2014                                                    *
+*   last update: 11/01/2015                                                    *
 *******************************************************************************/
 
 #include "libOutCFD/out_cfd_param.hpp"

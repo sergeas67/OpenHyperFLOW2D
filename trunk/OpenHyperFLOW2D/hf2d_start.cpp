@@ -2,12 +2,12 @@
 *   OpenHyperFLOW2D                                                            *
 *                                                                              *
 *   Version  1.0.2                                                             *
-*   Copyright (C)  1995-2014 by Serge A. Suchkov                               *
+*   Copyright (C)  1995-2015 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
 *                                                                              *
 *  hf2d_start.cpp: OpenHyperFLOW2D solver init code....                        *
 *                                                                              *
-*  last update: 06/12/2014                                                     *
+*  last update: 11/01/2015                                                     *
 ********************************************************************************/
 #include "libDEEPS2D/deeps2d_core.hpp"
 #include <sys/time.h>
@@ -54,7 +54,7 @@ int main( int argc, char **argv )
 #endif  // _WIN32
 #endif  // _DEBUG_0
         if (argc < 2) {
-            printf("OpenHyperFLOW2D/DEEPS solver v %'.2f ",ver);
+            printf("OpenHyperFLOW2D/DEEPS/FP%d solver v %'.2f ",(sizeof(FP)*8),ver);
 #ifndef _MPI
 #ifndef _OPEN_MP
             printf(" (serial version)\n");
@@ -64,7 +64,7 @@ int main( int argc, char **argv )
 #else
             printf("(parallel MPI version)\n");
 #endif // _MPI
-            printf("Copyright (C) 1995-2014 by Serge A. Suchkov\nCopyright policy: LGPL V3\nUsage: %s [{input_data_file}]\n",argv[0]);
+            printf("Copyright (C) 1995-2015 by Serge A. Suchkov\nCopyright policy: LGPL V3\nUsage: %s [{input_data_file}]\n",argv[0]);
 
             printf("\n\t* Density-based 2D-Navier-Stokes solver for ");
 #ifdef _UNIFORM_MESH_
@@ -118,7 +118,7 @@ rank      = MPI::COMM_WORLD.Get_rank();
 
                if(ProblemType == SM_NS) {
                    // Scan area for seek wall nodes      
-                   *o_stream << "\nSolver Mode: Navier-Stokes.\n" << endl;
+                   *o_stream << "\nSolver Mode: Navier-Stokes/FP" << 8*sizeof(FP) <<"\n" << endl;
                    WallNodes = GetWallNodes((ofstream*)o_stream,J,Data->GetIntVal((char*)"isVerboseOutput")); 
 
  #ifndef     _PARALLEL_RECALC_Y_PLUS_
@@ -134,7 +134,7 @@ rank      = MPI::COMM_WORLD.Get_rank();
  #endif //   _PARALLEL_RECALC_Y_PLUS_
                    NumWallNodes = WallNodes->GetNumElements();
                } else {
-                   *o_stream << "\nSolver Mode: Euler.\n" << endl;
+                   *o_stream << "\nSolver Mode: Euler/FP" << 8*sizeof(FP) <<"\n" << endl;
                }
                
                TmpMatrixPtr=J->GetMatrixPtr();
