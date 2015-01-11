@@ -108,7 +108,7 @@ int main( int argc, char **argv )
     ___try {
 #endif  // _DEBUG_0
         if (argc < 2) {
-            printf("OpenHyperFLOW2D/DEEPS solver v %'.2f ",ver);
+            printf("OpenHyperFLOW2D/DEEPS/FP%d solver v %'.2f ",8*sizeof(FP),ver);
             printf(" (parallel CUDA version)");
             printf("\nCopyright (C) 1995-2014 by Serge A. Suchkov\nCopyright policy: LGPL V3\nUsage: %s [{input_data_file}]\n",argv[0]);
             printf("\n\t* Density-based 2D-Navier-Stokes solver for ");
@@ -185,9 +185,9 @@ int main( int argc, char **argv )
         InitDEEPS2D((void*)o_stream);
 
         if(ProblemType == SM_NS) {                                          
-            *o_stream << "\nSolver Mode: Navier-Stokes.\n" << endl;
+            *o_stream << "\nSolver Mode: Navier-Stokes/FP" << 8*sizeof(FP) <<"\n" << endl;
         } else {
-            *o_stream << "\nSolver Mode: Euler.\n" << endl;
+            *o_stream << "\nSolver Mode: Euler/FP" << 8*sizeof(FP) <<"\n" << endl;
         }
 
         cudaStream_t *cuda_streams = (cudaStream_t *) malloc(num_gpus * sizeof(cudaStream_t));

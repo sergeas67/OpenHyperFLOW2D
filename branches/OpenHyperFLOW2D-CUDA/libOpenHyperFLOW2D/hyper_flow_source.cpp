@@ -2,10 +2,10 @@
 *   OpenHyperFLOW2D                                                            *
 *                                                                              *
 *   Version  1.0.2                                                             *
-*   Copyright (C)  1995-2014 by Serge A. Suchkov                               *
+*   Copyright (C)  1995-2015 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
 *                                                                              *
-*   last update: 06/12/2014                                                    *
+*   last update: 11/01/2015                                                    *
 *******************************************************************************/
 #include "libOpenHyperFLOW2D/hyper_flow_source.hpp"
 // <------------- 2D --------------->           
@@ -16,13 +16,16 @@ Source2D::Source2D(ComputationalMatrix2D* f,
                    FP cp, 
                    FP ms, 
                    FP t, 
-                   FP t_f):F(f),sx(s_x),sy(s_y),ex(e_x),ey(e_y),c_index(c_idx),Cp(cp),M_s0(ms),T(t),T_f(t_f) {}
+                   FP t_f,
+                   int si):F(f),sx(s_x),sy(s_y),ex(e_x),ey(e_y),c_index(c_idx),Cp(cp),M_s0(ms),T(t),T_f(t_f),StartSrcIter(si) {}
 
 Source2D::~Source2D() {
     ClearSource2D();
 }
 
-void   Source2D::SetSource2D() {
+void   Source2D::SetSource2D(int start_iter) {
+
+if(start_iter < StartSrcIter) return;
 
 int DX = sx-ex;
 int DY = sy-ey;
@@ -30,6 +33,7 @@ int SKX, SKY;
 FP dF, DR, DR2;
 int i;
 unsigned int x,y;
+
 
  // Source in single point
     if ( DX == 0 && DY == 0 ) {
@@ -187,6 +191,7 @@ SourceList2D::SourceList2D(ComputationalMatrix2D* f, InputData* d) {
     int     GasSource_EX;  
     int     GasSource_EY;  
     int     GasSourceIndex;
+    int     StartSrcIter;
     
     FP  Msrc;          
     FP  Tsrc;          
@@ -231,6 +236,8 @@ SourceList2D::SourceList2D(ComputationalMatrix2D* f, InputData* d) {
         Tsrc          =   data->GetFloatVal(Str);
         snprintf(Str,255,"Src%i.Tf_src",i+1);
         Tf_src        =   data->GetFloatVal(Str);
+        snprintf(Str,255,"Src%i.StartIter",i+1);
+        StartSrcIter  =   data->GetFloatVal(Str);
         
         if ( GasSourceIndex==0 )        // Fuel
             Cp = Cp_Fuel->GetVal(Tsrc); 
@@ -245,7 +252,7 @@ SourceList2D::SourceList2D(ComputationalMatrix2D* f, InputData* d) {
             Y_mix[0] =  data->GetFloatVal(Str);
             snprintf(Str,255,"Src%i.Y_ox",i+1);
             Y_mix[1] =  data->GetFloatVal(Str);
-            snprintf(Str,255,"Src%i.Y_cp",i+1);                        
+            snprintf(Str,255,"Src%i.Y_cp",i+1);
             Y_mix[2] =  data->GetFloatVal(Str);
             snprintf(Str,255,"Src%i.Y_air",i+1);
             Y_mix[3] = 1 - Y_mix[0] + Y_mix[1] + Y_mix[2];
@@ -259,15 +266,15 @@ SourceList2D::SourceList2D(ComputationalMatrix2D* f, InputData* d) {
                data->GetMessageStream()->flush();
        }
        
-       TmpSrc = new Source2D(F,GasSource_SX,GasSource_SY,GasSource_EX,GasSource_EY,GasSourceIndex,Cp,Msrc,Tsrc,Tf_src);
+       TmpSrc = new Source2D(F,GasSource_SX,GasSource_SY,GasSource_EX,GasSource_EY,GasSourceIndex,Cp,Msrc,Tsrc,Tf_src,StartSrcIter);
        AddElement(&TmpSrc);
      }
    }
 }
 
-void SourceList2D::SetSources2D() {
+void SourceList2D::SetSources2D(int ii) {
     for(unsigned int i=0;i<GetNumElements();i++) {
-        GetElement(i)->SetSource2D();
+        GetElement(i)->SetSource2D(ii);
     }
   return;
 }

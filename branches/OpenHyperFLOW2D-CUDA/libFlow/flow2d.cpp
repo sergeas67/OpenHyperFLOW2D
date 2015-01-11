@@ -1,6 +1,6 @@
 /*************************************************
 *  Libflow v2.2                                  *
-*  Copyright (C)  1995-2014 by Serge A. Suchkov  *
+*  Copyright (C)  1995-2015 by Serge A. Suchkov  *
 *  Copyright policy: LGPL V3                     *
 *************************************************/
 #include "libFlow/flow2d.hpp"
