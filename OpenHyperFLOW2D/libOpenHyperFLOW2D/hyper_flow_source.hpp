@@ -2,10 +2,10 @@
 *   OpenHyperFLOW2D                                                            *
 *                                                                              *
 *   Version  1.0.2                                                             *
-*   Copyright (C)  1995-2014 by Serge A. Suchkov                               *
+*   Copyright (C)  1995-2015 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
 *                                                                              *
-*   last update: 06/12/2014                                                    *
+*   last update: 11/01/2015                                                    *
 *******************************************************************************/
 #ifndef _hyper_flow_source_hpp_
 #define _hyper_flow_source_hpp_
@@ -24,9 +24,10 @@ class Source2D
 {
  
  ComputationalMatrix2D* F;                //   Reference to computational matrix
+ int                    StartSrcIter;     //   Start source iteration
  int                    sx,sy,ex,ey;      //   Start and end points (in nodes)
  int                    c_index;          //   Component index
- FP                 Cp, M_s0, T, T_f; //   Cp, Ms, T, Tf of source
+ FP                     Cp, M_s0, T, T_f; //   Cp, Ms, T, Tf of source
 
 public:
   
@@ -37,25 +38,29 @@ public:
            FP cp, 
            FP ms, 
            FP t, 
-           FP t_f);
+           FP t_f,
+           int StartIter=0);
  
  ~Source2D();
  
- void   SetSource2D();
+ void   SetSource2D( int i = 0 );
  void   ClearSource2D();
  
  int    GetCompIndex2D() { return  c_index; }
 
  int    GetSX()          { return  sx; }
- int    GetEX()          { return  ex; } 
- int    GetSY()          { return  sy; } 
- int    GetEY()          { return  ey; } 
+ int    GetEX()          { return  ex; }
+ int    GetSY()          { return  sy; }
+ int    GetEY()          { return  ey; }
+ int    GetStartIter()   { return StartSrcIter; }
  
  void   SetSX(int s_x)   {sx=s_x;}
  void   SetSY(int s_y)   {sy=s_y;}
  
  void   SetEX(int e_x)   {ex=e_x;}
  void   SetEY(int e_y)   {ey=e_y;}
+ 
+ void   SetStartIter(int s) { StartSrcIter = s;}
 
  FP GetCp()          { return  Cp; } 
  FP GetMs()          { return  M_s0;} 
@@ -76,7 +81,7 @@ public:
     SourceList2D(ComputationalMatrix2D*, InputData*);
     ~SourceList2D() {};
 
-void  SetSources2D();
+void  SetSources2D(int iter = 0);
 void  ClearSources2D();
 
 };

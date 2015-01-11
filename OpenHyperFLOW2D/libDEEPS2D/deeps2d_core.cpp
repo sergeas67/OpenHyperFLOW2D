@@ -4,12 +4,12 @@
 *   Transient, Density based Effective Explicit Parallel Solver (TDEEPS2D)     *
 *                                                                              *
 *   Version  1.0.2                                                             *
-*   Copyright (C)  1995-2014 by Serge A. Suchkov                               *
+*   Copyright (C)  1995-2015 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
 *                                                                              *
 *  deeps2d_core.cpp: OpenHyperFLOW2D solver core code....                      *
 *                                                                              *
-*  last update: 06/12/2014                                                     *
+*  last update: 11/01/2015                                                     *
 ********************************************************************************/
 #include "deeps2d_core.hpp"
 
@@ -2961,6 +2961,7 @@ void* InitDEEPS2D(void* lpvParam)
                 }
 
                 TmpFlow2D = new Flow2D(lam,mu,Cp,Tg,Pg,Rg,Ug,Vg);
+                
                 snprintf(FlowStr,256,"Flow2D-%i.Mode",i+1); 
                 int FlowMode = Data->GetIntVal(FlowStr);
                 if ( Data->GetDataError()==-1 ) {
