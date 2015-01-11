@@ -16,7 +16,7 @@ IS_OPENMP=`gcc -fopenmp -S -I . -I  utl utl/utl.cpp 2>/dev/null; echo $?`
 endif
 
 # Top SIMD features
-SIMD=AVX
+SIMD=AVX2
 
 # Use 32 or 64 bit float point variables
 FP_OPTS  = -DFP=double
