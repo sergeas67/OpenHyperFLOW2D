@@ -24,10 +24,10 @@ class Source2D
 {
  
  ComputationalMatrix2D* F;                //   Reference to computational matrix
- int                    StartSrcIter;     //   Start source iteration
  int                    sx,sy,ex,ey;      //   Start and end points (in nodes)
  int                    c_index;          //   Component index
  FP                     Cp, M_s0, T, T_f; //   Cp, Ms, T, Tf of source
+ int                    StartSrcIter;     //   Start source iteration
 
 public:
   
