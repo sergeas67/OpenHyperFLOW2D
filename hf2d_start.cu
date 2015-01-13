@@ -2,12 +2,12 @@
 *   OpenHyperFLOW2D-CUDA                                                       *
 *                                                                              *
 *   Version  1.0.2                                                             *
-*   Copyright (C)  1995-2014 by Serge A. Suchkov                               *
+*   Copyright (C)  1995-2015 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
 *                                                                              *
 *   hf2d_start.cpp: OpenHyperFLOW2D solver init code....                       *
 *                                                                              *
-*  last update: 06/12/2014                                                     *
+*  last update: 11/01/2015                                                     *
 ********************************************************************************/
 #ifdef _CUDA_
 #define _PARALLEL_ONLY
@@ -110,7 +110,7 @@ int main( int argc, char **argv )
         if (argc < 2) {
             printf("OpenHyperFLOW2D/DEEPS/FP%d solver v %'.2f ",8*sizeof(FP),ver);
             printf(" (parallel CUDA version)");
-            printf("\nCopyright (C) 1995-2014 by Serge A. Suchkov\nCopyright policy: LGPL V3\nUsage: %s [{input_data_file}]\n",argv[0]);
+            printf("\nCopyright (C) 1995-2015 by Serge A. Suchkov\nCopyright policy: LGPL V3\nUsage: %s [{input_data_file}]\n",argv[0]);
             printf("\n\t* Density-based 2D-Navier-Stokes solver for ");
 #ifdef _UNIFORM_MESH_
             printf("uniform cartesian mesh");
