@@ -4,12 +4,12 @@
 *   Transient, Density based Effective Explicit Parallel Hybrid Solver         *
 *   TDEEPHS (CUDA+MPI)                                                         *
 *   Version  1.0.2                                                             *
-*   Copyright (C)  1995-2014 by Serge A. Suchkov                               *
+*   Copyright (C)  1995-2015 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
 *                                                                              *
 *   deeps2d_core.cpp: CUDA kernels code.                                       *
 *                                                                              *
-*  last update: 06/12/2014                                                     *
+*  last update: 11/01/2015                                                     *
 ********************************************************************************/
 
 #ifdef _CUDA_

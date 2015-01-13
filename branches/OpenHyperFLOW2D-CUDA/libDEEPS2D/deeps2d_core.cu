@@ -4,12 +4,12 @@
 *   Transient, Density based Effective Explicit Parallel Hybrid Solver         *
 *   TDEEPHS (CUDA+MPI)                                                         *
 *   Version  1.0.2                                                             *
-*   Copyright (C)  1995-2014 by Serge A. Suchkov                               *
+*   Copyright (C)  1995-2015 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
 *                                                                              *
 *   deeps2d_core.cpp: OpenHyperFLOW2D solver core code....                     *
 *                                                                              *
-*  last update: 06/12/2014                                                     *
+*  last update: 11/01/2015                                                     *
 ********************************************************************************/
 #include "deeps2d_core.hpp"
 
@@ -1014,20 +1014,6 @@ void DEEPS2D_Run(ofstream* f_stream,
 */
 
 
-/*         
-        if ( isGasSource && SrcList) {
-              *f_stream << "\nSet gas sources..." << endl;
-              SrcList->SetSources2D();
-         }
-        if ( XCutArray->GetNumElements() > 0 ) {
-            for(int i_xcut = 0; i_xcut<(int)XCutArray->GetNumElements(); i_xcut++) {
-                XCut* TmpXCut = XCutArray->GetElementPtr(i_xcut);
-                *f_stream << "Cut(" << i_xcut + 1  <<") X=" << TmpXCut->x0 << " Y=" << TmpXCut->y0 <<
-                   " dY=" << TmpXCut->dy << " MassFlow="<< CalcMassFlowRateX2D(J,TmpXCut->x0,TmpXCut->y0,TmpXCut->dy) << "  (kg/sec*m)" << endl;
-            }
-        }
-
-*/
         CurrentTimePart += dt;
         
         dt = dtmin;
@@ -1130,6 +1116,21 @@ void DEEPS2D_Run(ofstream* f_stream,
        CopyDeviceToHost(cudaArraySubmatrix->GetElement(i),TmpMatrixPtr,(sizeof(FlowNode2D<FP,NUM_COMPONENTS>))*(TmpMaxX*MaxY),cuda_streams[i]);
   }
        CUDA_BARRIER((char*)"Data collection");
+
+       if ( isGasSource && SrcList) {
+             *f_stream << "\nSet gas sources...";
+             SrcList->SetSources2D();
+        }
+       
+       *f_stream << "OK" << endl;
+
+       if ( XCutArray->GetNumElements() > 0 ) {
+           for(int i_xcut = 0; i_xcut<(int)XCutArray->GetNumElements(); i_xcut++) {
+               XCut* TmpXCut = XCutArray->GetElementPtr(i_xcut);
+               *f_stream << "Cut(" << i_xcut + 1  <<") X=" << TmpXCut->x0 << " Y=" << TmpXCut->y0 <<
+                  " dY=" << TmpXCut->dy << " MassFlow="<< CalcMassFlowRateX2D(J,TmpXCut->x0,TmpXCut->y0,TmpXCut->dy) << "  (kg/sec*m)" << endl;
+           }
+       }
 
 #ifdef  _GNUPLOT_
         *f_stream << "\nSave current results in file " << OutFileName << "...\n" << flush; 
