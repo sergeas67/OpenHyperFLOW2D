@@ -164,9 +164,10 @@ public:
     int        idYd;                 // is down node present ? (0 or 1)
     int        NGX;                  // dF/dx integer coeff. 0, 1 or -1
     int        NGY;                  // dF/dy integer coeff. 0, 1 or -1
-    int        NodeID;               // Material ID (for solid Nodes)
+    //int        NodeID;               // Material ID (for solid Nodes)
     ulong      CT;                   // Condition type  (bit flags combination)
-    int        isCleanSources;       // is clean sources ?
+    //int        isCleanSources;       // is clean sources ?
+    int        i_wall,j_wall;        // neast wall coordinates
     T          beta;                 // local blending factor (LBF).
     T          Q_conv;               // Convective heat flux 
     T          time;                 // Global time.
@@ -363,9 +364,9 @@ FlowNode2D<T,a>::FlowNode2D(T  RO,
     idXr=1;
     idYd=1;
 
-    if(isCleanSources)
-        for(i=0;i<NumEq;i++)
-            Src[i]=0;
+    //if(isCleanSources)
+    //    for(i=0;i<NumEq;i++)
+    //        Src[i]=0;
     FillNode2D(0,1);
 }
 

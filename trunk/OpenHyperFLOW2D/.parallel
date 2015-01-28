@@ -88,6 +88,7 @@ ifeq (${MPIVEND},OpenMPI)
 
 ifeq ("${COMPILER}","Intel")
 MPIDIR   = /share/mpi/icc/openmpi-1.6.3
+#MPIDIR   = /usr/lib64/mpi/gcc/openmpi
 endif
 
 ifeq ("${COMPILER}","GNU")
