@@ -35,8 +35,8 @@ ulimit -s unlimited
 #echo localhost >> ./.hosts
 #pnum=$pnum+1
 #done
-#LD_LIBRARY_PATH=${MPILIB} `cat ./.mpi`/mpirun -np ${NCORES} -hostfile .hosts ${HYPERFLOW2D} ${ProjectName}.dat
-
+#LD_LIBRARY_PATH=${MPILIB} `cat ./.mpi`/mpirun --bind-to-core  -np ${NCORES} -hostfile .hosts ${HYPERFLOW2D} ${ProjectName}.dat
+#-
 # MPI 2
 LD_LIBRARY_PATH=${MPILIB}  `cat ./.mpi`/mpiexec -n ${NCORES}  ${HYPERFLOW2D} ${ProjectName}.dat
 # 1>  ${ProjectName}.out  2> ${ProjectName}.err

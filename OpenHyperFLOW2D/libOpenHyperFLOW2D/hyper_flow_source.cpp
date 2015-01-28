@@ -38,7 +38,7 @@ unsigned int x,y;
  // Source in single point
     if ( DX == 0 && DY == 0 ) {
         
-        F->GetValue(sx,sy).isCleanSources =  0;
+        //F->GetValue(sx,sy).isCleanSources =  0;
         //FlowNode<FP,NUM_COMPONENTS>::
         if(FlowNode2D<FP,NUM_COMPONENTS>::FT==FT_AXISYMMETRIC) {
             if(sy == 0 || ey ==0) {
@@ -72,7 +72,7 @@ unsigned int x,y;
         for ( i=0;i!=DX+SKX;i+=SKX ) {
             x = (unsigned int)(sx+i*SKX);
             y = (unsigned int)(sy+i*dF*SKY);
-            F->GetValue(x,y).isCleanSources = 0;
+            //F->GetValue(x,y).isCleanSources = 0;
             if(FlowNode2D<FP,NUM_COMPONENTS>::FT==FT_AXISYMMETRIC) {
              if(sy == 0 || ey ==0) {
                 DR = DY*F->GetValue(sx,sy).dy;
@@ -105,7 +105,7 @@ unsigned int x,y;
         for ( i=0;i!=DY+SKY;i+=SKY ) {
             x = (unsigned int)(sx+i*dF*SKX);
             y = (unsigned int)(sy+i*SKY);
-            F->GetValue(x,y).isCleanSources = 0;
+            //F->GetValue(x,y).isCleanSources = 0;
             if(FlowNode2D<FP,NUM_COMPONENTS>::FT==FT_AXISYMMETRIC) {
                 if(sy == 0 || ey ==0) {
                    DR = DY*F->GetValue(sx,sy).dy;
@@ -140,7 +140,7 @@ FP dF;
  // Source in single point
     if ( DX == 0 && DY == 0 ) {
         
-        F->GetValue(sx,sy).isCleanSources =  0;
+        //F->GetValue(sx,sy).isCleanSources =  0;
         
         for (int k=0;k<FlowNode2D<FP, NUM_COMPONENTS>::NumEq;k++ )
             F->GetValue(sx,sy).Src[k] = F->GetValue(sx,sy).SrcAdd[k] = 0.;
@@ -160,7 +160,7 @@ FP dF;
         for ( i=0;i!=DX+SKX;i+=SKX ) {
             x = (unsigned int)(sx+i*SKX);
             y = (unsigned int)(sy+i*dF*SKY);
-            F->GetValue(x,y).isCleanSources = 0;
+            //F->GetValue(x,y).isCleanSources = 0;
             for (int k=0;k<FlowNode2D<FP, NUM_COMPONENTS>::NumEq;k++ )
                 F->GetValue(x,y).Src[k] = F->GetValue(x,y).SrcAdd[k] = 0.;
         }
@@ -175,7 +175,7 @@ FP dF;
         for ( i=0;i!=DY+SKY;i+=SKY ) {
             x = (unsigned int)(sx+i*dF*SKX);
             y = (unsigned int)(sy+i*SKY);
-            F->GetValue(x,y).isCleanSources = 0;
+            //F->GetValue(x,y).isCleanSources = 0;
             for (int k=0;k<FlowNode2D<FP, NUM_COMPONENTS>::NumEq;k++ )
                 F->GetValue(x,y).Src[k] = F->GetValue(x,y).SrcAdd[k] = 0.;
         }

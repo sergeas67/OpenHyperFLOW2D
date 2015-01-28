@@ -787,13 +787,13 @@ void DEEPS2D_Run(ofstream* f_stream
 
                               if(ProblemType == SM_NS && CurrentNode->isTurbulenceCond2D(TCT_Spalart_Allmaras_Model_2D))
                                  turb_mod_name_index = 3;
-
+                               /*
 #ifdef _MPI
                                 CurrentNode->NodeID = rank;
 #else
                                 CurrentNode->NodeID = ii;
 #endif // _MPI
-
+                               */
                                 n1=CurrentNode->idXl;
                                 n2=CurrentNode->idXr;
                                 n3=CurrentNode->idYu;
@@ -1529,12 +1529,45 @@ void DEEPS2D_Run(ofstream* f_stream
 #endif //  _OPENMP
 
 #ifdef _MPI
-     // Collect all submatrix
+#ifdef _PARALLEL_RECALC_Y_PLUS_
+   if(ProblemType == SM_NS) {
+       
+       if (rank == 0 ) {
+           
+           if(WallNodes && !WallNodesUw_2D && J) 
+               WallNodesUw_2D = GetWallFrictionVelocityArray2D(J,WallNodes);
+
+           if(WallNodes && 
+              WallNodesUw_2D && J ) {
+               *f_stream << "Recalc wall friction velocity in (" << WallNodesUw_2D->GetNumElements() <<") wall nodes..." ;
+               RecalcWallFrictionVelocityArray2D(J,WallNodesUw_2D,WallNodes);
+               *f_stream << "OK" << endl;
+           }
+           
+           *f_stream << "Parallel recalc y+...";
+
+           for(int ii = 1; (int)ii < last_rank + 1; ii++ ) {
+               MPI::COMM_WORLD.Send(WallNodesUw_2D->GetArrayPtr(),
+                                    WallNodesUw_2D->GetNumElements()*WallNodesUw_2D->GetElementSize(),
+                                    MPI::BYTE,ii,tag_WallFrictionVelocity);
+           }
+       } else {
+               MPI::COMM_WORLD.Recv(WallNodesUw_2D->GetArrayPtr(),
+                                    WallNodesUw_2D->GetNumElements()*WallNodesUw_2D->GetElementSize(),
+                                    MPI::BYTE,0,tag_WallFrictionVelocity);
+       }
+     ParallelRecalc_y_plus(pJ,WallNodes,WallNodesUw_2D,x0);
+   }
+#endif // _PARALLEL_RECALC_Y_PLUS_
+     // Collect all subdomain
         if(rank>0) {
-        void*  tmp_SendPtr=(void*)((u_long)(pJ->GetMatrixPtr())+
-                                            pJ->GetColSize()*l_Overlap);
-        u_long tmp_SendSize=pJ->GetMatrixSize()-
-                            pJ->GetColSize()*(l_Overlap);
+            
+            void*  tmp_SendPtr=(void*)((u_long)(pJ->GetMatrixPtr())+
+                                                pJ->GetColSize()*l_Overlap);
+            u_long tmp_SendSize=pJ->GetMatrixSize()-
+                                pJ->GetColSize()*(l_Overlap);
+            
+            
 #ifdef _IMPI_
         LongMatrixSend(0, tmp_SendPtr, tmp_SendSize);  // Low Mem Send subdomain
 #else
@@ -1542,6 +1575,7 @@ void DEEPS2D_Run(ofstream* f_stream
                              tmp_SendSize,
                              MPI::BYTE,0,tag_Matrix); 
 #endif // _IMPI_
+        
         } else {
         void*  tmp_RecvPtr;
         u_long tmp_RecvSize;
@@ -1558,56 +1592,56 @@ void DEEPS2D_Run(ofstream* f_stream
                                 tmp_RecvSize,
                                 MPI::BYTE,ii,tag_Matrix); 
 #endif // _IMPI_
-        }
-        if(ProblemType == SM_NS) {
-#ifdef _PARALLEL_RECALC_Y_PLUS_
-           if(WallNodes && !WallNodesUw_2D && J) 
-               WallNodesUw_2D = GetWallFrictionVelocityArray2D(J,WallNodes);
-           else if(WallNodes && J)
-               RecalcWallFrictionVelocityArray2D(J,WallNodesUw_2D,WallNodes);
-#endif // _PARALLEL_RECALC_Y_PLUS_
-          }
+           }
+        
         }
         
-        if(ProblemType == SM_NS) {
-
-#ifdef _PARALLEL_RECALC_Y_PLUS_
             if( rank == 0 ) {
-                *f_stream << "Parallel recalc y+...";
-                for(int ii = 1; (int)ii < last_rank + 1; ii++ ) {
-                    MPI::COMM_WORLD.Send(WallNodesUw_2D->GetArrayPtr(),
-                                         WallNodesUw_2D->GetNumElements()*WallNodesUw_2D->GetElementSize(),
-                                         MPI::BYTE,ii,tag_WallFrictionVelocity);
-                }
-            } else {
-                    MPI::COMM_WORLD.Recv(WallNodesUw_2D->GetArrayPtr(),
-                                         WallNodesUw_2D->GetNumElements()*WallNodesUw_2D->GetElementSize(),
-                                         MPI::BYTE,0,tag_WallFrictionVelocity);
+                
+                if ( isGasSource && SrcList) {
+                      *f_stream << "\nSet gas sources...";
+                      SrcList->SetSources2D();
+                      *f_stream << "OK" << endl;
+                 }
+#ifndef _PARALLEL_RECALC_Y_PLUS_
+                *f_stream << "Recalc y+...";
+                 Recalc_y_plus(J,WallNodes);
+#endif // _IMPI_
             }
-#endif // _PARALLEL_RECALC_Y_PLUS_
+                
+    
+// Get Data back
+    if(rank>0) {
+        void*  tmp_RecvPtr=(void*)((u_long)(pJ->GetMatrixPtr())+pJ->GetColSize()*l_Overlap);
+        u_long tmp_RecvSize=pJ->GetMatrixSize()-pJ->GetColSize()*(l_Overlap);
 
-#ifdef _PARALLEL_RECALC_Y_PLUS_
-          ParallelRecalc_y_plus(pJ,WallNodes,WallNodesUw_2D,x0);
-#endif // _PARALLEL_RECALC_Y_PLUS_
-        }
-    //}
+#ifdef _IMPI_
+        LongMatrixRecv(0, tmp_RecvPtr, tmp_RecvSize);  // Low Mem Send subdomain
+#else
+        MPI::COMM_WORLD.Recv(tmp_RecvPtr,
+                             tmp_RecvSize,
+                             MPI::BYTE,0,tag_Matrix);
+#endif //_IMPI_
+    } else {
+      void*  tmp_SendPtr;
+      u_long tmp_SendSize;
+      for(int ii=1;ii<last_rank+1;ii++) {
+          tmp_SendPtr=(void*)((u_long)(ArraySubmatrix->GetElement(ii)->GetMatrixPtr())+
+          ArraySubmatrix->GetElement(ii)->GetColSize()*(r_Overlap+l_Overlap));
+          tmp_SendSize=ArraySubmatrix->GetElement(ii)->GetMatrixSize()-
+          ArraySubmatrix->GetElement(ii)->GetColSize()*(r_Overlap-l_Overlap);
+#ifdef _IMPI_
+          LongMatrixSend(ii, tmp_SendPtr, tmp_SendSize);  // Low Mem Send subdomain
+#else
+          MPI::COMM_WORLD.Send(tmp_SendPtr,
+                               tmp_SendSize,
+                               MPI::BYTE,ii,tag_Matrix);
+#endif //_IMPI_ 
+      }
+    }
 
     if( rank == 0) {
-
-        
-#ifndef _PARALLEL_RECALC_Y_PLUS_
-      if(ProblemType == SM_NS) {
-        *f_stream << "Recalc y+...";
-         Recalc_y_plus(J,WallNodes);
-      }
-#endif // _PARALLEL_RECALC_Y_PLUS_
-
 #endif //  _MPI
-         
-        if ( isGasSource && SrcList) {
-              *f_stream << "\nSet gas sources..." << endl;
-              SrcList->SetSources2D();
-         }
         if ( XCutArray->GetNumElements() > 0 ) {
             for(int i_xcut = 0; i_xcut<(int)XCutArray->GetNumElements(); i_xcut++) {
                 XCut* TmpXCut = XCutArray->GetElementPtr(i_xcut);
@@ -1615,6 +1649,7 @@ void DEEPS2D_Run(ofstream* f_stream
                    " dY=" << TmpXCut->dy << " MassFlow="<< CalcMassFlowRateX2D(J,TmpXCut->x0,TmpXCut->y0,TmpXCut->dy) << "  (kg/sec*m)" << endl;
             }
         }
+        
         gettimeofday(&stop,NULL);
 #ifdef  _GNUPLOT_
         *f_stream << "\nSave current results in file " << OutFileName << "...\n" << flush; 
@@ -1688,56 +1723,8 @@ void DEEPS2D_Run(ofstream* f_stream
                         *f_stream << "OK" << endl;
                      }
 #ifdef _MPI
-      }
-// Get Data back
-    MPI::COMM_WORLD.Bcast(&GlobalTime,1,MPI::DOUBLE,0);
-    if(rank>0) {
-        void*  tmp_RecvPtr=(void*)((u_long)(pJ->GetMatrixPtr())+pJ->GetColSize()*l_Overlap);
-        u_long tmp_RecvSize=pJ->GetMatrixSize()-pJ->GetColSize()*(l_Overlap);
-#ifdef _IMPI_
-        LongMatrixRecv(0, tmp_RecvPtr, tmp_RecvSize);  // Low Mem Send subdomain
-#else
-        MPI::COMM_WORLD.Recv(tmp_RecvPtr,
-                             tmp_RecvSize,
-                             MPI::BYTE,0,tag_Matrix);
-#endif //_IMPI_
-#ifdef _PARALLEL_RECALC_Y_PLUS_
-        
-        if(ProblemType == SM_NS) {
-            if(!WallNodesUw_2D)
-                WallNodesUw_2D = new UArray<FP>(NumWallNodes,-1);
-
-            MPI::COMM_WORLD.Recv(WallNodesUw_2D->GetArrayPtr(),
-                                 NumWallNodes*sizeof(FP),
-                                 MPI::BYTE,0,tag_WallFrictionVelocity);
-        }
-#endif // _PARALLEL_RECALC_Y_PLUS_
-    }
-     else {
-      void*  tmp_SendPtr;
-      u_long tmp_SendSize;
-      for(int ii=1;ii<last_rank+1;ii++) {
-          tmp_SendPtr=(void*)((u_long)(ArraySubmatrix->GetElement(ii)->GetMatrixPtr())+
-          ArraySubmatrix->GetElement(ii)->GetColSize()*(r_Overlap+l_Overlap));
-          tmp_SendSize=ArraySubmatrix->GetElement(ii)->GetMatrixSize()-
-          ArraySubmatrix->GetElement(ii)->GetColSize()*(r_Overlap-l_Overlap);
-#ifdef _IMPI_
-          LongMatrixSend(ii, tmp_SendPtr, tmp_SendSize);  // Low Mem Send subdomain
-#else
-          MPI::COMM_WORLD.Send(tmp_SendPtr,
-                               tmp_SendSize,
-                               MPI::BYTE,ii,tag_Matrix);
-#endif //_IMPI_ 
-#ifdef _PARALLEL_RECALC_Y_PLUS_
-          
-          if(ProblemType == SM_NS) {
-              MPI::COMM_WORLD.Send(WallNodesUw_2D->GetArrayPtr(),
-                                   NumWallNodes*sizeof(FP),
-                                   MPI::BYTE,ii,tag_WallFrictionVelocity);
-          }
-#endif // _PARALLEL_RECALC_Y_PLUS_
-      }
-    }
+     }
+     MPI::COMM_WORLD.Bcast(&GlobalTime,1,MPI::DOUBLE,0);
      MPI::COMM_WORLD.Bcast(&last_iter,1,MPI::INT,0);
      MPI::COMM_WORLD.Bcast(&isRun,1,MPI::INT,0);
      if(!isRun)
@@ -2157,7 +2144,7 @@ void RecalcWallFrictionVelocityArray2D(ComputationalMatrix2D* pJ,
 }
 
 UArray<FP>* GetWallFrictionVelocityArray2D(ComputationalMatrix2D* pJ, 
-                                               UArray< XY<int> >* WallNodes2D) { 
+                                           UArray< XY<int> >* WallNodes2D) { 
     UArray<FP>* WallFrictionVelocityArray2D;
     WallFrictionVelocityArray2D = new UArray<FP>();
     for(int ii=0;ii<(int)WallNodes2D->GetNumElements();ii++) {
@@ -2177,6 +2164,35 @@ void ParallelRecalc_y_plus(ComputationalMatrix2D* pJ,
                            UArray< XY<int> >* WallNodes,
                            UArray<FP>* WallFrictionVelocity2D,
                            FP x0) {
+#ifndef _OLD_Y_PLUS_
+
+#ifdef _OPEN_MP
+#pragma omp parallel for
+#endif //_OPEN_MP
+    for (int i=0;i<(int)pJ->GetX();i++ ) {
+            for (int j=0;j<(int)pJ->GetY();j++ ) {
+                 if ( pJ->GetValue(i,j).isCond2D(CT_NODE_IS_SET_2D) &&
+                      !pJ->GetValue(i,j).isCond2D(CT_SOLID_2D)) {
+                        for (int ii=0;ii<(int)WallNodes->GetNumElements();ii++) {
+                             
+                             unsigned int iw,jw;
+                             FP U_w,x,y,wx,wy;
+
+                             iw = WallNodes->GetElementPtr(ii)->GetX();
+                             jw = WallNodes->GetElementPtr(ii)->GetY();
+
+                             U_w   =  WallFrictionVelocity2D->GetElement(ii);
+                             
+                             if(iw == pJ->GetValue(i,j).i_wall && 
+                                jw == pJ->GetValue(i,j).j_wall ) {
+                                 pJ->GetValue(i,j).y_plus = fabs(U_w*pJ->GetValue(i,j).l_min*pJ->GetValue(i,j).S[i2d_Ro]/pJ->GetValue(i,j).mu);
+                             }
+                        }
+                 }
+            }
+        }
+
+#else 
 #ifdef _OPEN_MP
 #pragma omp parallel for
 #endif //_OPEN_MP
@@ -2213,38 +2229,33 @@ void ParallelRecalc_y_plus(ComputationalMatrix2D* pJ,
                  }
             }
         }
+
+#endif // _OLD_Y_PLUS_
 }
 #else
 void Recalc_y_plus(ComputationalMatrix2D* pJ, UArray< XY<int> >* WallNodes) {
     unsigned int iw,jw;
     FP tau_w, U_w;
-
-    for (int ii=0;ii<(int)WallNodes->GetNumElements();ii++) { 
-
-        iw = WallNodes->GetElementPtr(ii)->GetX();
-        jw = WallNodes->GetElementPtr(ii)->GetY();
-
-        tau_w = (fabs(pJ->GetValue(iw,jw).dUdy) + 
-                 fabs(pJ->GetValue(iw,jw).dVdx)) * pJ->GetValue(iw,jw).mu;
-
-        U_w   = sqrt(tau_w/pJ->GetValue(iw,jw).S[i2d_Ro]+1e-30);
-
-        for (int i=0;i<(int)pJ->GetX();i++ ) {
-               for (int j=0;j<(int)pJ->GetY();j++ ) {
-
-                       if (pJ->GetValue(i,j).isCond2D(CT_NODE_IS_SET_2D) &&
-                           !pJ->GetValue(i,j).isCond2D(CT_SOLID_2D)) {
-                               if ( i == (int)iw && j == (int)jw) {
-                                     pJ->GetValue(i,j).y_plus = U_w*min(dx,dy)*pJ->GetValue(i,j).S[i2d_Ro]/pJ->GetValue(i,j).mu;
-                               } else { 
-                                   if(pJ->GetValue(i,j).l_min == max(min(dx,dy),sqrt((i-iw)*(i-iw)*dx*dx + 
-                                                                                     (j-jw)*(j-jw)*dy*dy)))
-                                      pJ->GetValue(i,j).y_plus = U_w*pJ->GetValue(i,j).l_min*pJ->GetValue(i,j).S[i2d_Ro]/pJ->GetValue(i,j).mu;
-                               }
-                         }
-                       }
+    
+    for (int i=0;i<(int)pJ->GetX();i++ ) {
+           for (int j=0;j<(int)pJ->GetY();j++ ) {
+               if (pJ->GetValue(i,j).isCond2D(CT_NODE_IS_SET_2D) &&
+                   !pJ->GetValue(i,j).isCond2D(CT_SOLID_2D)) {
+                   iw = pJ->GetValue(i,j).i_wall;
+                   jw = pJ->GetValue(i,j).j_wall;
+                   tau_w = (fabs(pJ->GetValue(iw,jw).dUdy) + fabs(pJ->GetValue(iw,jw).dVdx)) * pJ->GetValue(iw,jw).mu;
+                   if (pJ->GetValue(iw,jw).S[i2d_Ro] > 0.0 &&
+                       tau_w > 0.0) {
+                       U_w   = sqrt(tau_w/pJ->GetValue(iw,jw).S[i2d_Ro]+1e-30);
+                       pJ->GetValue(i,j).y_plus = fabs(U_w*min(dx,dy)*pJ->GetValue(i,j).S[i2d_Ro]/pJ->GetValue(i,j).mu);
+                   } else {
+                       pJ->GetValue(i,j).y_plus = 0.0;
+                   }
+               
                }
+           }
     }
+               
 }
 #endif // _PARALLEL_RECALC_Y_PLUS_
 
@@ -2459,7 +2470,7 @@ void SaveRMS(ofstream* OutputData,unsigned int n, FP* outRMS) {
         else
           snprintf(YR,2,"Y");
 
-        snprintf(TechPlotTitle1,1024,"VARIABLES = X, %s, U, V, T, p, Rho, Y_fuel, Y_ox, Y_cp, Y_i, %s, Mach, l_min"
+        snprintf(TechPlotTitle1,1024,"VARIABLES = X, %s, U, V, T, p, Rho, Y_fuel, Y_ox, Y_cp, Y_i, %s, Mach, l_min, y+, i_wall, j_wall"
                                      "\n",YR, RT); 
         snprintf(TechPlotTitle2,256,"ZONE T=\"Time: %g sec.\" I= %i J= %i F=POINT\n",GlobalTime, MaxX, MaxY);
 
@@ -2512,13 +2523,13 @@ void SaveRMS(ofstream* OutputData,unsigned int n, FP* outRMS) {
                 }
                 if(!J->GetValue(i,j).isCond2D(CT_SOLID_2D)) {
                     if( Mach > 1.e-30) 
-                      *OutputData << Mach  << "  " << J->GetValue(i,j).l_min;  
+                      *OutputData << Mach  << "  " << J->GetValue(i,j).l_min << " " << J->GetValue(i,j).y_plus;  
                     else
-                      *OutputData << "  0  0 ";
+                      *OutputData << "  0  0  0  ";
                 } else {
-                    *OutputData << "  0  0 ";
+                    *OutputData << "  0  0  0  ";
                 }
-                *OutputData <<  "\n" ;
+                *OutputData << " " << J->GetValue(i,j).i_wall << " " << J->GetValue(i,j).j_wall << "\n" ;
             }
             if ( type )
                 *OutputData <<  "\n" ;
@@ -2563,7 +2574,7 @@ inline  void CalcHeatOnWallSources(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* F
 
                 CurrentNode = &F->GetValue(i,j);
 
-                if(!CurrentNode->isCond2D(CT_SOLID_2D) && CurrentNode->isCleanSources == 1) {
+                if(!CurrentNode->isCond2D(CT_SOLID_2D)) { //  && CurrentNode->isCleanSources == 1
                     
                     dx_local = dx;
                     dy_local = dy;
@@ -2593,8 +2604,8 @@ inline  void CalcHeatOnWallSources(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* F
                     FP lam_eff = 0;
                     int num_near_nodes = 0;
                     
-                    if( CurrentNode->isCleanSources ) 
-                        CurrentNode->SrcAdd[i2d_RoE] = 0.; 
+                    //if( CurrentNode->isCleanSources ) 
+                    //    CurrentNode->SrcAdd[i2d_RoE] = 0.; 
                     
                     
                     if ( DownNode && DownNode->isCond2D(CT_SOLID_2D) ) {
@@ -3692,7 +3703,7 @@ void* InitDEEPS2D(void* lpvParam)
                             J->GetValue(i,j).Tf    = chemical_reactions.Tf;
                             J->GetValue(i,j).BGX   = 1.;
                             J->GetValue(i,j).BGY   = 1.;
-                            J->GetValue(i,j).isCleanSources = 1;
+                            //J->GetValue(i,j).isCleanSources = 1;
                             J->GetValue(i,j).NGX   = 0;
                             J->GetValue(i,j).NGY   = 0;
 
@@ -4563,7 +4574,7 @@ void SetMinDistanceToWall2D(ComputationalMatrix2D* pJ2D,
                             ) {
 
 FP  min_l_min = min((FlowNode2D<FP,NUM_COMPONENTS>::dx),
-                        (FlowNode2D<FP,NUM_COMPONENTS>::dy));
+                    (FlowNode2D<FP,NUM_COMPONENTS>::dy));
 #ifdef _OPEN_MP
 #pragma omp parallel  for
 #endif //_OPEN_MP
@@ -4595,6 +4606,10 @@ for (int i=0;i<(int)pJ2D->GetX();i++ ) {
 
                              pJ2D->GetValue(i,j).l_min = min(pJ2D->GetValue(i,j).l_min,
                                                              sqrt((x-wx)*(x-wx) + (y-wy)*(y-wy)));
+                             if (pJ2D->GetValue(i,j).l_min == sqrt((x-wx)*(x-wx) + (y-wy)*(y-wy))) {
+                                 pJ2D->GetValue(i,j).i_wall = iw;
+                                 pJ2D->GetValue(i,j).j_wall = jw;
+                             }
                              pJ2D->GetValue(i,j).l_min =  max(min_l_min,pJ2D->GetValue(i,j).l_min);
                         }
              }

@@ -169,7 +169,7 @@ void Area2D::FillArea2D(unsigned int X,
                             pMFN->GetValue(tX,tY+1).idYd= 0;
                         }
                     }
-                  pMFN->GetValue(tX,tY).NodeID = MaterialID;
+                  //pMFN->GetValue(tX,tY).NodeID = MaterialID;
                   pMFN->GetValue(tX,tY).FillNode2D(1);
                 }
                 BNA = FNA;

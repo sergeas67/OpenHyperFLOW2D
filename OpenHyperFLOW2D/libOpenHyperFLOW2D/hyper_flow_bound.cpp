@@ -302,7 +302,7 @@ BoundState Bound2D::SetBound(int MaterialID) {
                 for (ii=0;ii<NUM_COMPONENTS+1;ii++)
                     (pMFN->GetValue(i,j)).Y[ii]=pY[ii];
 
-            pMFN->GetValue(i,j).NodeID   = MaterialID;
+            //pMFN->GetValue(i,j).NodeID   = MaterialID;
 
             if (pBoundFlow)
                 pMFN->GetValue(i,j)     = *pBoundFlow;
@@ -335,7 +335,7 @@ BoundState Bound2D::SetBound(int MaterialID) {
                 for (ii=0;ii<NUM_COMPONENTS+1;ii++)
                     (pMFN->GetValue(j,i)).Y[ii]=pY[ii];
 
-            pMFN->GetValue(j,i).NodeID   = MaterialID;
+            //pMFN->GetValue(j,i).NodeID   = MaterialID;
 
             if (pBoundFlow)
                 pMFN->GetValue(j,i)     = *pBoundFlow;
@@ -400,7 +400,7 @@ BoundState Bound2D::SetBound(UArray< FlowNode2D<FP, NUM_COMPONENTS>* >* node_arr
                 for (ii=0;ii<NUM_COMPONENTS+1;ii++)
                     (pMFN->GetValue(i,j)).Y[ii]=pY[ii];
 
-            pMFN->GetValue(i,j).NodeID   = MaterialID;
+            //pMFN->GetValue(i,j).NodeID   = MaterialID;
 
             if (pBoundFlow)
                 pMFN->GetValue(i,j)     = *pBoundFlow;
@@ -431,7 +431,7 @@ BoundState Bound2D::SetBound(UArray< FlowNode2D<FP, NUM_COMPONENTS>* >* node_arr
                 for (ii=0;ii<NUM_COMPONENTS+1;ii++)
                     (pMFN->GetValue(j,i)).Y[ii]=pY[ii];
 
-            pMFN->GetValue(i,j).NodeID   = MaterialID;
+            //pMFN->GetValue(i,j).NodeID   = MaterialID;
 
             if (pBoundFlow)
                 pMFN->GetValue(j,i)     = *pBoundFlow;

@@ -49,19 +49,25 @@ DEBUG      = -g
 PICFLAGS   = -fPIC
 #STATIC= -static
 
-ifeq ("$(SIMD)","AVX")
-ALIGN      = 16
-else
 ALIGN      = 8
-endif
 
 CPU        = native
 CPU_EXT    = -m64 -ftree-vectorize  -msse3 -msse2 -msse -mmmx -mfpmath=sse -mtune=$(CPU)
 
+ifeq ("$(SIMD)","AVX")
+ALIGN      = 16
+CPU_EXT    += -mavx
+endif
+
+ifeq ("$(SIMD)","AVX2")
+ALIGN      = 16
+CPU_EXT    += -mavx2
+endif
+
 CXXOPTIONS = -Wno-deprecated 
 COPTIONS   =
 
-OPTLEVEL   = 0
+OPTLEVEL   = 3
 
 ifeq     ($(OPTLEVEL),0)
 OPTIMIZE   = -O$(OPTLEVEL) -D_ALIGN=${ALIGN}

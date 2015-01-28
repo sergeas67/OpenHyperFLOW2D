@@ -54,7 +54,7 @@ int main( int argc, char **argv )
 #endif  // _WIN32
 #endif  // _DEBUG_0
         if (argc < 2) {
-            printf("OpenHyperFLOW2D/DEEPS/FP%d solver v %'.2f ",(sizeof(FP)*8),ver);
+            printf("OpenHyperFLOW2D/DEEPS/FP%u solver v %'.2f ",(unsigned int)(sizeof(FP)*8),ver);
 #ifndef _MPI
 #ifndef _OPEN_MP
             printf(" (serial version)\n");
@@ -241,11 +241,28 @@ rank      = MPI::COMM_WORLD.Get_rank();
         MPI::COMM_WORLD.Barrier();
         TmpCoreSubmatrix = new UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >(TmpMaxX,MaxY);
         
-        if(ProblemType == SM_NS) {
 #ifdef _PARALLEL_RECALC_Y_PLUS_
+        if(ProblemType == SM_NS) {
            SetInitBoundaryLayer(TmpSubmatrix,delta_bl);                                                // Set Initial boundary layer profile
-#endif // _PARALLEL_RECALC_Y_PLUS_
+            if( rank == 0 ) {
+                if(WallNodes && !WallNodesUw_2D && J) 
+                    WallNodesUw_2D = GetWallFrictionVelocityArray2D(J,WallNodes);
+                else if(WallNodes && J)
+                    RecalcWallFrictionVelocityArray2D(J,WallNodesUw_2D,WallNodes);
+                *o_stream << "Parallel recalc y+...";
+                for(int ii = 1; (int)ii < last_rank + 1; ii++ ) {
+                    MPI::COMM_WORLD.Send(WallNodesUw_2D->GetArrayPtr(),
+                                         WallNodesUw_2D->GetNumElements()*WallNodesUw_2D->GetElementSize(),
+                                         MPI::BYTE,ii,tag_WallFrictionVelocity);
+                }
+            } else {
+                    MPI::COMM_WORLD.Recv(WallNodesUw_2D->GetArrayPtr(),
+                                         WallNodesUw_2D->GetNumElements()*WallNodesUw_2D->GetElementSize(),
+                                         MPI::BYTE,0,tag_WallFrictionVelocity);
+            }
+          ParallelRecalc_y_plus(TmpSubmatrix,WallNodes,WallNodesUw_2D,x0);
         }
+#endif // _PARALLEL_RECALC_Y_PLUS_
      
         if(rank == 0) {
             gettimeofday(&mark1,NULL);
@@ -256,7 +273,7 @@ rank      = MPI::COMM_WORLD.Get_rank();
             x0 = 0;
 
             //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-            //DataSnapshot(OutFileName,WM_REWRITE);  //
+            DataSnapshot(OutFileName,WM_REWRITE);    //
             //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
      
         }
