@@ -9,7 +9,7 @@
 *                                                                              *
 * Common function declarations file.                                           *
 *                                                                              *
-*  last update: 11/01/2015                                                     *
+*  last update: 01/02/2015                                                     *
 ********************************************************************************/
 #ifdef _MPI
 #include <mpi.h>
@@ -124,7 +124,7 @@ extern int    fd_l;
 extern FP delta_bl;
 extern void*  SolidSwapData;
 extern void*  GasSwapData;
-extern UArray< UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* >* ArraySubmatrix;
+extern UArray< UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* >* ArraySubDomain;
 extern ChemicalReactionsModelData2D chemical_reactions;
 extern UArray< MonitorPoint >*      MonitorPointsArray;
 extern UArray< XY<int> >* WallNodes;
@@ -135,9 +135,9 @@ extern int               NumWallNodes;
 extern FP                x0;
 // External variables
 extern SolverMode ProblemType;
-extern UArray< XY<int> >*                                       GlobalSubmatrix;
-extern UArray<UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*>*     SubmatrixArray;
-extern UArray<UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >*>* CoreSubmatrixArray;
+extern UArray< XY<int> >*                                       GlobalSubDomain;
+extern UArray<UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*>*     SubDomainArray;
+extern UArray<UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >*>* CoreSubDomainArray;
 extern InputData*                        Data;                   // Object data loader
 extern UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*     J;        // Main computation area
 extern UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >* C;        // Main core area
@@ -261,12 +261,12 @@ extern UArray< unsigned int* >*          dt_min_host_Array;
 extern UArray< unsigned int* >*          dt_min_device_Array;
 extern FP*                               cudaHu;  
 extern UArray< FP* >*                    cudaHuArray;  
-extern UArray< FlowNode2D<FP,NUM_COMPONENTS>* >*     cudaArraySubmatrix;
-extern UArray< FlowNodeCore2D<FP,NUM_COMPONENTS>* >* cudaArrayCoreSubmatrix ;
+extern UArray< FlowNode2D<FP,NUM_COMPONENTS>* >*     cudaArraySubDomain;
+extern UArray< FlowNodeCore2D<FP,NUM_COMPONENTS>* >* cudaArrayCoreSubDomain ;
 extern UArray< XY<int> >*                            cudaDimArray;
 extern XY<int>*                                      cudaWallNodes;
-extern FlowNode2D<FP,NUM_COMPONENTS>*                cudaSubmatrix;
-extern FlowNodeCore2D<FP,NUM_COMPONENTS>*            cudaCoreSubmatrix;
+extern FlowNode2D<FP,NUM_COMPONENTS>*                cudaSubDomain;
+extern FlowNodeCore2D<FP,NUM_COMPONENTS>*            cudaCoreSubDomain;
 extern int                                           warp_size;
 extern int                                           max_num_threads;
 extern int                                           num_gpus;  // number of CUDA GPUs
@@ -353,8 +353,8 @@ extern __host__ int LoadTable2GPU(Table* Src, Table*& Dst, int i_dev);
 extern void DEEPS2D_Run(ofstream* f_stream, 
                         UMatrix2D<FlowNode2D<FP,NUM_COMPONENTS> >*     pJ,
                         UMatrix2D<FlowNodeCore2D<FP,NUM_COMPONENTS> >* pC,
-                        UArray< FlowNode2D<FP,NUM_COMPONENTS>* >*      cudaSubmatrix,
-                        UArray< FlowNodeCore2D<FP,NUM_COMPONENTS>* >*  cudaCoreSubmatrix,
+                        UArray< FlowNode2D<FP,NUM_COMPONENTS>* >*      cudaSubDomain,
+                        UArray< FlowNodeCore2D<FP,NUM_COMPONENTS>* >*  cudaCoreSubDomain,
                         UArray< XY<int> >*                             cudaDimArray,
                         UArray< XY<int>* >*                            cudaWallNodesArray,
                         UArray< ChemicalReactionsModelData2D* >*       cudaCRM2D,
@@ -421,7 +421,8 @@ cuda_SetMinDistanceToWall2D(FlowNode2D<FP,NUM_COMPONENTS>* pJ2D,
                             int NumWallNodes2D,
                             FP min_l_min,
                             FP max_l_min,
-                            FP _dx, FP _dy);
+                            FP _dx, FP _dy,
+                            FP x0);
 
 extern __global__ void 
 cuda_Recalc_y_plus(FlowNode2D<FP,NUM_COMPONENTS>* pJ2D,

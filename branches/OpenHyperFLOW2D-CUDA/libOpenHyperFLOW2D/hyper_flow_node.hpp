@@ -5,7 +5,7 @@
 *   Copyright (C)  1995-2015 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
 *                                                                              *
-*   last update: 11/01/2015                                                    *
+*   last update: 01/02/2015                                                    *
 *******************************************************************************/
 
 #ifndef  _hyper_flow_node_hpp
@@ -154,8 +154,8 @@ public:
     static
 #endif // _UNIFORM_MESH_
     T                dx,dy;       // dx, dy(dr)
-    //T                x,y;         // x, y(r)
-    int              ix,iy;
+    T                x,y;         // x, y(r)
+    int              ix,iy;       // i_x,i_y
 // Neighboring nodes
     FlowNode2D<T,a>*            UpNode;
     FlowNode2D<T,a>*            DownNode;
@@ -169,9 +169,9 @@ public:
     int        idYd;                 // is down node present ? (0 or 1)
     int        NGX;                  // dF/dx integer coeff. 0, 1 or -1
     int        NGY;                  // dF/dy integer coeff. 0, 1 or -1
-    int        NodeID;               // Material ID (for solid Nodes)
+    //int        NodeID;             // Material ID (for solid Nodes)
     ulong      CT;                   // Condition type  (bit flags combination)
-    int        isCleanSources;       // is clean sources ?
+    int        i_wall,j_wall;        // neast wall coordinates
     T          beta[6+a];            // superlocal blending factor (SLBF).
     T          Q_conv;               // Convective heat flux 
     T          time;                 // Global time.
@@ -195,7 +195,7 @@ public:
     T          r;                    // r (radius for axisymmetric coords. for 2D isotropic mesh)
     T          BGX;                  // dF/dx angle coeff. (cos(Ayz))
     T          BGY;                  // dF/dy angle coeff. (cos(Axz))
-    FlowNode2D(FlowType ft = FT_FLAT); // plane model - default for 2D
+    FlowNode2D(FlowType ft = FT_FLAT); // flat model - default for 2D
     FlowNode2D(T RO,
              T U,
              T V,
@@ -395,15 +395,6 @@ FlowNode2D<T,a>::FlowNode2D(T  RO,
     idYu=1;
     idXr=1;
     idYd=1;
-
-    if(isCleanSources){
-        
-#ifdef _CUDA_
-#pragma unroll
-#endif // _CUDA_
-        for(i=0;i<NumEq;i++)
-            Src[i]=0;
-    }
     //FillNode2D(0,1);
 }
 
@@ -494,7 +485,7 @@ inline void FlowNode2D<T,a>::FillNode2D(int is_mu_t,
     Tmp3+=_Hu[a]*Tmp1;
 
     if(isCond2D(CT_WALL_LAW_2D)) {
-        // Simple  model
+        // Simple  model (TODO)
         Tmp1 = sqrt(U*U+V*V+1.e-30);
 
         FlowNodeCore2D<T,a>::S[i2d_RoU] = Tmp1*BGX; 

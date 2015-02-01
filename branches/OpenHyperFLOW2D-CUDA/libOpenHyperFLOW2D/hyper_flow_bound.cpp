@@ -5,7 +5,7 @@
 *   Copyright (C)  1995-2015 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
 *                                                                              *
-*   last update: 11/01/2015                                                    *
+*   last update: 01/02/2015                                                    *
 *******************************************************************************/
 #include "libExcept/except.hpp"
 #include "libOpenHyperFLOW2D/hyper_flow_bound.hpp"
@@ -17,15 +17,9 @@ typedef FlowNode2D< FP, NUM_COMPONENTS>*  NODE2D ;
 // Init bound 
 void Bound2D::InitBound(char* name,  
                         UMatrix2D< FlowNode2D< FP, NUM_COMPONENTS> >* J,
-#ifndef _UNIFORM_MESH_
-                        Mesh2D* p_mesh,               //  nonuniform mesh
-#endif // _UNIFORM_MESH_
-                        int     bt,
+                        int bt,
                         FP* p_Y,
-                        int     btc) {
-#ifndef _UNIFORM_MESH_
-    pMesh = p_mesh;       //  nonuniform mesh
-#endif // _UNIFORM_MESH_
+                        int btc) {
     BoundName = name;
     bs        = BND_INACTIVE;
     BNT       = bt;
@@ -232,10 +226,10 @@ Bound2D::Bound2D(char* name,
                  UMatrix2D< FlowNode2D<FP, NUM_COMPONENTS> >* J,
                  XY<FP>*  p_start,
                  XY<FP>*  p_end,
-                 int                bt,
-                 Flow*              pInFlow,
-                 FP*            p_Y,
-                 int                btc) {
+                 int      bt,
+                 Flow*    pInFlow,
+                 FP*      p_Y,
+                 int      btc) {
 
     pBoundFlow   = pInFlow;
 
@@ -262,10 +256,10 @@ Bound2D::Bound2D(char* name,
                  UMatrix2D< FlowNode2D<FP, NUM_COMPONENTS> >* J,
                  XY<FP>*  p_start,
                  XY<FP>*  p_end,
-                 int          bt,
-                 Flow2D*           pInFlow2D,
+                 int      bt,
+                 Flow2D*  pInFlow2D,
                  FP*      p_Y,
-                 int          btc) {
+                 int      btc) {
 
     pBoundFlow2D = pInFlow2D;
 
@@ -294,7 +288,6 @@ BoundState Bound2D::SetBound(int MaterialID) {
     static  FP  DX,DY;
     XY<FP>      fCurrentPoint;
 
-#ifdef _UNIFORM_MESH_
     if (Start.GetX() > pMFN->GetX()||
         Start.GetY() > pMFN->GetY()||
         End.GetX()   > pMFN->GetX()||
@@ -334,7 +327,7 @@ BoundState Bound2D::SetBound(int MaterialID) {
                 for (ii=0;ii<NUM_COMPONENTS+1;ii++)
                     (pMFN->GetValue(i,j)).Y[ii]=pY[ii];
 
-            pMFN->GetValue(i,j).NodeID   = MaterialID;
+            //pMFN->GetValue(i,j).NodeID   = MaterialID;
 
             if (pBoundFlow)
                 pMFN->GetValue(i,j)     = *pBoundFlow;
@@ -361,7 +354,7 @@ BoundState Bound2D::SetBound(int MaterialID) {
                 for (ii=0;ii<NUM_COMPONENTS+1;ii++)
                     (pMFN->GetValue(j,i)).Y[ii]=pY[ii];
 
-            pMFN->GetValue(j,i).NodeID   = MaterialID;
+            //pMFN->GetValue(j,i).NodeID   = MaterialID;
 
             if (pBoundFlow)
                 pMFN->GetValue(j,i)     = *pBoundFlow;
@@ -373,26 +366,6 @@ BoundState Bound2D::SetBound(int MaterialID) {
     }
     bs = BND_OK;
     return bs;
-#else
-    DX=fEnd.GetX()-fStart.GetX();
-    DY=fEnd.GetY()-fStart.GetY();
-
-    if (DX != 0.) {
-        K=DY/DX;Alpha = atan(K);
-    } else {
-        Alpha = pi/2.;K=0;
-    }
-    if (fStart.GetX() > pMesh->GetMaxXSize() ||
-        fStart.GetY() > pMesh->GetMaxYSize() ||
-        fEnd.GetX()   > pMesh->GetMaxXSize() ||
-        fEnd.GetY()   > pMesh->GetMaxYSize()) {
-        bs = BND_ERR;
-        return bs;
-    }
-    fCurrentPoint = fStart;
-    while (pMesh->) {
-    }
-#endif // _UNIFORM_MESH_
 }
 // Set bound. Push result to array
 BoundState Bound2D::SetBound(UArray< FlowNode2D<FP, NUM_COMPONENTS>* >* node_array, int MaterialID) {
@@ -407,7 +380,6 @@ BoundState Bound2D::SetBound(UArray< FlowNode2D<FP, NUM_COMPONENTS>* >* node_arr
         return bs;
     }
 
-#ifdef _UNIFORM_MESH_
     if (Start.GetX() > pMFN->GetX()||
         Start.GetY() > pMFN->GetY()||
         End.GetX()   > pMFN->GetX()||
@@ -447,7 +419,7 @@ BoundState Bound2D::SetBound(UArray< FlowNode2D<FP, NUM_COMPONENTS>* >* node_arr
                 for (ii=0;ii<NUM_COMPONENTS+1;ii++)
                     (pMFN->GetValue(i,j)).Y[ii]=pY[ii];
 
-            pMFN->GetValue(i,j).NodeID   = MaterialID;
+            //pMFN->GetValue(i,j).NodeID   = MaterialID;
 
             if (pBoundFlow)
                 pMFN->GetValue(i,j)     = *pBoundFlow;
@@ -478,7 +450,7 @@ BoundState Bound2D::SetBound(UArray< FlowNode2D<FP, NUM_COMPONENTS>* >* node_arr
                 for (ii=0;ii<NUM_COMPONENTS+1;ii++)
                     (pMFN->GetValue(j,i)).Y[ii]=pY[ii];
 
-            pMFN->GetValue(i,j).NodeID   = MaterialID;
+            //pMFN->GetValue(i,j).NodeID   = MaterialID;
 
             if (pBoundFlow)
                 pMFN->GetValue(j,i)     = *pBoundFlow;
@@ -494,26 +466,6 @@ BoundState Bound2D::SetBound(UArray< FlowNode2D<FP, NUM_COMPONENTS>* >* node_arr
     }
     bs = BND_OK;
     return bs;
-#else
-    DX=fEnd.GetX()-fStart.GetX();
-    DY=fEnd.GetY()-fStart.GetY();
-
-    if (DX != 0.) {
-        K=DY/DX;Alpha = atan(K);
-    } else {
-        Alpha = pi/2.;K=0;
-    }
-    if (fStart.GetX() > pMesh->GetMaxXSize() ||
-        fStart.GetY() > pMesh->GetMaxYSize() ||
-        fEnd.GetX()   > pMesh->GetMaxXSize() ||
-        fEnd.GetY()   > pMesh->GetMaxYSize()) {
-        bs = BND_ERR;
-        return bs;
-    }
-    fCurrentPoint = fStart;
-    while (pMesh->) {
-    }
-#endif // _UNIFORM_MESH_
 }
 
 // Bound destructor
@@ -678,18 +630,12 @@ int Bound2D::RotateBound2D(FP x0, FP y0, FP angle) {
     xen = x0 + (r2*sin(fi2+angle)); 
     yen = y0 + (r2*cos(fi2+angle)); 
 
-    if (xsn < 0. || ysn < 0. || xen < 0.|| yen < 0.) return 0;
-#ifdef _UNIFORM_MESH_
+    if (xsn < 0. || ysn < 0. || xen < 0.|| yen < 0.)    return 0;
     if (pMFN->GetX()<static_cast<unsigned int>(xsn))    return 0;
     if (pMFN->GetY()<static_cast<unsigned int>(ysn))    return 0;
     if (pMFN->GetX()<static_cast<unsigned int>(xen))    return 0;
     if (pMFN->GetY()<static_cast<unsigned int>(yen))    return 0;
-#else
-    if (pMesh->GetMaxXSize() < xsn)                     return 0;
-    if (pMesh->GetMaxYSize() < ysn)                     return 0;
-    if (pMesh->GetMaxXSize() < xen)                     return 0;
-    if (pMesh->GetMaxYSize() < yen)                     return 0;
-#endif // _UNIFORM_MESH_
+
     SetStartFX(xsn);
     SetStartFY(ysn);
 
@@ -717,17 +663,10 @@ int Bound2D::TestRotateBound2D(FP x0, FP y0, FP angle) {
     yen = y0 + (r2*cos(fi2+angle)); 
 
     if (xsn < 0. || ysn < 0. || xen < 0.|| yen < 0.)    return 0;
-#ifdef _UNIFORM_MESH_
     if (pMFN->GetX()<static_cast<unsigned int>(xsn))    return 0;
     if (pMFN->GetY()<static_cast<unsigned int>(ysn))    return 0;
     if (pMFN->GetX()<static_cast<unsigned int>(xen))    return 0;
     if (pMFN->GetY()<static_cast<unsigned int>(yen))    return 0;
-#else
-    if (pMesh->GetMaxXSize() < xsn)                     return 0;
-    if (pMesh->GetMaxYSize() < ysn)                     return 0;
-    if (pMesh->GetMaxXSize() < xen)                     return 0;
-    if (pMesh->GetMaxYSize() < yen)                     return 0;
-#endif // _UNIFORM_MESH_
 
     return 1;
 }
