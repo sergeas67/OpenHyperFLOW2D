@@ -5,7 +5,7 @@
 *   Copyright (C)  1995-2015 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
 *                                                                              *
-*   last update: 11/01/2015                                                    *
+*   last update: 01/02/2015                                                    *
 *******************************************************************************/
 #ifdef _MPI
 #include <mpi.h>
@@ -206,7 +206,7 @@ void Area2D::FillArea2D(unsigned int X,
                             pMFN->GetValue(tX,tY+1).idYd= 0;
                         }
                     }
-                  pMFN->GetValue(tX,tY).NodeID = MaterialID;
+                  //pMFN->GetValue(tX,tY).NodeID = MaterialID;
                   pMFN->GetValue(tX,tY).FillNode2D(1);
                 }
                 BNA = FNA;

@@ -9,7 +9,7 @@
 *                                                                              *
 *   deeps2d_core.cpp: CUDA kernels code.                                       *
 *                                                                              *
-*  last update: 11/01/2015                                                     *
+*  last update: 01/02/2015                                                     *
 ********************************************************************************/
 
 #ifdef _CUDA_
@@ -391,7 +391,8 @@ cuda_SetMinDistanceToWall2D(FlowNode2D<FP,NUM_COMPONENTS>* pJ2D,
                             int NumWallNodes2D,
                             FP min_l_min,
                             FP max_l_min,
-                            FP _dx, FP _dy)   {
+                            FP _dx, FP _dy,
+                            FP  x0)   {
 
    unsigned long int index = threadIdx.x + blockIdx.x * blockDim.x;
 
@@ -407,11 +408,16 @@ cuda_SetMinDistanceToWall2D(FlowNode2D<FP,NUM_COMPONENTS>* pJ2D,
 
               XY<int>*  TmpWallNode = &WallNodes2D[ii]; 
 
-              FP L_x   = (TmpWallNode->X - TmpNode->ix)* _dx;
+              FP L_x   = (TmpWallNode->X - TmpNode->ix)* _dx - x0;
               FP L_y   = (TmpWallNode->Y - TmpNode->iy)* _dy;
               FP l_min = sqrt(L_x*L_x + L_y*L_y);
 
               TmpNode->l_min = max(min(TmpNode->l_min,l_min),min_l_min);
+              
+              if (TmpNode->l_min == l_min) {
+                  TmpNode->i_wall = TmpWallNode->X - (int)(x0/_dx);
+                  TmpNode->j_wall = TmpWallNode->Y;
+              }
             }
         }
    }
@@ -431,45 +437,30 @@ cuda_Recalc_y_plus(FlowNode2D<FP,NUM_COMPONENTS>* pJ2D,
     unsigned long int index = threadIdx.x + blockIdx.x * blockDim.x;
 
     if(index < index_limit) {
+        
+        FP tau_w;
 
         FlowNode2D<FP,NUM_COMPONENTS>* TmpNode = &pJ2D[index];
 
         if(TmpNode->CT != (ulong)(CT_SOLID_2D | CT_NODE_IS_SET_2D)) {
-
-            int iw=0;
-            int jw=0;
-#pragma unroll
-           for (int ii=0;ii<NumWallNodes2D;ii++) {
-
-               XY<int>*  TmpWallNode = &WallNodes2D[ii]; 
-
-               FP L_x   = (TmpWallNode->X - TmpNode->ix)* _dx;
-               FP L_y   = (TmpWallNode->Y - TmpNode->iy)* _dy;
-               FP l_min = sqrt(L_x*L_x + L_y*L_y);
-
-               if(l_min  == TmpNode->l_min) {
-                  iw = TmpWallNode->X;
-                  jw = TmpWallNode->Y;
-               }
-           }
-
-          //__syncthreads();
-
-           unsigned long int wall_index = iw*max_y + jw;
+           
+           unsigned long int wall_index = TmpNode->i_wall*max_y + TmpNode->j_wall;
 
            if(wall_index < index_limit) {
 
                FlowNode2D<FP,NUM_COMPONENTS>* WallNode = &pJ2D[wall_index];   // x*nY + y
-
-               FP tau_w = (fabs(WallNode->dUdy) + fabs(WallNode->dVdx)) * WallNode->mu;  
-
-               FP U_w   = sqrt(tau_w/WallNode->S[i2d_Ro]);
-
-               TmpNode->y_plus = U_w*TmpNode->l_min*TmpNode->S[i2d_Ro]/TmpNode->mu;
+               
+               tau_w = (fabs(WallNode->dUdy) + fabs(WallNode->dVdx)) * WallNode->mu;
+               
+               if(tau_w > 0.0) {
+                   FP U_w   = sqrt(tau_w/WallNode->S[i2d_Ro]);
+                   TmpNode->y_plus = U_w*TmpNode->l_min*TmpNode->S[i2d_Ro]/TmpNode->mu;
+               } else {
+                   TmpNode->y_plus = 0.0;
+               }
            }
         }
      }
-  //__syncthreads(); 
 }
 
 __global__  void

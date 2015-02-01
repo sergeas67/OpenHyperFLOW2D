@@ -9,7 +9,7 @@
 *                                                                              *
 *   init_deeps2d.cpp: OpenHyperFLOW2D solver init code....                     *
 *                                                                              *
-*  last update: 11/01/2015                                                     *
+*  last update: 01/02/2015                                                     *
 ********************************************************************************/
 #include "deeps2d_core.hpp"
 
@@ -366,8 +366,8 @@ void* InitDEEPS2D(void* lpvParam)
         u_long          FileSizeGas=0;
         static int      PreloadFlag = 0,p_g=0;
 
-        SubmatrixArray     = new UArray<UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* >();
-        CoreSubmatrixArray = new UArray<UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >* >();
+        SubDomainArray     = new UArray<UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* >();
+        CoreSubDomainArray = new UArray<UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >* >();
 #ifdef _DEBUG_0
         ___try {
 #endif  // _DEBUG_0
@@ -1345,14 +1345,14 @@ void* InitDEEPS2D(void* lpvParam)
 
                             if ( FlowNode2D<FP,NUM_COMPONENTS>::FT == FT_AXISYMMETRIC )
                                  J->GetValue(i,j).r     = (j+0.5)*dy;
-                            //J->GetValue(i,j).x     = (i+0.5)*dx;
-                            //J->GetValue(i,j).y     = (j+0.5)*dy;
+                            
+                            J->GetValue(i,j).x     = (i+0.5)*dx;
+                            J->GetValue(i,j).y     = (j+0.5)*dy;
                             J->GetValue(i,j).ix    = i;
                             J->GetValue(i,j).iy    = j;
                             J->GetValue(i,j).Tf    = chemical_reactions.Tf;
                             J->GetValue(i,j).BGX   = 1.;
                             J->GetValue(i,j).BGY   = 1.;
-                            J->GetValue(i,j).isCleanSources = 1;
                             J->GetValue(i,j).NGX   = 0;
                             J->GetValue(i,j).NGY   = 0;
 
@@ -2056,15 +2056,20 @@ void* InitDEEPS2D(void* lpvParam)
             *f_stream << "\nInitial dt=" << dt << "sec." << endl;
 //------> place here <------*
             SetWallNodes(f_stream, J);
-            GlobalSubmatrix = ScanArea(f_stream,J, isVerboseOutput);
+            GlobalSubDomain = ScanArea(f_stream,J, isVerboseOutput);
 /* Load additional sources */
              isGasSource  = Data->GetIntVal((char*)"NumSrc");
              if ( Data->GetDataError()==-1 ) Abort_OpenHyperFLOW2D();
 
              if ( isGasSource ) {
                   SrcList = new SourceList2D(J,Data);
-                  SrcList->SetSources2D();
+                  if ( SrcList) {
+                        *f_stream << "\nSet gas sources...";
+                        SrcList->SetSources2D();
+                        *f_stream << "OK" << endl;
+                   }
              }
+             
              if(!PreloadFlag) {
                 *f_stream << "Set initial boundary layer...";
                 SetInitBoundaryLayer(J,delta_bl);
@@ -2108,11 +2113,11 @@ ScanArea(ofstream* f_str,ComputationalMatrix2D* pJ ,int isPrint) {
     TurbulenceCondType2D TM = TCT_No_Turbulence_2D;
     timeval  time1, time2;
     unsigned int i,j,jj; //ii,iw,jw,
-    long num_active_nodes,active_nodes_per_submatrix;
+    long num_active_nodes,active_nodes_per_SubDomain;
     UArray< XY<int> >* pWallNodes;
-    UArray< XY<int> >* Submatrix;
+    UArray< XY<int> >* SubDomain;
     pWallNodes = new UArray< XY<int> >();
-    Submatrix = new UArray< XY<int> >();
+    SubDomain = new UArray< XY<int> >();
     XY<int> ij;
     XY<int> ijsm;
 
@@ -2149,9 +2154,9 @@ num_threads = MPI::COMM_WORLD.Get_size();
  num_threads = omp_get_num_threads(); 
 }
 #endif // _OPENMP
-active_nodes_per_submatrix = num_active_nodes/num_threads; 
+active_nodes_per_SubDomain = num_active_nodes/num_threads; 
 if ( isPrint )
-        *f_str << "Found " << pWallNodes->GetNumElements() <<" wall nodes from " << num_active_nodes << " gas filled nodes (" << num_threads <<" subdomains, "<< active_nodes_per_submatrix <<" active nodes per subdomain).\n" << flush;
+        *f_str << "Found " << pWallNodes->GetNumElements() <<" wall nodes from " << num_active_nodes << " gas filled nodes (" << num_threads <<" subdomains, "<< active_nodes_per_SubDomain <<" active nodes per subdomain).\n" << flush;
 
     if ( isPrint )
         *f_str << "Scan computation area for lookup minimal distance from internal nodes to wall.\n" << flush;
@@ -2206,9 +2211,9 @@ for (int i=0;i<(int)MaxX;i++ ) {
                 if (pJ->GetValue(i,j).isCond2D(CT_NODE_IS_SET_2D) && !pJ->GetValue(i,j).isCond2D(CT_SOLID_2D)) {
                     num_active_nodes++;
                     
-                    if(num_active_nodes >= active_nodes_per_submatrix) {
+                    if(num_active_nodes >= active_nodes_per_SubDomain) {
                        ijsm.SetY(i+1);
-                       Submatrix->AddElement(&ijsm);
+                       SubDomain->AddElement(&ijsm);
                        ijsm.SetX(i);
                        num_active_nodes = 0;
                     }
@@ -2228,15 +2233,15 @@ for (int i=0;i<(int)MaxX;i++ ) {
             *f_str << " Time:" << (time1.tv_sec-time2.tv_sec)+(time1.tv_usec-time2.tv_usec)*1.e-6 << "sec.\n" << flush; 
 #endif // _DEBUG_0 // 2
             delete WallNodes;
-*f_str << "SubMatrix decomposition was finished:\n";
-for(jj=0;jj<Submatrix->GetNumElements();jj++) {
-   *f_str << "SubMatrix[" << jj << "]->["<< Submatrix->GetElementPtr(jj)->GetX() <<","<< Submatrix->GetElementPtr(jj)->GetY() <<"]\n";
+*f_str << "SubDomain decomposition was finished:\n";
+for(jj=0;jj<SubDomain->GetNumElements();jj++) {
+   *f_str << "SubDomain[" << jj << "]->["<< SubDomain->GetElementPtr(jj)->GetX() <<","<< SubDomain->GetElementPtr(jj)->GetY() <<"]\n";
 }
 if(isTurbulenceReset) {
    isTurbulenceReset = 0;
 }
 f_str->flush();
-return Submatrix;
+return SubDomain;
 }
 
 void SetInitBoundaryLayer(ComputationalMatrix2D* pJ, FP delta) {

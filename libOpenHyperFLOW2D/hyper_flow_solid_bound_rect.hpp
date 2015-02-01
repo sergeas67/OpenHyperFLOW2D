@@ -5,7 +5,7 @@
 *   Copyright (C)  1995-2015 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
 *                                                                              *
-*   last update: 11/01/2015                                                    *
+*   last update: 01/02/2015                                                    *
 *******************************************************************************/
 #ifndef _hyper_flow_solid_bound_rect_hpp_
 #define _hyper_flow_solid_bound_rect_hpp_
@@ -44,11 +44,7 @@ class SolidBoundRect2D : protected BoundContour2D,
                          protected Area2D {
     FP X, Y, dX,dY;
     char* SolidBoundRectName;
-#ifndef _UNIFORM_MESH_
-    Mesh2D*  pMesh;       //  anisotropic mesh
-#else
 
-#endif // _UNIFORM_MESH_
 public:
 
   SolidBoundRect2D(char* name,
