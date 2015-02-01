@@ -5,7 +5,7 @@
 *   Copyright (C)  1995-2015 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
 *                                                                              *
-*   last update: 11/01/2015                                                    *
+*   last update: 01/02/2015                                                    *
 *******************************************************************************/
 #include "libExcept/except.hpp"
 #include "libOpenHyperFLOW2D/hyper_flow_airfoil.hpp"

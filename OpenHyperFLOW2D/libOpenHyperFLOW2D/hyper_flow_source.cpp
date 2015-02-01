@@ -5,7 +5,7 @@
 *   Copyright (C)  1995-2015 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
 *                                                                              *
-*   last update: 11/01/2015                                                    *
+*   last update: 01/02/2015                                                    *
 *******************************************************************************/
 #include "libOpenHyperFLOW2D/hyper_flow_source.hpp"
 // <------------- 2D --------------->           
@@ -105,7 +105,6 @@ unsigned int x,y;
         for ( i=0;i!=DY+SKY;i+=SKY ) {
             x = (unsigned int)(sx+i*dF*SKX);
             y = (unsigned int)(sy+i*SKY);
-            //F->GetValue(x,y).isCleanSources = 0;
             if(FlowNode2D<FP,NUM_COMPONENTS>::FT==FT_AXISYMMETRIC) {
                 if(sy == 0 || ey ==0) {
                    DR = DY*F->GetValue(sx,sy).dy;
@@ -160,7 +159,6 @@ FP dF;
         for ( i=0;i!=DX+SKX;i+=SKX ) {
             x = (unsigned int)(sx+i*SKX);
             y = (unsigned int)(sy+i*dF*SKY);
-            //F->GetValue(x,y).isCleanSources = 0;
             for (int k=0;k<FlowNode2D<FP, NUM_COMPONENTS>::NumEq;k++ )
                 F->GetValue(x,y).Src[k] = F->GetValue(x,y).SrcAdd[k] = 0.;
         }
@@ -175,7 +173,6 @@ FP dF;
         for ( i=0;i!=DY+SKY;i+=SKY ) {
             x = (unsigned int)(sx+i*dF*SKX);
             y = (unsigned int)(sy+i*SKY);
-            //F->GetValue(x,y).isCleanSources = 0;
             for (int k=0;k<FlowNode2D<FP, NUM_COMPONENTS>::NumEq;k++ )
                 F->GetValue(x,y).Src[k] = F->GetValue(x,y).SrcAdd[k] = 0.;
         }
