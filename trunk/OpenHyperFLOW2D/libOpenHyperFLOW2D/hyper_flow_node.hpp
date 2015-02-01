@@ -5,7 +5,7 @@
 *   Copyright (C)  1995-2015 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
 *                                                                              *
-*   last update: 11/01/2015                                                    *
+*   last update: 01/02/2015                                                    *
 *******************************************************************************/
 
 #ifndef  _hyper_flow_node_hpp
@@ -166,7 +166,6 @@ public:
     int        NGY;                  // dF/dy integer coeff. 0, 1 or -1
     //int        NodeID;               // Material ID (for solid Nodes)
     ulong      CT;                   // Condition type  (bit flags combination)
-    //int        isCleanSources;       // is clean sources ?
     int        i_wall,j_wall;        // neast wall coordinates
     T          beta;                 // local blending factor (LBF).
     T          Q_conv;               // Convective heat flux 
@@ -364,9 +363,6 @@ FlowNode2D<T,a>::FlowNode2D(T  RO,
     idXr=1;
     idYd=1;
 
-    //if(isCleanSources)
-    //    for(i=0;i<NumEq;i++)
-    //        Src[i]=0;
     FillNode2D(0,1);
 }
 

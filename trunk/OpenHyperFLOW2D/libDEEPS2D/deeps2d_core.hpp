@@ -9,7 +9,7 @@
 *                                                                              *
 * Common function declarations file.                                           *
 *                                                                              *
-*  last update: 11/01/2015                                                     *
+*  last update: 01/02/2015                                                     *
 ********************************************************************************/
 #ifdef _MPI
 #include <mpi.h>
@@ -119,7 +119,7 @@ extern int    fd_l;
 extern FP delta_bl;
 extern void*  SolidSwapData;
 extern void*  GasSwapData;
-extern UArray< UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* >* ArraySubmatrix;
+extern UArray< UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* >* ArraySubDomain;
 extern ChemicalReactionsModelData2D chemical_reactions;
 extern UArray< XY<int> >*           WallNodes;
 extern UArray< MonitorPoint >*      MonitorPointsArray;
@@ -130,9 +130,9 @@ extern int                   NumWallNodes;
 //extern FP                x0;
 // External variables
 extern SolverMode                                               ProblemType;
-extern UArray< XY<int> >*                                       GlobalSubmatrix;
-extern UArray<UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*>*     SubmatrixArray;
-extern UArray<UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >*>* CoreSubmatrixArray;
+extern UArray< XY<int> >*                                       GlobalSubDomain;
+extern UArray<UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*>*     SubDomainArray;
+extern UArray<UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >*>* CoreSubDomainArray;
 extern InputData*                            Data;                     // Object data loader
 extern UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*     J;          // Main computation area
 extern UArray<Flow*>*                        FlowList;                 // Flow list

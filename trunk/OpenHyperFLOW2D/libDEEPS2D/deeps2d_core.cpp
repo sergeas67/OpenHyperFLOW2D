@@ -9,7 +9,7 @@
 *                                                                              *
 *  deeps2d_core.cpp: OpenHyperFLOW2D solver core code....                      *
 *                                                                              *
-*  last update: 11/01/2015                                                     *
+*  last update: 01/02/2015                                                     *
 ********************************************************************************/
 #include "deeps2d_core.hpp"
 
@@ -29,11 +29,11 @@ int            err_i, err_j;
 int            turb_mod_name_index = 0;
 FP             Ts0,A,W,Mach;
 
-UArray< XY<int> >* GlobalSubmatrix;
+UArray< XY<int> >* GlobalSubDomain;
 UArray< XY<int> >* WallNodes;
 
-UArray<UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*>*     SubmatrixArray;
-UArray<UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >*>* CoreSubmatrixArray;
+UArray<UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*>*     SubDomainArray;
+UArray<UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >*>* CoreSubDomainArray;
 UArray<XCut>*                                            XCutArray;
 
 int             Nstep;
@@ -535,9 +535,9 @@ void DEEPS2D_Run(ofstream* f_stream
     FP    DD[FlowNode2D<FP,NUM_COMPONENTS>::NumEq];
     FP    sum_RMS[FlowNode2D<FP,NUM_COMPONENTS>::NumEq];
     unsigned long sum_iRMS[FlowNode2D<FP,NUM_COMPONENTS>::NumEq];
-    UMatrix2D<FP> RMS(FlowNode2D<FP,NUM_COMPONENTS>::NumEq,SubmatrixArray->GetNumElements());
-    UMatrix2D<int>    iRMS(FlowNode2D<FP,NUM_COMPONENTS>::NumEq,SubmatrixArray->GetNumElements());
-    UMatrix2D<FP> DD_max(FlowNode2D<FP,NUM_COMPONENTS>::NumEq,SubmatrixArray->GetNumElements());
+    UMatrix2D<FP> RMS(FlowNode2D<FP,NUM_COMPONENTS>::NumEq,SubDomainArray->GetNumElements());
+    UMatrix2D<int>    iRMS(FlowNode2D<FP,NUM_COMPONENTS>::NumEq,SubDomainArray->GetNumElements());
+    UMatrix2D<FP> DD_max(FlowNode2D<FP,NUM_COMPONENTS>::NumEq,SubDomainArray->GetNumElements());
 #else
     FP   RMS[FlowNode2D<FP,NUM_COMPONENTS>::NumEq];
     unsigned long iRMS[FlowNode2D<FP,NUM_COMPONENTS>::NumEq];
@@ -560,13 +560,13 @@ void DEEPS2D_Run(ofstream* f_stream
     n1 = n2 = n3 = n4 = 1;
     d_time = 0.;
 #ifndef _MPI
-    dt_min = new FP[SubmatrixArray->GetNumElements()];
-    i_c    = new int[SubmatrixArray->GetNumElements()];
-    j_c    = new int[SubmatrixArray->GetNumElements()];
+    dt_min = new FP[SubDomainArray->GetNumElements()];
+    i_c    = new int[SubDomainArray->GetNumElements()];
+    j_c    = new int[SubDomainArray->GetNumElements()];
 #endif // _MPI
 
 #ifndef _MPI
-    for(int ii=0;ii<(int)SubmatrixArray->GetNumElements();ii++) {
+    for(int ii=0;ii<(int)SubDomainArray->GetNumElements();ii++) {
         dt_min[ii] = dtmin = dt;
         i_c[ii] = j_c[ii] = 0;
      }
@@ -637,8 +637,8 @@ void DEEPS2D_Run(ofstream* f_stream
                    FlowNode2D<FP,NUM_COMPONENTS>::isSrcAdd = 0;
                   }
 #ifdef _OPENMP
-                  n_s = (int)SubmatrixArray->GetNumElements();
-#pragma omp parallel shared(f_stream,CoreSubmatrixArray, SubmatrixArray, chemical_reactions,Y_mix,sum_RMS, sum_iRMS, \
+                  n_s = (int)SubDomainArray->GetNumElements();
+#pragma omp parallel shared(f_stream,CoreSubDomainArray, SubDomainArray, chemical_reactions,Y_mix,sum_RMS, sum_iRMS, \
                             Cp,i_max,j_max,k_max,Tg,beta0,CurrentTimePart,DD,dx,dy,MaxX,MaxY,dt_min, dtmin,RMS,iRMS,DD_max,i_c,j_c,n_s) \
                      private(iter,j,k,n1,n2,n3,n4,N1,N2,N3,N4,n_n,m_m,pC,pJ,err_i,err_j,\
                              beta,_beta,AddEq,dXX,dYY,DD_local,AAA,StartXLocal,MaxXLocal,\
@@ -694,7 +694,7 @@ void DEEPS2D_Run(ofstream* f_stream
                     k_max_RMS = -1;
 
                     for ( k=0;k<(int)FlowNode2D<FP,NUM_COMPONENTS>::NumEq;k++ ) {
-                           for(int ii=0;ii<(int)SubmatrixArray->GetNumElements();ii++) {
+                           for(int ii=0;ii<(int)SubDomainArray->GetNumElements();ii++) {
                                sum_RMS[k]  = RMS(k,ii)  = 0.;    // Clean sum residual
                                sum_iRMS[k] = iRMS(k,ii) = 0;     // num involved nodes
                            }
@@ -731,8 +731,8 @@ void DEEPS2D_Run(ofstream* f_stream
 #endif //_OPENMP
 
 #ifndef _MPI
-                    pJ = SubmatrixArray->GetElement(ii);
-                    pC = CoreSubmatrixArray->GetElement(ii);
+                    pJ = SubDomainArray->GetElement(ii);
+                    pC = CoreSubDomainArray->GetElement(ii);
 #endif // _MPI
 
 #ifdef _MPI
@@ -747,7 +747,7 @@ void DEEPS2D_Run(ofstream* f_stream
                     else
                        StartXLocal=1;
                     
-                    if( ii == (int)SubmatrixArray->GetNumElements()-1) {
+                    if( ii == (int)SubDomainArray->GetNumElements()-1) {
                         MaxXLocal=pJ->GetX();
                     } else {
                         MaxXLocal=pJ->GetX()-1;
@@ -965,14 +965,14 @@ void DEEPS2D_Run(ofstream* f_stream
 //schedule(dynamic) ordered nowait
              for(int ii=0;ii<n_s;ii++) {
 
-                    pJ = SubmatrixArray->GetElement(ii);
-                    pC = CoreSubmatrixArray->GetElement(ii);
+                    pJ = SubDomainArray->GetElement(ii);
+                    pC = CoreSubDomainArray->GetElement(ii);
 
                     if( ii == 0)
                       StartXLocal=0;
                     else
                       StartXLocal=1;
-                    if( ii == (int)SubmatrixArray->GetNumElements()-1) {
+                    if( ii == (int)SubDomainArray->GetNumElements()-1) {
                         MaxXLocal=pJ->GetX();
                     } else {
                         MaxXLocal=pJ->GetX()-1;
@@ -1311,7 +1311,7 @@ void DEEPS2D_Run(ofstream* f_stream
 #ifdef _MPI
                                       ,rank,last_rank
 #else
-                                      ,ii,(int)SubmatrixArray->GetNumElements()-1 
+                                      ,ii,(int)SubDomainArray->GetNumElements()-1 
 #endif // _MPI
                                    );
 #ifdef _OPENMP
@@ -1432,7 +1432,7 @@ void DEEPS2D_Run(ofstream* f_stream
 #endif // _OPENMP
     {
         for(k=0;k<(int)(FlowNode2D<FP,NUM_COMPONENTS>::NumEq);k++ ) {
-         for(int ii=0;ii<(int)SubmatrixArray->GetNumElements();ii++) {
+         for(int ii=0;ii<(int)SubDomainArray->GetNumElements();ii++) {
               if(iRMS(k,ii) > 0) {
                  sum_RMS[k]  += RMS(k,ii);
                  sum_iRMS[k] += iRMS(k,ii);
@@ -1580,11 +1580,11 @@ void DEEPS2D_Run(ofstream* f_stream
         void*  tmp_RecvPtr;
         u_long tmp_RecvSize;
         for(int ii=1;ii<last_rank+1;ii++) {
-           tmp_RecvPtr=(void*)((u_long)(ArraySubmatrix->GetElement(ii)->GetMatrixPtr())+
-                                        ArraySubmatrix->GetElement(ii)->GetColSize()*(r_Overlap+
+           tmp_RecvPtr=(void*)((u_long)(ArraySubDomain->GetElement(ii)->GetMatrixPtr())+
+                                        ArraySubDomain->GetElement(ii)->GetColSize()*(r_Overlap+
                                                                                       l_Overlap));
-           tmp_RecvSize=ArraySubmatrix->GetElement(ii)->GetMatrixSize()-
-                        ArraySubmatrix->GetElement(ii)->GetColSize()*(r_Overlap-l_Overlap);
+           tmp_RecvSize=ArraySubDomain->GetElement(ii)->GetMatrixSize()-
+                        ArraySubDomain->GetElement(ii)->GetColSize()*(r_Overlap-l_Overlap);
 #ifdef _IMPI_
            LongMatrixRecv(ii, tmp_RecvPtr, tmp_RecvSize);  // Low Mem Send subdomain
 #else
@@ -1626,10 +1626,10 @@ void DEEPS2D_Run(ofstream* f_stream
       void*  tmp_SendPtr;
       u_long tmp_SendSize;
       for(int ii=1;ii<last_rank+1;ii++) {
-          tmp_SendPtr=(void*)((u_long)(ArraySubmatrix->GetElement(ii)->GetMatrixPtr())+
-          ArraySubmatrix->GetElement(ii)->GetColSize()*(r_Overlap+l_Overlap));
-          tmp_SendSize=ArraySubmatrix->GetElement(ii)->GetMatrixSize()-
-          ArraySubmatrix->GetElement(ii)->GetColSize()*(r_Overlap-l_Overlap);
+          tmp_SendPtr=(void*)((u_long)(ArraySubDomain->GetElement(ii)->GetMatrixPtr())+
+          ArraySubDomain->GetElement(ii)->GetColSize()*(r_Overlap+l_Overlap));
+          tmp_SendSize=ArraySubDomain->GetElement(ii)->GetMatrixSize()-
+          ArraySubDomain->GetElement(ii)->GetColSize()*(r_Overlap-l_Overlap);
 #ifdef _IMPI_
           LongMatrixSend(ii, tmp_SendPtr, tmp_SendSize);  // Low Mem Send subdomain
 #else
@@ -1981,11 +1981,11 @@ ScanArea(ofstream* f_str,ComputationalMatrix2D* pJ ,int isPrint) {
     TurbulenceCondType2D TM = TCT_No_Turbulence_2D;
     timeval  time1, time2;
     unsigned int i,j,jj,num_threads=1; //ii,iw,jw,
-    long num_active_nodes,active_nodes_per_submatrix;
+    long num_active_nodes,active_nodes_per_SubDomain;
     UArray< XY<int> >* pWallNodes;
-    UArray< XY<int> >* Submatrix;
+    UArray< XY<int> >* SubDomain;
     pWallNodes = new UArray< XY<int> >();
-    Submatrix = new UArray< XY<int> >();
+    SubDomain = new UArray< XY<int> >();
     XY<int> ij;
     XY<int> ijsm;
 
@@ -2022,9 +2022,9 @@ num_threads = MPI::COMM_WORLD.Get_size();
  num_threads = omp_get_num_threads(); 
 }
 #endif // _OPENMP
-active_nodes_per_submatrix = num_active_nodes/num_threads; 
+active_nodes_per_SubDomain = num_active_nodes/num_threads; 
 if ( isPrint )
-        *f_str << "Found " << pWallNodes->GetNumElements() <<" wall nodes from " << num_active_nodes << " gas filled nodes (" << num_threads <<" threads, "<< active_nodes_per_submatrix <<" active nodes per thread).\n" << flush;
+        *f_str << "Found " << pWallNodes->GetNumElements() <<" wall nodes from " << num_active_nodes << " gas filled nodes (" << num_threads <<" threads, "<< active_nodes_per_SubDomain <<" active nodes per thread).\n" << flush;
 
     if ( isPrint )
         *f_str << "Scan computation area for lookup minimal distance from internal nodes to wall.\n" << flush;
@@ -2079,9 +2079,9 @@ for (int i=0;i<(int)MaxX;i++ ) {
                 if (pJ->GetValue(i,j).isCond2D(CT_NODE_IS_SET_2D) && !pJ->GetValue(i,j).isCond2D(CT_SOLID_2D)) {
                     num_active_nodes++;
                     
-                    if(num_active_nodes >= active_nodes_per_submatrix) {
+                    if(num_active_nodes >= active_nodes_per_SubDomain) {
                        ijsm.SetY(i+1);
-                       Submatrix->AddElement(&ijsm);
+                       SubDomain->AddElement(&ijsm);
                        ijsm.SetX(i);
                        num_active_nodes = 0;
                     }
@@ -2101,15 +2101,15 @@ for (int i=0;i<(int)MaxX;i++ ) {
             *f_str << " Time:" << (time1.tv_sec-time2.tv_sec)+(time1.tv_usec-time2.tv_usec)*1.e-6 << "sec.\n" << flush; 
 #endif // _DEBUG_0 // 2
             delete WallNodes;
-*f_str << "SubMatrix decomposition was finished:\n";
-for(jj=0;jj<Submatrix->GetNumElements();jj++) {
-   *f_str << "SubMatrix[" << jj << "]->["<< Submatrix->GetElementPtr(jj)->GetX() <<","<< Submatrix->GetElementPtr(jj)->GetY() <<"]\n";
+*f_str << "SubDomain decomposition was finished:\n";
+for(jj=0;jj<SubDomain->GetNumElements();jj++) {
+   *f_str << "SubDomain[" << jj << "]->["<< SubDomain->GetElementPtr(jj)->GetX() <<","<< SubDomain->GetElementPtr(jj)->GetY() <<"]\n";
 }
 if(isTurbulenceReset) {
    isTurbulenceReset = 0;
 }
 f_str->flush();
-return Submatrix;
+return SubDomain;
 }
 
 void SetInitBoundaryLayer(ComputationalMatrix2D* pJ, FP delta) {
@@ -2718,8 +2718,8 @@ void* InitDEEPS2D(void* lpvParam)
         u_long          FileSizeGas=0;
         static int      PreloadFlag = 0,p_g=0;
 
-        SubmatrixArray     = new UArray<UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* >();
-        CoreSubmatrixArray = new UArray<UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >* >();
+        SubDomainArray     = new UArray<UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* >();
+        CoreSubDomainArray = new UArray<UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >* >();
 #ifdef _DEBUG_0
         ___try {
 #endif  // _DEBUG_0
@@ -4419,7 +4419,7 @@ void* InitDEEPS2D(void* lpvParam)
                SetWallNodes(f_stream, J);
            }
             
-            GlobalSubmatrix = ScanArea(f_stream,J, isVerboseOutput);
+            GlobalSubDomain = ScanArea(f_stream,J, isVerboseOutput);
 /* Load additional sources */
              isGasSource  = Data->GetIntVal((char*)"NumSrc");
              if ( Data->GetDataError()==-1 ) Abort_OpenHyperFLOW2D();

@@ -45,7 +45,7 @@ endif
 
 
 NOPROFILE  = -fomit-frame-pointer
-DEBUG      = -g
+DEBUG      = 
 PICFLAGS   = -fPIC
 #STATIC= -static
 

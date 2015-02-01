@@ -47,8 +47,7 @@ MPIDIR    = $(MPI2DIR)
 MPILIB    = $(MPIDIR)/lib
 MPIBIN    = $(MPIDIR)/bin
 MPIARCH   = LINUX
-MPI       = -L $(MPILIB) -D_MPI -D_MVAPICH_
-#-D_MPI_NB 
+MPI       = -L $(MPILIB) -D_MPI -D_MVAPICH_ -D_MPI_NB 
 PARALLEL_SUFFIX +=-MPI-NB
 endif
 #######################################################
@@ -101,9 +100,9 @@ MPIARCH   = LINUX
 MPILIB64  = $(MPIDIR)/lib64
 MPILIB    = $(MPILIB64)
 MPIBIN    = $(MPIDIR)/bin
-MPI       = $(MPIINC) -L $(MPILIB) -D_MPI -D_OMPI_
+MPI       = $(MPIINC) -L $(MPILIB)  -D_MPI -D_OMPI_
+# -D_MPI_NB
 PARALLEL_SUFFIX +=-OMPI
-#  -NB  -D_MPI_NB
 endif
 
 #######################################################
