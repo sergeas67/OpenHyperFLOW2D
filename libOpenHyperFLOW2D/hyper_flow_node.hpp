@@ -192,7 +192,6 @@ public:
     T          dUdx,dUdy,            // dU/dx,dU/dy
                dVdx,dVdy,            // dV/dx,dV/dy
                dTdx,dTdy;            // dT/dx,dT/dy
-    T          r;                    // r (radius for axisymmetric coords. for 2D isotropic mesh)
     T          BGX;                  // dF/dx angle coeff. (cos(Ayz))
     T          BGY;                  // dF/dy angle coeff. (cos(Axz))
     FlowNode2D(FlowType ft = FT_FLAT); // flat model - default for 2D
@@ -559,7 +558,7 @@ inline void FlowNode2D<T,a>::FillNode2D(int is_mu_t,
         L=(2./3.)*_mu;                  // 2-nd viscosity (dilatation)
 
         if(_FT == FT_AXISYMMETRIC)
-           Tmp2 = L*(dUdx+dVdy+_FT*V/r); // L*dilatation (2D)
+           Tmp2 = L*(dUdx+dVdy+_FT*V/y); // L*dilatation (2D)
         else
            Tmp2 = L*(dUdx+dVdy);        // L*dilatation (2D)
     }
@@ -646,7 +645,7 @@ inline void FlowNode2D<T,a>::FillNode2D(int is_mu_t,
         }
 
         if( _FT == FT_AXISYMMETRIC ) {
-            t00   = 2*_mu*V/r - Tmp2;
+            t00   = 2*_mu*V/y - Tmp2;
             F[i2d_RoU] -= RY[i2d_RoU];
             F[i2d_RoV] -= RY[i2d_RoV]+t00;
             F[i2d_RoE] -= RY[i2d_RoE];
@@ -749,7 +748,7 @@ void  FlowNode2D<T,a>::TurbModRANS2D(int is_mu_t,
 #endif // __ICC
 
         if(_FT)
-          Tmp3  += U/r;
+          Tmp3  += U/y;
 
         if(FlowNodeTurbulence2D<T,a>::mu_t == 0)
            FlowNodeTurbulence2D<T,a>::mu_t = FlowNodeCore2D<T,a>::S[i2d_Ro]*l*l*max(fabs(dUdy),fabs(dVdx));
@@ -1098,7 +1097,7 @@ void  FlowNode2D<T,a>::TurbModRANS2D(int is_mu_t,
 #endif // __ICC
 
         if(FT)
-          Tmp3  += U/r;
+          Tmp3  += U/y;
 
         if(FlowNodeTurbulence2D<T,a>::mu_t == 0)
            FlowNodeTurbulence2D<T,a>::mu_t = FlowNodeCore2D<T,a>::S[i2d_Ro]*l*l*max(fabs(dUdy),fabs(dVdx));
@@ -1573,7 +1572,7 @@ inline void FlowNode2D<T,a>::FillNode2D(int is_mu_t,
         L=(2./3.)*_mu;                  // 2-nd viscosity (dilatation)
 
         if(FT == FT_AXISYMMETRIC)
-           Tmp2 = L*(dUdx+dVdy+FT*V/r); // L*dilatation (2D)
+           Tmp2 = L*(dUdx+dVdy+FT*V/y); // L*dilatation (2D)
         else
            Tmp2 = L*(dUdx+dVdy);        // L*dilatation (2D)
         
@@ -1625,7 +1624,7 @@ inline void FlowNode2D<T,a>::FillNode2D(int is_mu_t,
         }
 
         if( FT == FT_AXISYMMETRIC ) {
-            t00   = 2*_mu*V/r - Tmp2;
+            t00   = 2*_mu*V/y - Tmp2;
             F[i2d_RoU] -= RY[i2d_RoU];
             F[i2d_RoV] -= RY[i2d_RoV]+t00;
             F[i2d_RoE] -= RY[i2d_RoE];
@@ -1724,7 +1723,7 @@ void  FlowNode2D<T,a>::TurbModRANS2D(int is_mu_t,
 #endif // __ICC
 
         if(FT)
-          Tmp3  += U/r;
+          Tmp3  += U/y;
 
         if(FlowNodeTurbulence2D<T,a>::mu_t == 0)
            FlowNodeTurbulence2D<T,a>::mu_t = FlowNodeCore2D<T,a>::S[i2d_Ro]*l*l*max(fabs(dUdy),fabs(dVdx));

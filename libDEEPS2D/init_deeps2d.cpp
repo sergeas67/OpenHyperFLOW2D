@@ -1337,27 +1337,24 @@ void* InitDEEPS2D(void* lpvParam)
                           i_err = i;
                           j_err = j;
 #ifndef _UNIFORM_MESH_
-                            if ( meshType ) {
-                                J->GetValue(i,j).dx  = dx;
-                                J->GetValue(i,j).dy  = dy;
-                            }
+                          J->GetValue(i,j).dx  = dx;
+                          J->GetValue(i,j).dy  = dy;
 #endif //_UNIFORM_MESH_
 
-                            if ( FlowNode2D<FP,NUM_COMPONENTS>::FT == FT_AXISYMMETRIC )
-                                 J->GetValue(i,j).r     = (j+0.5)*dy;
-                            
-                            J->GetValue(i,j).x     = (i+0.5)*dx;
-                            J->GetValue(i,j).y     = (j+0.5)*dy;
-                            J->GetValue(i,j).ix    = i;
-                            J->GetValue(i,j).iy    = j;
-                            J->GetValue(i,j).Tf    = chemical_reactions.Tf;
-                            J->GetValue(i,j).BGX   = 1.;
-                            J->GetValue(i,j).BGY   = 1.;
-                            J->GetValue(i,j).NGX   = 0;
-                            J->GetValue(i,j).NGY   = 0;
+                          //if ( FlowNode2D<FP,NUM_COMPONENTS>::FT == FT_AXISYMMETRIC )
+                          //     J->GetValue(i,j).r     = (j+0.5)*dy;
+                          J->GetValue(i,j).x     = (i+0.5)*dx;
+                          J->GetValue(i,j).y     = (j+0.5)*dy;
+                          J->GetValue(i,j).ix    = i;
+                          J->GetValue(i,j).iy    = j;
+                          J->GetValue(i,j).Tf    = chemical_reactions.Tf;
+                          J->GetValue(i,j).BGX   = 1.;
+                          J->GetValue(i,j).BGY   = 1.;
+                          J->GetValue(i,j).NGX   = 0;
+                          J->GetValue(i,j).NGY   = 0;
 
-                            for ( k=0;k<(int)FlowNode2D<FP,NUM_COMPONENTS>::NumEq;k++ )
-                                J->GetValue(i,j).Src[k]= J->GetValue(i,j).SrcAdd[k] = 0;
+                          for ( k=0;k<(int)FlowNode2D<FP,NUM_COMPONENTS>::NumEq;k++ )
+                              J->GetValue(i,j).Src[k]= J->GetValue(i,j).SrcAdd[k] = 0;
                         }
 
 #ifdef _DEBUG_0

@@ -118,7 +118,7 @@ int main( int argc, char **argv )
             printf("non-uniform mesh");
 #endif //_UNIFORM_MESH_
 
-            printf("\n\n");
+            printf("\n\n\tFlowNode2D size = %d bytes\n\n",sizeof(FlowNode2D<FP,NUM_COMPONENTS>));
             Exit_OpenHyperFLOW2D();
         } else {
             sprintf(inFile,"%s",argv[1]);
