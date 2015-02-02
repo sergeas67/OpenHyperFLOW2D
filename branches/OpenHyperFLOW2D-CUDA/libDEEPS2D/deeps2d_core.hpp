@@ -182,7 +182,7 @@ extern FP                                ExitMonitorValue;
 extern int                               MonitorNumber;
 extern int                               MonitorCondition;
 extern unsigned int                      AddSrcStartIter;
-extern FP                                beta[6+NUM_COMPONENTS];
+extern FP                                beta;
 extern FP                                beta0;
 extern int                               NumContour;
 extern char*                             ProjectName;

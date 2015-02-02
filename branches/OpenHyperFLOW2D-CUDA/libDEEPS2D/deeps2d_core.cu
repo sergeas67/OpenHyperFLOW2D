@@ -56,7 +56,7 @@ int     MonitorCondition; // 0 - equal
                           // 2 - great than
 
 unsigned int     AddSrcStartIter = 0;
-FP  beta[6+NUM_COMPONENTS];
+FP  beta;
 FP  beta0;
 FP  CFL;
 Table*  CFL_Scenario;
@@ -243,8 +243,8 @@ inline void  DEEPS2D_Stage1(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*     pLJ,
               FlowNode2D< FP,NUM_COMPONENTS >* LeftNode=NULL;        // references
               FlowNode2D< FP,NUM_COMPONENTS >* RightNode=NULL;
 
-              FP beta[NUM_COMPONENTS+6];  
-              FP _beta[NUM_COMPONENTS+6]; 
+              FP beta;  
+              FP _beta; 
               FP dXX,dYY;
 
               int Num_Eq = FlowNode2D<FP,NUM_COMPONENTS>::NumEq-SetTurbulenceModel(CurrentNode);
@@ -278,8 +278,8 @@ inline void  DEEPS2D_Stage1(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*     pLJ,
                     int      dx_flag, dx2_flag;
                     int      dy_flag, dy2_flag;
 
-                    beta[k]  = CurrentNode->beta[k];
-                    _beta[k] = 1. - beta[k];
+                    beta  = CurrentNode->beta[k];
+                    _beta = 1. - beta;
 
                 // Precomputed variables for current node ...
                     c_flag  = dx_flag = dy_flag = dx2_flag = dy2_flag = 0;
@@ -392,10 +392,10 @@ inline void  DEEPS2D_Stage1(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*     pLJ,
                         }
 
                         if ( CurrentNode->FT ) {
-                            NextNode->S[k] = CurrentNode->S[k]*beta[k]+_beta[k]*(dxx*(LeftNode->S[k]+RightNode->S[k])+dyy*(UpNode->S[k]+DownNode->S[k]))*0.5
+                            NextNode->S[k] = CurrentNode->S[k]*beta+_beta*(dxx*(LeftNode->S[k]+RightNode->S[k])+dyy*(UpNode->S[k]+DownNode->S[k]))*0.5
                                           - (dtdx*dXX+dtdy*(dYY+CurrentNode->F[k]/(j+1))) + (CurrentNode->Src[k])*dt+CurrentNode->SrcAdd[k];
                         } else {
-                            NextNode->S[k] = CurrentNode->S[k]*beta[k]+_beta[k]*(dxx*(LeftNode->S[k]+RightNode->S[k])+dyy*(UpNode->S[k]+DownNode->S[k]))*0.5
+                            NextNode->S[k] = CurrentNode->S[k]*beta+_beta*(dxx*(LeftNode->S[k]+RightNode->S[k])+dyy*(UpNode->S[k]+DownNode->S[k]))*0.5
                                           - (dtdx*dXX+dtdy*dYY) + (CurrentNode->Src[k])*dt+CurrentNode->SrcAdd[k];
                         }
                 }

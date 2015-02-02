@@ -63,7 +63,7 @@ FP CalcaveragePressure2D(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* pJ,
                  j < (int)(d/FlowNode2D<FP,NUM_COMPONENTS>::dy)) {
                 FP V_i = 0;
                 if (FlowNode2D<FP,NUM_COMPONENTS>::FT == FT_AXISYMMETRIC) {
-                    V_i = 2 * M_PI * pJ->GetValue(i,j).r * FlowNode2D<FP,NUM_COMPONENTS>::dy * FlowNode2D<FP,NUM_COMPONENTS>::dx; 
+                    V_i = 2 * M_PI * pJ->GetValue(i,j).y * FlowNode2D<FP,NUM_COMPONENTS>::dy * FlowNode2D<FP,NUM_COMPONENTS>::dx; 
                     V_sum += V_i;
                     p_mid += pJ->GetValue(i,j).p * V_i;
                 } else {
@@ -109,7 +109,7 @@ FP CalcaverageTemperature2D(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* pJ,
                  j < (int)(d/FlowNode2D<FP,NUM_COMPONENTS>::dy)) {
                 FP V_i = 0;
                 if (FlowNode2D<FP,NUM_COMPONENTS>::FT == FT_AXISYMMETRIC) {
-                    V_i = 2 * M_PI * pJ->GetValue(i,j).r * FlowNode2D<FP,NUM_COMPONENTS>::dy * FlowNode2D<FP,NUM_COMPONENTS>::dx; 
+                    V_i = 2 * M_PI * pJ->GetValue(i,j).y * FlowNode2D<FP,NUM_COMPONENTS>::dy * FlowNode2D<FP,NUM_COMPONENTS>::dx; 
 
                     if (is_mid_ethalpy_T)
                         V_i = V_i*pJ->GetValue(i,j).CP;
@@ -156,7 +156,7 @@ unsigned int jj_end = (unsigned int)((y0+dy)/FlowNode2D<FP,NUM_COMPONENTS>::dy);
             if (FlowNode2D<FP,NUM_COMPONENTS>::FT == FT_FLAT)
                 Sp+= FlowNode2D<FP,NUM_COMPONENTS>::dy;
             else
-                Sp+= 2 * M_PI *FlowNode2D<FP,NUM_COMPONENTS>::dy*pJ->GetValue(i,j).r;
+                Sp+= 2 * M_PI *FlowNode2D<FP,NUM_COMPONENTS>::dy*pJ->GetValue(i,j).y;
         }
     }
     return(Sp);
@@ -184,7 +184,7 @@ FP CalcMassFlowRateX2D(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* pJ,
             if (FlowNode2D<FP,NUM_COMPONENTS>::FT == FT_FLAT)
                 Mp+= FlowNode2D<FP,NUM_COMPONENTS>::dy*pJ->GetValue(i,j).S[i2d_RoU];
             else
-                Mp+= 2 * M_PI *FlowNode2D<FP,NUM_COMPONENTS>::dy*pJ->GetValue(i,j).r*pJ->GetValue(i,j).S[i2d_RoU];
+                Mp+= 2 * M_PI *FlowNode2D<FP,NUM_COMPONENTS>::dy*pJ->GetValue(i,j).y*pJ->GetValue(i,j).S[i2d_RoU];
         }
     }
     return(Mp);
@@ -221,8 +221,8 @@ FP CalcXForceYSym2D(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* pJ,
                     Sp = FlowNode2D<FP,NUM_COMPONENTS>::dy;
                     Sd = FlowNode2D<FP,NUM_COMPONENTS>::dx;
                 } else {
-                    Sp = 2 * M_PI * pJ->GetValue(i,j).r*FlowNode2D<FP,NUM_COMPONENTS>::dy;
-                    Sd = 2 * M_PI * pJ->GetValue(i,j).r*FlowNode2D<FP,NUM_COMPONENTS>::dx;
+                    Sp = 2 * M_PI * pJ->GetValue(i,j).y*FlowNode2D<FP,NUM_COMPONENTS>::dy;
+                    Sd = 2 * M_PI * pJ->GetValue(i,j).y*FlowNode2D<FP,NUM_COMPONENTS>::dx;
                 }
                 // Pressure forces
                 if (i > 0 && pJ->GetValue(i-1,j).isCond2D(CT_SOLID_2D) ) {
@@ -343,8 +343,8 @@ FP CalcYForce2D(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* pJ,
                     Sp = FlowNode2D<FP,NUM_COMPONENTS>::dx;
                     Sd = FlowNode2D<FP,NUM_COMPONENTS>::dy;
                 } else {
-                    Sp = 2 * M_PI * pJ->GetValue(i,j).r*FlowNode2D<FP,NUM_COMPONENTS>::dx;
-                    Sd = 2 * M_PI * pJ->GetValue(i,j).r*FlowNode2D<FP,NUM_COMPONENTS>::dy;
+                    Sp = 2 * M_PI * pJ->GetValue(i,j).y*FlowNode2D<FP,NUM_COMPONENTS>::dx;
+                    Sd = 2 * M_PI * pJ->GetValue(i,j).y*FlowNode2D<FP,NUM_COMPONENTS>::dy;
                 }
                 // Pressure forces
 
@@ -458,7 +458,7 @@ FP   Calc_Cy_2D(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* pJ,
                 if (FlowNode2D<FP,NUM_COMPONENTS>::FT == FT_FLAT) {
                     Fmid += FlowNode2D<FP,NUM_COMPONENTS>::dy;
                 } else {
-                    Fmid += 2 * M_PI * pJ->GetValue(0,j).r*FlowNode2D<FP,NUM_COMPONENTS>::dy;
+                    Fmid += 2 * M_PI * pJ->GetValue(0,j).y*FlowNode2D<FP,NUM_COMPONENTS>::dy;
                 }
             }
         }
@@ -761,7 +761,7 @@ unsigned int jj_end = (unsigned int)((y0+dy)/FlowNode2D<FP,NUM_COMPONENTS>::dy);
             if (FlowNode2D<FP,NUM_COMPONENTS>::FT == FT_FLAT)
                 Fv+= FlowNode2D<FP,NUM_COMPONENTS>::dy*(pJ->GetValue(i,j).S[i2d_RoU]*pJ->GetValue(i,j).U+(pF->Pg() - p_amb));
             else
-                Fv+= 2 * M_PI *FlowNode2D<FP,NUM_COMPONENTS>::dy*pJ->GetValue(i,j).r*(pJ->GetValue(i,j).S[i2d_RoU]*pJ->GetValue(i,j).U+(pF->Pg() - p_amb));
+                Fv+= 2 * M_PI *FlowNode2D<FP,NUM_COMPONENTS>::dy*pJ->GetValue(i,j).y*(pJ->GetValue(i,j).S[i2d_RoU]*pJ->GetValue(i,j).U+(pF->Pg() - p_amb));
         }
     }
     
