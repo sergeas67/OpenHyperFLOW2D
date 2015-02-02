@@ -44,7 +44,7 @@ unsigned int x,y;
             if(sy == 0 || ey ==0) {
               F->GetValue(sx,sy).Src[i2d_Ro]      =  M_s0/(M_PI*F->GetValue(sx,sy).dx*F->GetValue(sx,sy).dy*F->GetValue(sx,sy).dy);
             } else {
-              F->GetValue(sx,sy).Src[i2d_Ro]      =  M_s0/(2*M_PI*F->GetValue(sx,sy).dx*F->GetValue(sx,sy).dy*F->GetValue(sx,sy).r);
+              F->GetValue(sx,sy).Src[i2d_Ro]      =  M_s0/(2*M_PI*F->GetValue(sx,sy).dx*F->GetValue(sx,sy).dy*F->GetValue(sx,sy).y);
             }
         } else {
               F->GetValue(sx,sy).Src[i2d_Ro]      =  M_s0/(F->GetValue(sx,sy).dx*F->GetValue(sx,sy).dy); 

@@ -88,7 +88,7 @@ enum CondType2D   {                  // Condition type (bit flags)
     CT_d2Ydy2_NULL_2D  = 0x01000000, // 25 - d2RhoY1...RhoYn/dy2 = 0 (Cauchy BC)
     CT_TIME_DEPEND_2D  = 0x02000000, // 26 - time depended Dirichlet BC / F=f(t) /
     CT_WALL_NO_SLIP_2D = 0x04000000, // 27 - (if this bit set this node is WALL whis no-slip condition)
-    CT_WALL_SLIP_2D    = 0x08000000, // 28 - (if this bit set this node is WALL whis slip condition)
+    CT_WALL_LAW_2D     = 0x08000000, // 28 - (if this bit set this node is WALL law  condition)
     CT_GAS_2D          = 0x010000000,// 29 - (if this bit set this node is GAS)
     CT_BL_REFINEMENT_2D= 0x020000000,// 30 - (if this bit set this node content additional array of boundary layer nodes)
     CT_SOLID_2D        = 0x040000000,// 31 - (if this bit set this node is SOLID)
@@ -116,7 +116,7 @@ enum     NodeType2D {
 
     NT_AY_2D         = CT_NODE_IS_SET_2D | NT_D0X_2D | CT_U_CONST_2D,// AXIAL condition (axi has Y direction)
     NT_AX_2D         = CT_NODE_IS_SET_2D | NT_D0Y_2D | CT_V_CONST_2D,// AXIAL condition (axi has X direction)
-    NT_WS_2D         = CT_NODE_IS_SET_2D | CT_WALL_SLIP_2D,          // Wall slip condition
+    NT_WS_2D         = CT_NODE_IS_SET_2D | CT_WALL_LAW_2D,          // Wall slip condition
     NT_WNS_2D        = CT_NODE_IS_SET_2D | CT_WALL_NO_SLIP_2D |      // Wall no-slip
                        CT_U_CONST_2D | CT_V_CONST_2D,                // condition
     NT_S_2D          = CT_SOLID_2D   | CT_NODE_IS_SET_2D,            // Solid body
@@ -146,11 +146,9 @@ public:
 #ifdef    _UNIFORM_MESH_
     static
 #endif // _UNIFORM_MESH_
-    T          dx,dy;              // dx, dy(dr)
-#ifndef    _UNIFORM_MESH_
-    T          x,y;                // x, y(r)
-#endif // _UNIFORM_MESH_
-
+    T                dx,dy;       // dx, dy(dr)
+    T                x,y;         // x, y(r)
+    int              ix,iy;       // i_x,i_y
 // Neighboring nodes
     FlowNode2D<T,a>*            UpNode;
     FlowNode2D<T,a>*            DownNode;
@@ -167,7 +165,7 @@ public:
     //int        NodeID;               // Material ID (for solid Nodes)
     ulong      CT;                   // Condition type  (bit flags combination)
     int        i_wall,j_wall;        // neast wall coordinates
-    T          beta;                 // local blending factor (LBF).
+    T          beta[6+a];            // superlocal blending factor (SLBF).
     T          Q_conv;               // Convective heat flux 
     T          time;                 // Global time.
     T          k,R,lam,mu,CP,Diff;   // Cp/Cv, gas constant (R/m), lam, mu, Cp, mu/Cp.
@@ -187,10 +185,9 @@ public:
     T          dUdx,dUdy,            // dU/dx,dU/dy
                dVdx,dVdy,            // dV/dx,dV/dy
                dTdx,dTdy;            // dT/dx,dT/dy
-    T          r;                    // r (radius for axisymmetric coords. for 2D isotropic mesh)
     T          BGX;                  // dF/dx angle coeff. (cos(Ayz))
     T          BGY;                  // dF/dy angle coeff. (cos(Axz))
-    FlowNode2D(FlowType ft = FT_FLAT); // plane model - default for 2D
+    FlowNode2D(FlowType ft = FT_FLAT); // flat model - default for 2D
     FlowNode2D(T RO,
              T U,
              T V,
@@ -423,11 +420,14 @@ inline void FlowNode2D<T,a>::FillNode2D(int is_mu_t,
         V    = FlowNodeCore2D<T,a>::S[i2d_RoV]/FlowNodeCore2D<T,a>::S[i2d_Ro];
 
     if (sm == SM_NS) {
+        
         _mu = _lam = G = 0.;
+        
         if(is_init)
            FlowNodeTurbulence2D<T,a>::mu_t = FlowNodeTurbulence2D<T,a>::lam_t = 0.;
 
-        TurbModRANS2D(is_mu_t,is_init,tem,delta);
+        if(FlowNodeTurbulence2D<T,a>::TurbType > 0)
+           TurbModRANS2D(is_mu_t,is_init,tem,delta);
     }
  
 
@@ -440,8 +440,8 @@ inline void FlowNode2D<T,a>::FillNode2D(int is_mu_t,
 
     Tmp3+=Hu[a]*Tmp1;
 
-    if(isCond2D(CT_WALL_SLIP_2D)) {
-        // Simple  model
+    if(isCond2D(CT_WALL_LAW_2D)) {
+        // Simple  model (TODO)
         Tmp1 = sqrt(U*U+V*V+1.e-30);
 
         FlowNodeCore2D<T,a>::S[i2d_RoU] = Tmp1*BGX; 
@@ -484,13 +484,15 @@ inline void FlowNode2D<T,a>::FillNode2D(int is_mu_t,
     }
 
     p  = (k-1.)*(FlowNodeCore2D<T,a>::S[i2d_RoE]-FlowNodeCore2D<T,a>::S[i2d_Ro]*(U*U+V*V)*0.5-Tmp3);
+    
     Tg = p/R/FlowNodeCore2D<T,a>::S[i2d_Ro];
 
     if (sm == SM_NS) {
+
         FlowNodeTurbulence2D<T,a>::lam_t  = FlowNodeTurbulence2D<T,a>::mu_t*CP;
 
         if(is_mu_t) {
-            if(isCond2D(CT_WALL_NO_SLIP_2D) || isCond2D(CT_WALL_SLIP_2D)){
+            if(isCond2D(CT_WALL_NO_SLIP_2D) || isCond2D(CT_WALL_LAW_2D)){
                 _mu = mu+FlowNodeTurbulence2D<T,a>::mu_t*sig_w;
                 _lam   = lam+FlowNodeTurbulence2D<T,a>::lam_t*sig_w; 
             } else {
@@ -506,7 +508,7 @@ inline void FlowNode2D<T,a>::FillNode2D(int is_mu_t,
         L=(2./3.)*_mu;                  // 2-nd viscosity (dilatation)
 
         if(FT == FT_AXISYMMETRIC)
-           Tmp2 = L*(dUdx+dVdy+FT*V/r); // L*dilatation (2D)
+           Tmp2 = L*(dUdx+dVdy+FT*V/y); // L*dilatation (2D)
         else
            Tmp2 = L*(dUdx+dVdy);        // L*dilatation (2D)
 
@@ -527,7 +529,7 @@ inline void FlowNode2D<T,a>::FillNode2D(int is_mu_t,
             A[i]=FlowNodeCore2D<T,a>::S[i]*U;
         }
 
-        if( FT == 1 ) {
+        if( FT == FT_AXISYMMETRIC ) {
             F[i2d_Ro]  = FT*B[i2d_Ro];  
             F[i2d_RoU] = FT*A[i2d_RoV];
             F[i2d_RoV] = FT*F[i2d_Ro]*V;
@@ -580,7 +582,7 @@ inline void FlowNode2D<T,a>::FillNode2D(int is_mu_t,
             }
 
             if( FT == FT_AXISYMMETRIC ) {
-                t00   = 2*_mu*V/r - Tmp2;
+                t00   = 2*_mu*V/y - Tmp2;
                 F[i2d_RoU] -= RY[i2d_RoU];
                 F[i2d_RoV] -= RY[i2d_RoV]+t00;
                 F[i2d_RoE] -= RY[i2d_RoE];
@@ -669,7 +671,7 @@ void  FlowNode2D<T,a>::TurbModRANS2D(int is_mu_t,
 #endif // __ICC
 
         if(FT)
-          Tmp3  += U/r;
+          Tmp3  += U/y;
 
         if(FlowNodeTurbulence2D<T,a>::mu_t == 0)
            FlowNodeTurbulence2D<T,a>::mu_t = FlowNodeCore2D<T,a>::S[i2d_Ro]*l*l*max(fabs(dUdy),fabs(dVdx));
@@ -725,7 +727,7 @@ void  FlowNode2D<T,a>::TurbModRANS2D(int is_mu_t,
          }else if(tem == TEM_k_eps_RNG) {
             // RNG
              // Calc various dumbing functions here
-             FP nu_0 = 4.38;
+             T nu_0 = 4.38;
 
              if(FlowNodeCore2D<T,a>::S[i2d_eps] != 0.)
                nu = sqrt(G)*FlowNodeCore2D<T,a>::S[i2d_k]/FlowNodeCore2D<T,a>::S[i2d_eps];
@@ -773,7 +775,7 @@ void  FlowNode2D<T,a>::TurbModRANS2D(int is_mu_t,
            FlowNodeCore2D<T,a>::S[i2d_eps] = pow(C_mu,3./4.)*pow(FlowNodeCore2D<T,a>::S[i2d_k]/FlowNodeCore2D<T,a>::S[i2d_Ro],3./2.)/l;
 
         if(is_mu_t && FlowNodeCore2D<T,a>::S[i2d_eps] != 0) {
-            FP nu_t = fabs(C_mu * f_mu * FlowNodeCore2D<T,a>::S[i2d_k]*FlowNodeCore2D<T,a>::S[i2d_k]/FlowNodeCore2D<T,a>::S[i2d_eps]);   
+            T nu_t = fabs(C_mu * f_mu * FlowNodeCore2D<T,a>::S[i2d_k]*FlowNodeCore2D<T,a>::S[i2d_k]/FlowNodeCore2D<T,a>::S[i2d_eps]);   
             FlowNodeTurbulence2D<T,a>::mu_t = min(nu_t,(FlowNodeTurbulence2D<T,a>::mu_t));
         }
         if (!is_init) {
@@ -846,7 +848,7 @@ void  FlowNode2D<T,a>::TurbModRANS2D(int is_mu_t,
 
             if(is_init) {
                FlowNodeCore2D<T,a>::S[i2d_nu_t] = mu/FlowNodeCore2D<T,a>::S[i2d_Ro]/100.0; // initial turbulence visc.
-            } else if (isCond2D(CT_WALL_NO_SLIP_2D) || isCond2D(CT_WALL_SLIP_2D) || 
+            } else if (isCond2D(CT_WALL_NO_SLIP_2D) || isCond2D(CT_WALL_LAW_2D) || 
                        FlowNodeTurbulence2D<T,a>::isTurbulenceCond2D(TCT_nu_t_CONST_2D)) {
                FlowNodeCore2D<T,a>::S[i2d_nu_t] = 0.; 
             } else if (isCond2D(NT_FC_2D) ) {

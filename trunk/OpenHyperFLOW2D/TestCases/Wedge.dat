@@ -93,7 +93,7 @@
 <endtable>
 
 ; Maximum number of steps
-<data/Nmax=1000>
+<data/Nmax=24000>
 ; Every NOutStep-th step is displayed
 <data/NOutStep=100>
 <data/NSaveStep=1>
