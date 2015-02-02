@@ -23,7 +23,7 @@
 ;--------------------------------------------------;
 ; is single GPU mode on ?                          ;
 ;--------------------------------------------------;
-<data/isSingleGPU=1>
+<data/isSingleGPU=0>
 
 ;--------------------------------------------------;
 ; General parameters                               ;
@@ -31,7 +31,7 @@
 ; Problem Type
 ; 0 - Euler
 ; 1 - Navier-Stokes
-<data/ProblemType=1>
+<data/ProblemType=0>
 
 ;FlowType
 ; 0 - FLAT
@@ -93,7 +93,7 @@
 <endtable>
 
 ; Maximum number of steps
-<data/Nmax=1000>
+<data/Nmax=24000>
 ; Every NOutStep-th step is displayed
 <data/NOutStep=100>
 <data/NSaveStep=1>
