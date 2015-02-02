@@ -818,8 +818,6 @@ void DEEPS2D_Run(ofstream* f_stream
 
                                 AddEq = SetTurbulenceModel(CurrentNode);
 
-                                beta  = CurrentNode->beta;
-                                _beta = 1. - beta;
                                 
                                 int Num_Eq =  (FlowNode2D<FP,NUM_COMPONENTS>::NumEq-AddEq);
 
@@ -828,6 +826,9 @@ void DEEPS2D_Run(ofstream* f_stream
                                         int      c_flag = 0;
                                         int      dx_flag, dx2_flag;
                                         int      dy_flag, dy2_flag;
+                                        
+                                        beta  = CurrentNode->beta[k];
+                                        _beta = 1. - beta;
 
                                 // Precomputed variables for current node ...
                                         c_flag  = dx_flag = dy_flag = dx2_flag = dy2_flag = 0;
@@ -1048,21 +1049,21 @@ void DEEPS2D_Run(ofstream* f_stream
 
                                         if( bFF == BFF_L) {
                                         //LINEAR locally adopted blending factor function  (LLABFF)
-                                          CurrentNode->beta = min(beta_min,(beta_min*beta_min)/(beta_min+DD_local[k]));
+                                          CurrentNode->beta[k] = min(beta_min,(beta_min*beta_min)/(beta_min+DD_local[k]));
                                         } else if( bFF == BFF_LR) {
                                         //LINEAR locally adopted blending factor function with relaxation (LLABFFR)
-                                          CurrentNode->beta = min((beta_min+CurrentNode->beta)*0.5,(beta_min*beta_min)/(beta_min+DD_local[k]));
+                                          CurrentNode->beta[k] = min((beta_min+CurrentNode->beta[k])*0.5,(beta_min*beta_min)/(beta_min+DD_local[k]));
                                         } else if( bFF == BFF_S) {
                                           //SQUARE locally adopted blending factor function (SLABF)
-                                          CurrentNode->beta = min(beta_min,(beta_min*beta_min)/(beta_min+DD_local[k]*DD_local[k]));
+                                          CurrentNode->beta[k] = min(beta_min,(beta_min*beta_min)/(beta_min+DD_local[k]*DD_local[k]));
                                         } else if (bFF == BFF_SR) {
                                           //SQUARE locally adopted blending factor function with relaxation (SLABFFR)
-                                          CurrentNode->beta = min((beta_min+CurrentNode->beta)*0.5,(beta_min*beta_min)/(beta_min+DD_local[k]*DD_local[k]));
+                                          CurrentNode->beta[k] = min((beta_min+CurrentNode->beta[k])*0.5,(beta_min*beta_min)/(beta_min+DD_local[k]*DD_local[k]));
                                         } else if( bFF == BFF_SQR) {
                                         //SQRT() locally adopted blending factor function (SQRLABF) + most accurate & stable +
-                                          CurrentNode->beta = min(beta_min,(beta_min*beta_min)/(beta_min+sqrt(DD_local[k])));
+                                          CurrentNode->beta[k] = min(beta_min,(beta_min*beta_min)/(beta_min+sqrt(DD_local[k])));
                                         } else if( bFF == BFF_SQRR) {
-                                          CurrentNode->beta = min((beta_min+CurrentNode->beta)*0.5,(beta_min*beta_min)/(beta_min+sqrt(DD_local[k]))); 
+                                          CurrentNode->beta[k] = min((beta_min+CurrentNode->beta[k])*0.5,(beta_min*beta_min)/(beta_min+sqrt(DD_local[k]))); 
                                         }
 #ifdef _MPI
                                             DD_max[rank].DD[k].DD   = max(DD_max[rank].DD[k].DD,DD_local[k]);
@@ -1112,7 +1113,7 @@ void DEEPS2D_Run(ofstream* f_stream
                                     }
                                     
                                     if(ProblemType == SM_NS) {
-                                        if (CurrentNode->isCond2D(CT_WALL_NO_SLIP_2D) || CurrentNode->isCond2D(CT_WALL_SLIP_2D) )  {
+                                        if (CurrentNode->isCond2D(CT_WALL_NO_SLIP_2D) || CurrentNode->isCond2D(CT_WALL_LAW_2D) )  {
                                             CurrentNode->dUdx=(RightNode->U*n1-LeftNode->U*n2)*dx_1*n_n_1;
                                             CurrentNode->dVdx=(RightNode->V*n1-LeftNode->V*n2)*dx_1*n_n_1;
 
@@ -1959,7 +1960,7 @@ UArray< XY<int> >* GetWallNodes(ofstream* f_str, ComputationalMatrix2D* pJ, int 
     for (int j=0;j<(int)pJ->GetY();j++ ) {
        for (int i=0;i<(int)pJ->GetX();i++ ) {
            if (!pJ->GetValue(i,j).isCond2D(CT_SOLID_2D)){
-            if ( pJ->GetValue(i,j).isCond2D(CT_WALL_SLIP_2D) || 
+            if ( pJ->GetValue(i,j).isCond2D(CT_WALL_LAW_2D) || 
                  pJ->GetValue(i,j).isCond2D(CT_WALL_NO_SLIP_2D)) {
                 ij.SetXY(i,j);
                 WallNodes->AddElement(&ij);
@@ -1998,7 +1999,7 @@ ScanArea(ofstream* f_str,ComputationalMatrix2D* pJ ,int isPrint) {
            if (!pJ->GetValue(i,j).isCond2D(CT_SOLID_2D)){
                num_active_nodes++;
                pJ->GetValue(i,j).SetCond2D(CT_NODE_IS_SET_2D);
-            if ( pJ->GetValue(i,j).isCond2D(CT_WALL_SLIP_2D) || 
+            if ( pJ->GetValue(i,j).isCond2D(CT_WALL_LAW_2D) || 
                  pJ->GetValue(i,j).isCond2D(CT_WALL_NO_SLIP_2D)) {
                 ij.SetXY(i,j);
                 pWallNodes->AddElement(&ij);
@@ -2341,8 +2342,8 @@ void PrintCond(ofstream* OutputData, FlowNode2D<FP,NUM_COMPONENTS>* fn) {
 
     // Wall conditions:
     // - Slip
-    if ( fn->isCond2D(CT_WALL_SLIP_2D) )
-        *OutputData << "-CT_WALL_SLIP_2D" << flush;
+    if ( fn->isCond2D(CT_WALL_LAW_2D) )
+        *OutputData << "-CT_WALL_LAW_2D" << flush;
     // - Glide
     if ( fn->isCond2D(CT_WALL_NO_SLIP_2D) )
         *OutputData << "-CT_WALL_NO_SLIP_2D"  << flush;
@@ -2599,7 +2600,7 @@ inline  void CalcHeatOnWallSources(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* F
                     else
                       RightNode = NULL;
 
-                if ( CurrentNode->isCond2D(CT_WALL_SLIP_2D) || 
+                if ( CurrentNode->isCond2D(CT_WALL_LAW_2D) || 
                      CurrentNode->isCond2D(CT_WALL_NO_SLIP_2D)) { 
                     FP lam_eff = 0;
                     int num_near_nodes = 0;
@@ -3166,8 +3167,8 @@ void* InitDEEPS2D(void* lpvParam)
                                 TmpCT = (CondType2D)(TmpCT | CT_T_CONST_2D);
                             if ( strstr(BoundStr,"CT_Y_CONST_2D") )
                                 TmpCT = (CondType2D)(TmpCT | CT_Y_CONST_2D);
-                            if ( strstr(BoundStr,"CT_WALL_SLIP_2D") )
-                                TmpCT = (CondType2D)(TmpCT | CT_WALL_SLIP_2D);
+                            if ( strstr(BoundStr,"CT_WALL_LAW_2D") )
+                                TmpCT = (CondType2D)(TmpCT | CT_WALL_LAW_2D);
                             if ( strstr(BoundStr,"CT_WALL_NO_SLIP_2D") )
                                 TmpCT = (CondType2D)(TmpCT | CT_WALL_NO_SLIP_2D);
                             if ( strstr(BoundStr,"CT_dRodx_NULL_2D") )
@@ -3692,23 +3693,23 @@ void* InitDEEPS2D(void* lpvParam)
                           i_err = i;
                           j_err = j;
 #ifndef _UNIFORM_MESH_
-                          if ( meshType ) {
-                                J->GetValue(i,j).dx  = dx;
-                                J->GetValue(i,j).dy  = dy;
-                            }
+                          J->GetValue(i,j).dx  = dx;
+                          J->GetValue(i,j).dy  = dy;
 #endif //_UNIFORM_MESH_
 
-                            if ( FlowNode2D<FP,NUM_COMPONENTS>::FT == FT_AXISYMMETRIC )
-                                 J->GetValue(i,j).r     = (j+1)*dy;
-                            J->GetValue(i,j).Tf    = chemical_reactions.Tf;
-                            J->GetValue(i,j).BGX   = 1.;
-                            J->GetValue(i,j).BGY   = 1.;
-                            //J->GetValue(i,j).isCleanSources = 1;
-                            J->GetValue(i,j).NGX   = 0;
-                            J->GetValue(i,j).NGY   = 0;
+                          //if ( FlowNode2D<FP,NUM_COMPONENTS>::FT == FT_AXISYMMETRIC )
+                          //     J->GetValue(i,j).r     = (j+1)*dy;
+                          
+                          J->GetValue(i,j).x     = (i+0.5)*dx;
+                          J->GetValue(i,j).y     = (j+0.5)*dy;
+                          J->GetValue(i,j).Tf    = chemical_reactions.Tf;
+                          J->GetValue(i,j).BGX   = 1.;
+                          J->GetValue(i,j).BGY   = 1.;
+                          J->GetValue(i,j).NGX   = 0;
+                          J->GetValue(i,j).NGY   = 0;
 
-                            for ( k=0;k<(int)FlowNode2D<FP,NUM_COMPONENTS>::NumEq;k++ )
-                                J->GetValue(i,j).Src[k]= J->GetValue(i,j).SrcAdd[k] = 0;
+                          for ( k=0;k<(int)FlowNode2D<FP,NUM_COMPONENTS>::NumEq;k++ )
+                              J->GetValue(i,j).Src[k]= J->GetValue(i,j).SrcAdd[k] = 0;
                         }
 #ifdef _DEBUG_0
                 }__except(SysException e) {
@@ -4320,7 +4321,10 @@ void* InitDEEPS2D(void* lpvParam)
                                 J->GetValue(i,j).idYu  = 1;
                                 J->GetValue(i,j).idYd  = 1;
                                 J->GetValue(i,j).l_min = min(dx*MaxX,dy*MaxY);
-                                J->GetValue(i,j).beta  = beta0;
+                                
+                                for (int k=0;k < FlowNode2D<FP,NUM_COMPONENTS>::NumEq;k++) {
+                                   J->GetValue(i,j).beta[k]  = beta0;
+                                }
                                 
                                 if ( j==0 || J->GetValue(i,j-1).isCond2D(CT_SOLID_2D) ) {           // is down node present ? (0 or 1)
                                     J->GetValue(i,j).idYd=0;/*J->GetValue(i,j).NGY =2;*/
@@ -4335,7 +4339,7 @@ void* InitDEEPS2D(void* lpvParam)
                                     J->GetValue(i,j).idXr=0;/*J->GetValue(i,j).NGX =2;*/
                                 }
 
-                                if (J->GetValue(i,j).isCond2D(CT_WALL_NO_SLIP_2D) || J->GetValue(i,j).isCond2D(CT_WALL_SLIP_2D)) {
+                                if (J->GetValue(i,j).isCond2D(CT_WALL_NO_SLIP_2D) || J->GetValue(i,j).isCond2D(CT_WALL_LAW_2D)) {
                                     J->GetValue(i,j).NGX   = J->GetValue(i,j).idXl - J->GetValue(i,j).idXr + J->GetValue(i,j).idXl*J->GetValue(i,j).idXr;
                                     J->GetValue(i,j).NGY   = J->GetValue(i,j).idYd - J->GetValue(i,j).idYu + J->GetValue(i,j).idYd*J->GetValue(i,j).idYu;
                                 }

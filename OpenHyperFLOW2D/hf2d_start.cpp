@@ -72,7 +72,7 @@ int main( int argc, char **argv )
 #else
             printf("non-uniform mesh");
 #endif //_UNIFORM_MESH_
-            printf("\n");
+            printf("\n\n\tFlowNode2D size = %d bytes\n\n",(int)(sizeof(FlowNode2D<FP,NUM_COMPONENTS>)));
             exit(0);
         } else {
 #ifdef _MPI

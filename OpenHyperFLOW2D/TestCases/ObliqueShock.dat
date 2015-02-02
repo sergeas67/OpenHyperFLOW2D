@@ -85,13 +85,13 @@
 
 ; Base blending factor scenario
 <table=beta_Scenario/3>
-0       0.9855
-20000   0.9895
+0       0.9875
+20000   0.9885
 100000  0.9895
 <endtable>
 
 ; Maximum number of steps
-<data/Nmax=1000>
+<data/Nmax=12000>
 ; Every NOutStep-th step is displayed
 <data/NOutStep=100>
 <data/NSaveStep=1>
