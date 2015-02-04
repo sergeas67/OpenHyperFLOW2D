@@ -4,6 +4,7 @@
 *   Version  1.0.2                                                             *
 *   Copyright (C)  1995-2015 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
+*   http://openhyperflow2d.googlecode.com                                      *
 *                                                                              *
 *   last update: 01/02/2015                                                    *
 *******************************************************************************/
@@ -43,28 +44,28 @@ public:
 
   BoundCircle2D(char* name,
                 UMatrix2D< FlowNode2D< FP, NUM_COMPONENTS> >* JM,  // Computation area 
-                FP  x,                            // Start circle 
-                FP  y,                            // coordinates (x,y)
-                FP  x1,                           // Center circle
-                FP  y1,                           // coordinates (x,y) 
-                FP  dx,                           // dx - step
-                FP  dy,                           // dy - step
+                FP  x,                             // Start circle 
+                FP  y,                             // coordinates (x,y)
+                FP  x1,                            // Center circle
+                FP  y1,                            // coordinates (x,y) 
+                FP  dx,                            // dx - step
+                FP  dy,                            // dy - step
                 ulong    ct,                       // condition type
-                int      MaterialID=GAS_ID,            // Material ID 0- gas !0 - solid
+                int      MaterialID=GAS_ID,        // Material ID 0- gas !0 - solid
                 Flow2D*  pInFlow2D=NULL,           // init flow2d object on circle bound
-                FP*      Y=NULL,                       // component matrix
+                FP*      Y=NULL,                   // component matrix
                 ulong    bctt=TCT_No_Turbulence_2D,// Bound contour turbulence type
                 ostream* dbg_output=NULL);                  
   
   BoundCircle2D(char* name,
                 UMatrix2D< FlowNode2D< FP, NUM_COMPONENTS> >* JM,  // Computation area 
-                FP  x,                            // Center circle
-                FP  y,                            // coordinates (x,y) 
+                FP  x,                             // Center circle
+                FP  y,                             // coordinates (x,y) 
                 FP  r,
-                FP  dx,                           // dx - step
-                FP  dy,                           // dy - step
+                FP  dx,                            // dx - step
+                FP  dy,                            // dy - step
                 ulong    ct,                       // condition type
-                int      MaterialID=GAS_ID,            // Material ID 0- gas !0 - solid
+                int      MaterialID=GAS_ID,        // Material ID 0- gas !0 - solid
                 Flow2D*  pInFlow2D=NULL,           // init flow2d object on circle bound
                 FP*      Y=NULL,                   // component matrix
                 ulong    bctt=TCT_No_Turbulence_2D,// Bound contour turbulence type
