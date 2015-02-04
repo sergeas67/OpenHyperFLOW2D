@@ -2,7 +2,8 @@
                    (Experimental CUDA branch)
 
 Copyright (C)  1995-2015 by Serge A. Suchkov (sergeas67@gmail.com)
-                Copyright policy: LGPL V3
+                   Copyright policy: LGPL V3
+	    http://openhyperflow2d.googlecode.com	   
 
 CFD code for simulation 2D (flat/axisymmetric) transient viscous
 compressible multicomponent sub/trans/supersonic reacting gas flows.
@@ -39,7 +40,7 @@ Experimental features
 2. Separate local blending factor (LBF) for each equation, may be unstable in some cases.
 3. CUDA based computational core.
 
-*Prebuilded binary executble compiled for sm 3.0, 3.5 and 3.7
+*Prebuilded binary executble compiled for sm 3.0, 3.5, 3.7 and 5.2
 
 OpenHyperFLOW2D it is open source clone of HyperFLOW2D (in-house CFD code)
 with reduced functionality, and can be used without restriction for educational

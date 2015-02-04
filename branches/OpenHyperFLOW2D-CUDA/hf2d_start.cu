@@ -4,6 +4,7 @@
 *   Version  1.0.2                                                             *
 *   Copyright (C)  1995-2015 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
+*   http://openhyperflow2d.googlecode.com                                      *
 *                                                                              *
 *   hf2d_start.cpp: OpenHyperFLOW2D solver init code....                       *
 *                                                                              *

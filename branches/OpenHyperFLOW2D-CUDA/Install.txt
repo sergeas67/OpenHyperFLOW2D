@@ -2,7 +2,7 @@ System Requirements
 ===========================
 
 * CPU:           x86_64 compatible;
-* GPU:           CUDA compatible Nvidia card;
+* GPU:           CUDA compatible NVIDIA card;
 * OS:            Linux x86_64 (tested on OpenSUSE 10+, SLES 10+, CentOS 6+, Scientific Linux 5+);
 * C++ compiler:  GNU C++ 4.1+;
 * Drivers        Latest proprietary Nvidia driver
