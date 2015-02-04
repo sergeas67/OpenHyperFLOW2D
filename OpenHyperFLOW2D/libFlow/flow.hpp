@@ -2,6 +2,7 @@
 *  Libflow v2.2                                  *
 *  Copyright (C)  1995-2015 by Serge A. Suchkov  *
 *  Copyright policy: LGPL V3                     *
+*  http://openhyperflow2d.googlecode.com         *
 *************************************************/
 #ifndef _flow_hpp
 #define _flow_hpp

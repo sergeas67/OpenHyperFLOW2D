@@ -3,6 +3,7 @@
 *  Copyright (C) 1994-2010 Serge A. Suchkov                     *
 *  Copyright policy: LGPL V2.0                                  *
 *  Matrix2D template.                                           *
+*  http://openhyperflow2d.googlecode.com                        *
 *  Please report all bugs and problems to "sergeas67@gmail.com".*
 *****************************************************************/
 #ifndef _umatrix2d_hpp_
@@ -207,14 +208,15 @@ inline T& UMatrix2D<T>::operator () (unsigned int x,unsigned int y)
 #ifdef _SAFE_ACCESS_
     CheckLocker cl(GetLocker());
 #endif //_SAFE_ACCESS_
+    
     if(x>=nX) {
         ms=MXS_ERR_OUT_OF_INDEX;throw(this);
     } else if(y>=nY) {
         ms=MXS_ERR_OUT_OF_INDEX;throw(this);
     } else ms = MXS_OK;
-
+    
     if ( mso == MSO_XY )
-        return Ptr[y*nX + x];
+       return Ptr[y*nX + x];
     else
         return Ptr[x*nY + y];
 }
@@ -225,12 +227,13 @@ inline T& UMatrix2D<T>::GetValue(unsigned int x,unsigned int y)
 #ifdef _SAFE_ACCESS_
     CheckLocker cl(GetLocker());
 #endif //_SAFE_ACCESS_
+    
     if(x>=nX) {
         ms=MXS_ERR_OUT_OF_INDEX;throw(this);
     } else if(y>=nY) {
         ms=MXS_ERR_OUT_OF_INDEX;throw(this);
     } else ms = MXS_OK;
-
+    
     if(mso == MSO_XY)
         return Ptr[y*nX + x];
     else
