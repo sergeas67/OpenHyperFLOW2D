@@ -1,7 +1,9 @@
                      OpenHyperFLOW2D
 
 Copyright (C)  1995-2015 by Serge A. Suchkov (sergeas67@gmail.com)
-                Copyright policy: LGPL V3
+                   Copyright policy: LGPL V3
+	    http://openhyperflow2d.googlecode.com	   
+	
 
 CFD code for simulation 2D (flat/axisymmetric) transient viscous
 compressible multicomponent sub/trans/supersonic reacting gas flows.

@@ -6,8 +6,8 @@
 *   Version  1.0.2                                                             *
 *   Copyright (C)  1995-2015 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
-*                                                                              *
-*  deeps2d_core.cpp: OpenHyperFLOW2D solver core code....                      *
+*   http://openhyperflow2d.googlecode.com                                      *
+*   deeps2d_core.cpp: OpenHyperFLOW2D solver core code....                     *
 *                                                                              *
 *  last update: 01/02/2015                                                     *
 ********************************************************************************/

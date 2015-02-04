@@ -58,7 +58,7 @@ Run command 'make test' for run all test cases or run
 
   'make Wedge' for Wedge test case
 
-  'make sphere2d' for Sphere2D test case
+  'make Step' for Step test case
 
 By default MPI parallel version of OpenHyperFLOW2D use only local machine.
 If you are using HPC cluster with several nodes you cat increase number of using nodes.
