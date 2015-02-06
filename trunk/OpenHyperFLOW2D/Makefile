@@ -18,6 +18,10 @@ else
 include   gcc.compiler
 endif
 
+ifeq ("$(DEBUGLEVEL)","0")
+LIBEXCEPT=-lexcept
+endif
+
 ARCH=`arch`
 
 VERSION     = $(CURRENT_VER)
@@ -36,7 +40,7 @@ CLFLAGS   +=
 
 # Libs
 #
-LLIBS_2D     += $(STATIC) -L ./lib  -lDEEPS2D -lexcept -lobj_data -lutl2d  -lhf2d -lflow2d -lOutCFD
+LLIBS_2D     += $(STATIC) -L ./lib  -lDEEPS2D ${LIBEXCEPT} -lobj_data -lutl2d  -lhf2d -lflow2d -lOutCFD
 	
 TARGET_BASE  = OpenHyperFLOW2D
 TARGET_2D    = $(TARGET_BASE)-$(VERSION)
