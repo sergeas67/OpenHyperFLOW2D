@@ -113,7 +113,7 @@ endif
 # MAP_SHARED restricted
 #MMAP     += -D_NO_MMAP_SHARED_
 # mmap restricted
-#MMAP     += -D_NO_MMAP_
+MMAP     += -D_NO_MMAP_
 #######################################################
 
 ifneq ("$(MMAP)$(MPI)$(OPENMP)","")

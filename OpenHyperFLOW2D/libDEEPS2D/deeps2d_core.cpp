@@ -627,7 +627,9 @@ void DEEPS2D_Run(ofstream* f_stream
                     MaxXLocal=pJ->GetX();
 #endif // _MPI
                     
-                 
+                    dx_1 = 1.0/dx;
+                    dy_1 = 1.0/dy;
+                    
              do {
                   gettimeofday(&mark2,NULL);
                   gettimeofday(&start,NULL);
@@ -754,10 +756,6 @@ void DEEPS2D_Run(ofstream* f_stream
                     }
 #endif // _MPI
                     
-                    dx_1 = 1.0/dx;
-                    dy_1 = 1.0/dy;
-                    
-
                     dtdx = dt/dx;
                     dtdy = dt/dy;
 
@@ -4093,7 +4091,7 @@ void* InitDEEPS2D(void* lpvParam)
                 }
                 */
                 //  Areas
-            if ( !PreloadFlag )
+            if ( !PreloadFlag ) {
 #ifdef _DEBUG_0
            ___try {
 #endif  // _DEBUG_0
@@ -4302,8 +4300,8 @@ void* InitDEEPS2D(void* lpvParam)
             }
             __end_except;
 #endif  // _DEBUG_0
-
-
+            }
+            
             if ( !PreloadFlag )
 #ifdef _DEBUG_0
               ___try {
