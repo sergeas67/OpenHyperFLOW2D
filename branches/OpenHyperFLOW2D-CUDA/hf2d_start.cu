@@ -55,36 +55,9 @@ size_t max_gpu_memsize = 0;
 size_t task_size;
 cudaError_t cudaState;
 
-
 UArray< FP >*                                 WallNodesUw_2D = NULL;
 int                                           NumWallNodes;
 int                                           isSingleGPU = 1;
-                                                 
-/*                                               
-FP GPUConf {                                 
-
-}
-
-struct NodeConfig {
- char*  HostName;
- int    numCPUcores;
- UArray<FP> GPUrate;
-};
-
-UArray<NodeConfig*>* clusterArray = NULL;
-
-int CalibrateNodes(UArray<NodeConfig*>* CA, int rank) {
-
-NodeConfig TmpNConf;  
-    
- if (rank == 0) {
-  
- } else {
- 
- }
-
-}
-*/
 
 int main( int argc, char **argv )
 {
@@ -157,10 +130,10 @@ int main( int argc, char **argv )
          printf("\t   Warp size: %d\n",warp_size);
          printf("\t   Enable timeout: %i\n\n",dprop.kernelExecTimeoutEnabled);
         }
-        
+
         // Init shared data
-        InitSharedData(Data,&chemical_reactions);        
-        
+        InitSharedData(Data,&chemical_reactions);
+
         if(isSingleGPU)
            num_threads = num_blocks = num_gpus = 1;
         else
@@ -171,21 +144,21 @@ int main( int argc, char **argv )
         } else {
            printf("Using single GPU mode.\n\n");
         }
-       
+
        //Create arrays  
         cudaArraySubDomain      =  new UArray< FlowNode2D<FP,NUM_COMPONENTS>* >();
         cudaArrayCoreSubDomain  =  new UArray< FlowNodeCore2D<FP,NUM_COMPONENTS>* >();
         cudaDimArray            =  new UArray< XY<int> >();
         cudaHuArray             =  new UArray< FP* >();
-        dt_min_host_Array       =  new UArray<unsigned int*>();   
+        dt_min_host_Array       =  new UArray<unsigned int*>();
         dt_min_device_Array     =  new UArray<unsigned int*>();
         cudaWallNodesArray      =  new UArray< XY<int>* >();
-        cudaCRM2DArray          =  new UArray< ChemicalReactionsModelData2D* >();          
+        cudaCRM2DArray          =  new UArray< ChemicalReactionsModelData2D* >();
 
         // Init solver (run on host)
         InitDEEPS2D((void*)o_stream);
 
-        if(ProblemType == SM_NS) {                                          
+        if(ProblemType == SM_NS) {
             *o_stream << "\nSolver Mode: Navier-Stokes/FP" << 8*sizeof(FP) <<"\n" << endl;
         } else {
             *o_stream << "\nSolver Mode: Euler/FP" << 8*sizeof(FP) <<"\n" << endl;
@@ -214,19 +187,19 @@ int main( int argc, char **argv )
               printf("%s\n", cudaGetErrorString( cudaGetLastError() ) );
               Exit_OpenHyperFLOW2D(num_gpus);
            }
-           
+
            // Load components properties
            LoadTable2GPU(chemical_reactions.Cp_OX,   TmpCRM2D.Cp_OX,   i);
            LoadTable2GPU(chemical_reactions.Cp_Fuel, TmpCRM2D.Cp_Fuel, i);
            LoadTable2GPU(chemical_reactions.Cp_cp,   TmpCRM2D.Cp_cp,   i);
            LoadTable2GPU(chemical_reactions.Cp_air,  TmpCRM2D.Cp_air,  i);
-                                                     
+
            LoadTable2GPU(chemical_reactions.mu_air,  TmpCRM2D.mu_air,  i);
            LoadTable2GPU(chemical_reactions.mu_cp,   TmpCRM2D.mu_cp,   i);
            LoadTable2GPU(chemical_reactions.mu_Fuel, TmpCRM2D.mu_Fuel, i);
            LoadTable2GPU(chemical_reactions.mu_OX,   TmpCRM2D.mu_OX,   i);
-           
-           if(ProblemType == SM_NS) {                                          
+
+           if(ProblemType == SM_NS) {
                LoadTable2GPU(chemical_reactions.lam_air, TmpCRM2D.lam_air, i);
                LoadTable2GPU(chemical_reactions.lam_cp,  TmpCRM2D.lam_cp,  i);
                LoadTable2GPU(chemical_reactions.lam_Fuel,TmpCRM2D.lam_Fuel,i);
@@ -237,7 +210,7 @@ int main( int argc, char **argv )
            TmpCRM2D.H_cp   = chemical_reactions.H_cp;
            TmpCRM2D.H_Fuel = chemical_reactions.H_Fuel;
            TmpCRM2D.H_OX   = chemical_reactions.H_OX;
-           
+
            TmpCRM2D.R_air  = chemical_reactions.R_air;
            TmpCRM2D.R_cp   = chemical_reactions.R_cp;
            TmpCRM2D.R_Fuel = chemical_reactions.R_Fuel;
@@ -246,14 +219,14 @@ int main( int argc, char **argv )
            TmpCRM2D.K0     = chemical_reactions.K0;
            TmpCRM2D.Tf     = chemical_reactions.Tf;
            TmpCRM2D.gamma  = chemical_reactions.gamma;
-           
+
            if(cudaMalloc( (void**)&cudaCRM2D, sizeof(ChemicalReactionsModelData2D) ) == cudaErrorMemoryAllocation) {
               *o_stream << "\nError allocate GPU memory for CRM2D on device no:" << i << endl;
               Exit_OpenHyperFLOW2D(num_gpus);
            }
-           
+
            CopyHostToDevice(&TmpCRM2D,cudaCRM2D,sizeof(ChemicalReactionsModelData2D));
-           
+
            cudaCRM2DArray->AddElement(&cudaCRM2D);
 
        }
@@ -310,16 +283,16 @@ int main( int argc, char **argv )
             }
 #endif // _DEVICE_MMAP_
         }
-        
-        if(ProblemType == SM_NS) {                                          
 
-            // Scan area for seek wall nodes      
+        if(ProblemType == SM_NS) {
+
+            // Scan area for seek wall nodes
             WallNodes = GetWallNodes((ofstream*)o_stream,J,Data->GetIntVal((char*)"isVerboseOutput")); 
 
             NumWallNodes = WallNodes->GetNumElements();
             *o_stream << NumWallNodes << " wall nodes found" << endl; 
         }
-        
+
         gettimeofday(&mark2,NULL);
 
         for (int i_dev=0; i_dev < num_gpus;i_dev++) {
@@ -330,7 +303,7 @@ int main( int argc, char **argv )
             }
 
             if(ProblemType == SM_NS && NumWallNodes > 0) {
-                
+
                 cudaState = cudaMalloc( (void**)&cudaWallNodes, sizeof(XY<int>)*NumWallNodes );
                 if(cudaState == cudaErrorMemoryAllocation) {
                    *o_stream << "\nError allocate GPU memory for WallNodes array." << endl;
@@ -376,7 +349,7 @@ int main( int argc, char **argv )
             else
               l_Overlap = 1;
 
-            TmpMaxX = (SubMaxX-SubStartIndex) + r_Overlap;
+            TmpMaxX = (SubMaxX-SubStartIndex) + l_Overlap;
 
             // Allocate FlowNode2D<FP,NUM_COMPONENTS> subdomain
             cudaState = cudaMalloc( (void**)&cudaSubDomain, (sizeof(FlowNode2D<FP,NUM_COMPONENTS>))*(TmpMaxX*MaxY) );
@@ -417,7 +390,7 @@ int main( int argc, char **argv )
             else
               l_Overlap = 1;
 
-            SubStartIndex = GlobalSubDomain->GetElementPtr(i)->GetX();  
+            SubStartIndex = GlobalSubDomain->GetElementPtr(i)->GetX();
             SubMaxX = GlobalSubDomain->GetElementPtr(i)->GetY();
 
             TmpMaxX = (SubMaxX-SubStartIndex) - r_Overlap;
@@ -456,7 +429,7 @@ int main( int argc, char **argv )
                                                                                                       cudaWallNodes,
                                                                                                       NumWallNodes,
                                                                                                       min(dx,dy),
-                                                                                                      max((x0+FlowNode2D<FP,NUM_COMPONENTS>::dx*TmpMaxX), 
+                                                                                                      max((x0+FlowNode2D<FP,NUM_COMPONENTS>::dx*TmpMaxX),
                                                                                                       (FlowNode2D<FP,NUM_COMPONENTS>::dy*MaxY)),
                                                                                                       FlowNode2D<FP,NUM_COMPONENTS>::dx,
                                                                                                       FlowNode2D<FP,NUM_COMPONENTS>::dy,
@@ -538,8 +511,8 @@ int main( int argc, char **argv )
                    cudaCRM2DArray,
                    num_gpus,
                    cuda_streams,
-                   cuda_events);          
-       
+                   cuda_events);
+
        for (int i = 0; i < num_gpus; i++)  {
 
            if(cudaSetDevice(i) != cudaSuccess ) {
