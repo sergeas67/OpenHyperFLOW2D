@@ -70,9 +70,9 @@ FP  DD_max_var;
 // Cx,Cy,Cd,Cv,Cp,St
 //------------------------------------------
 int     is_Cx_calc,is_Cd_calc;
-FP  p_ambient;
-FP  x0_body,y0_body,dx_body,dy_body;
-FP  x0_nozzle,y0_nozzle,dy_nozzle;
+FP      p_ambient;
+FP      x0_body,y0_body,dx_body,dy_body;
+FP      x0_nozzle,y0_nozzle,dy_nozzle;
 
 int     Cx_Flow_index;
 int     Cd_Flow_index;
@@ -403,7 +403,7 @@ inline void  DEEPS2D_Stage1(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*     pLJ,
             }
         }
      }
- }
+   }
 }
 
 
@@ -423,24 +423,24 @@ int      AddEq = 2;
 }
 #ifdef _MPI_
 inline FP DEEPS2D_Stage2(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*     pLJ,
-                             UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >* pLC,
-                            int MIN_X, int MAX_X, int MAX_Y,
-                            FP  beta0, int b_FF, ChemicalReactionsModelData2D* pCRMD,
-                            int iter, int last_iter, int TurbStartIter,
-                            FP SigW, FP SigF, FP dx_1, FP dy_1, FP delta_bl,
-                            FP CFL0,FP beta_init,
+                         UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >* pLC,
+                         int MIN_X, int MAX_X, int MAX_Y,
+                         FP  beta0, int b_FF, ChemicalReactionsModelData2D* pCRMD,
+                         int iter, int last_iter, int TurbStartIter,
+                         FP SigW, FP SigF, FP dx_1, FP dy_1, FP delta_bl,
+                         FP CFL0,FP beta_init,
 #ifdef _RMS_
 #ifdef _MPI
-                            Var_pack* DD_max, int rank,
+                         Var_pack* DD_max, int rank,
 #else
-                            UMatrix2D<FP>& RMS, 
-                            UMatrix2D<int>&    iRMS,
-                            UMatrix2D<FP>& DD_max,
-                            int* i_c, int* j_c,
-                            int ii,
+                         UMatrix2D<FP>& RMS, 
+                         UMatrix2D<int>&    iRMS,
+                         UMatrix2D<FP>& DD_max,
+                         int* i_c, int* j_c,
+                         int ii,
 #endif //_MPI 
 #endif // _RMS_
-                            TurbulenceExtendedModel TurbExtModel ) {
+                         TurbulenceExtendedModel TurbExtModel ) {
 
     FP dt_min_local;
     FP beta_min;
@@ -1197,10 +1197,17 @@ for (unsigned int i=0;i<GlobalSubDomain->GetNumElements();i++) {
           SaveYHeatFlux2D(pHeatFlux_OutFile,J,Ts0);
           pHeatFlux_OutFile->close();
          }
+
+         if(is_Cx_calc) { // For Airfoils only
+          *f_stream << "\nCx = " << Calc_Cx_2D(J,x0_body,y0_body,dx_body,dy_body,Flow2DList->GetElement(Cx_Flow_index-1)) << 
+                       " Cy = "  << Calc_Cy_2D(J,x0_body,y0_body,dx_body,dy_body,Flow2DList->GetElement(Cx_Flow_index-1)) << 
+                       " Fx = "  << CalcXForce2D(J,x0_body,y0_body,dx_body,dy_body) << " Fy = " << CalcYForce2D(J,x0_body,y0_body,dx_body,dy_body) << endl;
+         }
 // Sync swap files...
 //  Gas area
                      if ( GasSwapData ) {
-                       if(isVerboseOutput)
+                       
+                     if(isVerboseOutput)
                         *f_stream << "\nSync swap file for gas..." << flush;
 #ifdef  _NO_MMAP_
 #ifdef _WRITE_LARGE_FILE_
