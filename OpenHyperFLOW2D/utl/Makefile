@@ -20,6 +20,7 @@ CFLAGS       = $(PICFLAGS) $(OPTIONS)
 TARGET_2D    = libutl2d.a
 SOURCES      = utl.cpp
 OBJECTS      = utl.o
+ASM_LIST     = utl.S
 INCLUDES_2D  = uarray.hpp ustack.hpp umatrix2d.hpp
 TARGET       = $(TARGET_2D)
 
@@ -27,7 +28,7 @@ all: $(TARGET)
 	ln -sf `pwd`/*.a ../lib
 	rm -f *.o
 
-.SUFFIXES: .cpp
+.SUFFIXES: .cpp .S
 	
 .cpp.o:
 #	$(CXXC) -c $(INCPATH) $(CXXOPTIONS) $(CFLAGS) $<;ar -r $(TARGET_2D) $(OBJECTS);
@@ -35,7 +36,13 @@ all: $(TARGET)
 	then $(CXXC) -c $(INCPATH) $(CXXOPTIONS) $(CFLAGS) $<; \
 	ar -r $(TARGET_2D) $(OBJECTS);\
 	fi
-$(TARGET_2D): $(OBJECTS)
+.cpp.S:
+#	$(CXXC) -S -c $(INCPATH) $(CXXOPTIONS) $(CFLAGS) $<;
+	@if [  ! -a $(TARGET_2D)  ];\
+	then $(CXXC) -S -c $(INCPATH) $(CXXOPTIONS) $(CFLAGS) $<; \
+	fi
+
+$(TARGET_2D): $(ASM_LIST) $(OBJECTS)
 
 clean:
 	rm -f *.o $(TARGET) ../lib/$(TARGET_2D)

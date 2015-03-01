@@ -602,9 +602,9 @@ void  FlowNode2D<T,a>::TurbModRANS2D(int is_mu_t,
                                      T delta ) {
 
  #ifdef __ICC
-    __declspec(align(_ALIGN)) T l = max(dy,max((FlowNodeTurbulence2D<T,a>::l_min),dx)) * 0.41;
+    __declspec(align(_ALIGN)) T l = max((FlowNodeTurbulence2D<T,a>::l_min),min(dy,dx)) * 0.41;
  #else
-   T l  __attribute__ ((aligned (_ALIGN))) = max(dy,max((FlowNodeTurbulence2D<T,a>::l_min),dx)) * 0.41;
+   T l  __attribute__ ((aligned (_ALIGN))) = max((FlowNodeTurbulence2D<T,a>::l_min),min(dy,dx)) * 0.41;
  #endif // __ICC
     if(FlowNodeTurbulence2D<T,a>::isTurbulenceCond2D(TCT_Prandtl_Model_2D)) { 
  #ifdef __ICC

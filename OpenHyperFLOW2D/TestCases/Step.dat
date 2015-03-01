@@ -61,7 +61,7 @@
 ; 4 - Rho*E residual
 ; 5 - Time
 <data/MonitorNumber=5>
-<data/ExitMonitorValue=1.0>
+<data/ExitMonitorValue=4.0>
 
 <data/NumMonitorPoints=0>
 
@@ -85,14 +85,14 @@
 
 ; Base blending factor scenario
 <table=beta_Scenario/4>
-0       0.95
+0       0.975
 500     0.975
 1000    0.985
 5000    0.9875
 <endtable>
 
 ; Maximum number of steps
-<data/Nmax=24000>
+<data/Nmax=1000>
 ; Every NOutStep-th step is displayed
 <data/NOutStep=100>
 <data/NSaveStep=1>

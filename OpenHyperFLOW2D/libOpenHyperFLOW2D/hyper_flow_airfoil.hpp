@@ -33,6 +33,11 @@ using namespace std;
     #define min(a,b) (((a)<(b))?(a):(b))
 #endif 
 
+enum AirfoilType {
+ AFT_NACA=3700,
+ AFT_TsAGI,
+};
+
 //////////////////////////////////////////////////////////
 // Airfoil                                              //
 //////////////////////////////////////////////////////////
@@ -73,6 +78,7 @@ class SolidBoundAirfoil2D : protected BoundContour2D,
     FP airfoil_y2(FP t,FP  thick);
     FP airfoil_y(FP t);
     FP airfoil_x(FP t);
+    AirfoilType  airfoil_type;
     char*  SolidBoundAirfoilName;
 
 public:
@@ -95,24 +101,41 @@ public:
                       ostream* dbg_output=NULL);
   
   SolidBoundAirfoil2D(char* name,
-                    UMatrix2D< FlowNode2D< FP, NUM_COMPONENTS> >* JM, // Computation area reference
-                    FP  x,                      // Start profile 
-                    FP  y,                      // coordinates (x,y)
-                    UArray< XY<FP> >* airfoil_points,
-                    FP  dx,                     // dx - step
-                    FP  dy,                     // dy - step
-                    ulong   ct,                 // condition type
-                    Flow2D* pInFlow2D,          // init flow2d object on circle bound
-                    FP* Y=NULL,                 // component matrix
-                    ulong   bctt=TCT_No_Turbulence_2D, // Bound contour turbulence type
-                    FP  scale=1.,               // airfoil scale
-                    FP  attack_angle=0,         // Angle of attack
-                    ostream* dbg_output=NULL);
+                      UMatrix2D< FlowNode2D< FP, NUM_COMPONENTS> >* JM, // Computation area reference
+                      FP  x,                      // Start profile 
+                      FP  y,                      // coordinates (x,y)
+                      UArray< XY<FP> >* airfoil_points,
+                      FP  dx,                     // dx - step
+                      FP  dy,                     // dy - step
+                      ulong   ct,                 // condition type
+                      Flow2D* pInFlow2D,          // init flow2d object on circle bound
+                      FP* Y=NULL,                 // component matrix
+                      ulong   bctt=TCT_No_Turbulence_2D, // Bound contour turbulence type
+                      FP  scale=1.,               // airfoil scale
+                      FP  attack_angle=0,         // Angle of attack
+                      ostream* dbg_output=NULL);
+  
+  SolidBoundAirfoil2D(char* name,
+                      UMatrix2D< FlowNode2D< FP, NUM_COMPONENTS> >* JM, // Computation area reference
+                      FP  x,                      // Start profile 
+                      FP  y,                      // coordinates (x,y)
+                      InputData* airfoil_input_data, // Airfoil input data
+                      FP  dx,                     // dx - step
+                      FP  dy,                     // dy - step
+                      ulong   ct,                 // condition type
+                      Flow2D* pInFlow2D,          // init flow2d object on circle bound
+                      FP* Y=NULL,                 // component matrix
+                      ulong   bctt=TCT_No_Turbulence_2D, // Bound contour turbulence type
+                      FP  scale=1.,               // airfoil scale
+                      FP  attack_angle=0,         // Angle of attack
+                      ostream* dbg_output=NULL);
 
 
   char* GetSolidBoundAirfoilName2D() {
          return SolidBoundAirfoilName;
     }
+
+  AirfoilType GetAirfoilType() { return airfoil_type; }
 };
 
 #endif // _hyper_flow_airfoil_hpp_
