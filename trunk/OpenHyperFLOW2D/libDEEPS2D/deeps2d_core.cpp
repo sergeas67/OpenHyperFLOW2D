@@ -1391,7 +1391,7 @@ void DEEPS2D_Run(ofstream* f_stream
                                         MonitorPointsArray->GetElement(ii_monitor).rank);
               }
         }
-
+        
         if(rank == 0) {
             for(int ii=0,DD_max_var=0.;ii<last_rank+1;ii++) {
                 for (k=0;k<(int)(FlowNode2D<FP,NUM_COMPONENTS>::NumEq);k++ ) {
@@ -1687,6 +1687,14 @@ void DEEPS2D_Run(ofstream* f_stream
           SaveYHeatFlux2D(pHeatFlux_OutFile,J,Ts0);
           pHeatFlux_OutFile->close();
          }
+
+         if(is_Cx_calc) { // For Airfoils only
+          *f_stream << "\nCx = " << Calc_Cx_2D(J,x0_body,y0_body,dx_body,dy_body,Flow2DList->GetElement(Cx_Flow_index-1)) << 
+                       " Cy = "  << Calc_Cy_2D(J,x0_body,y0_body,dx_body,dy_body,Flow2DList->GetElement(Cx_Flow_index-1)) << 
+                       " Fx = "  << CalcXForce2D(J,x0_body,y0_body,dx_body,dy_body) << " Fy = " << CalcYForce2D(J,x0_body,y0_body,dx_body,dy_body) << endl;
+         }
+
+
 // Sync swap files...
 //  Gas area
                      if ( GasSwapData ) {
@@ -2412,8 +2420,8 @@ void SaveRMSHeader(ofstream* OutputData) {
         char  TecPlotTitle[1024];
         char  TmpData[256]={'\0'};
 
-        if(is_Cx_calc)
-           snprintf(TmpData,256,", Cx(N), Cy(N), Fx(N), Fy(N)");
+        //if(is_Cx_calc)
+        //   snprintf(TmpData,256,", Cx(N), Cy(N), Fx(N), Fy(N)");
 
         if(is_Cd_calc)
            snprintf(TmpData,256,", Cd(N), Cv(N)");
@@ -2440,10 +2448,10 @@ void SaveRMS(ofstream* OutputData,unsigned int n, FP* outRMS) {
              *OutputData <<  outRMS[i] << " " << flush;
          }
 
-        if(is_Cx_calc) {
-          *OutputData << Calc_Cx_2D(J,x0_body,y0_body,dx_body,dy_body,Flow2DList->GetElement(Cx_Flow_index-1)) << " " <<  Calc_Cy_2D(J,x0_body,y0_body,dx_body,dy_body,Flow2DList->GetElement(Cx_Flow_index-1)) << " ";
-          *OutputData << CalcXForce2D(J,x0_body,y0_body,dx_body,dy_body) << " " <<  CalcYForce2D(J,x0_body,y0_body,dx_body,dy_body);
-        }
+        //if(is_Cx_calc) {
+        //  *OutputData << Calc_Cx_2D(J,x0_body,y0_body,dx_body,dy_body,Flow2DList->GetElement(Cx_Flow_index-1)) << " " <<  Calc_Cy_2D(J,x0_body,y0_body,dx_body,dy_body,Flow2DList->GetElement(Cx_Flow_index-1)) << " ";
+        //  *OutputData << CalcXForce2D(J,x0_body,y0_body,dx_body,dy_body) << " " <<  CalcYForce2D(J,x0_body,y0_body,dx_body,dy_body);
+        //}
         
         if(is_Cd_calc) {
           *OutputData << " " << Calc_Cd(J,x0_nozzle,y0_nozzle,dy_nozzle,Flow2DList->GetElement(Cd_Flow_index-1)) << " " <<  Calc_Cv(J,x0_nozzle,y0_nozzle,dy_nozzle,p_ambient,Flow2DList->GetElement(Cd_Flow_index-1)) << " ";
@@ -2469,7 +2477,7 @@ void SaveRMS(ofstream* OutputData,unsigned int n, FP* outRMS) {
         else
           snprintf(YR,2,"Y");
 
-        snprintf(TechPlotTitle1,1024,"VARIABLES = X, %s, U, V, T, p, Rho, Y_fuel, Y_ox, Y_cp, Y_i, %s, Mach, l_min, y+, i_wall, j_wall"
+        snprintf(TechPlotTitle1,1024,"VARIABLES = X, %s, U, V, T, p, Rho, Y_fuel, Y_ox, Y_cp, Y_i, %s, Mach, l_min, y+, Cp"
                                      "\n",YR, RT); 
         snprintf(TechPlotTitle2,256,"ZONE T=\"Time: %g sec.\" I= %i J= %i F=POINT\n",GlobalTime, MaxX, MaxY);
 
@@ -2528,7 +2536,7 @@ void SaveRMS(ofstream* OutputData,unsigned int n, FP* outRMS) {
                 } else {
                     *OutputData << "  0  0  0  ";
                 }
-                *OutputData << " " << J->GetValue(i,j).i_wall << " " << J->GetValue(i,j).j_wall << "\n" ;
+                *OutputData << " " << Calc_Cp(&J->GetValue(i,j),Flow2DList->GetElement(Cx_Flow_index-1)) << "\n" ;
             }
             if ( type )
                 *OutputData <<  "\n" ;
@@ -4001,9 +4009,10 @@ void* InitDEEPS2D(void* lpvParam)
                     }
                 }
 // Solid Bound Airfoils
-/*
-            unsigned int numAirfoils=Data->GetIntVal((char*)"NumAirfoils");
-            FP       mm,pp,thick,scale,attack_angle;
+            unsigned int  numAirfoils=Data->GetIntVal((char*)"NumAirfoils");
+            FP            mm,pp,thick,scale,attack_angle;
+            int           Airfoil_Type;
+            InputData*    AirfoilInputData;
             SolidBoundAirfoil2D* SBA;
             if ( p_g==0 )
                 if ( numAirfoils ) {
@@ -4019,17 +4028,30 @@ void* InitDEEPS2D(void* lpvParam)
                         Ystart=Data->GetFloatVal(NameContour);
                         if ( Data->GetDataError()==-1 ) Abort_OpenHyperFLOW2D();
 
-                        sprintf(NameContour,"Airfoil%i.pp",j+1);
-                        pp=Data->GetFloatVal(NameContour);
+
+                        sprintf(NameContour,"Airfoil%i.Type",j+1);
+                        Airfoil_Type=Data->GetFloatVal(NameContour);
                         if ( Data->GetDataError()==-1 ) Abort_OpenHyperFLOW2D();
 
-                        sprintf(NameContour,"Airfoil%i.mm",j+1);
-                        mm=Data->GetFloatVal(NameContour);
-                        if ( Data->GetDataError()==-1 ) Abort_OpenHyperFLOW2D();
+                        if (Airfoil_Type == 0) { // NACA Airfoil
+                            sprintf(NameContour,"Airfoil%i.pp",j+1);
+                            pp=Data->GetFloatVal(NameContour);
+                            if ( Data->GetDataError()==-1 ) Abort_OpenHyperFLOW2D();
 
-                        sprintf(NameContour,"Airfoil%i.thick",j+1);
-                        thick=Data->GetFloatVal(NameContour);
-                        if ( Data->GetDataError()==-1 ) Abort_OpenHyperFLOW2D();
+                            sprintf(NameContour,"Airfoil%i.mm",j+1);
+                            mm=Data->GetFloatVal(NameContour);
+                            if ( Data->GetDataError()==-1 ) Abort_OpenHyperFLOW2D();
+
+                            sprintf(NameContour,"Airfoil%i.thick",j+1);
+                            thick=Data->GetFloatVal(NameContour);
+                            if ( Data->GetDataError()==-1 ) Abort_OpenHyperFLOW2D();
+                        } else { // TsAGI Airfoil
+                           char* AirfoilInputDataFileName;
+                           sprintf(NameContour,"Airfoil%i.InputData",j+1);
+                           AirfoilInputDataFileName=Data->GetStringVal(NameContour);
+                           if ( Data->GetDataError()==-1 ) Abort_OpenHyperFLOW2D();
+                           AirfoilInputData = new InputData(AirfoilInputDataFileName,DS_FILE,f_stream);
+                        }
 
                         sprintf(NameContour,"Airfoil%i.scale",j+1);
                         scale=Data->GetFloatVal(NameContour);
@@ -4084,12 +4106,16 @@ void* InitDEEPS2D(void* lpvParam)
                             Abort_OpenHyperFLOW2D();
                         }
                         sprintf(NameContour,"Airfoil%i",j+1);
-                        SBA = new SolidBoundAirfoil2D(NameContour,J,Xstart,Ystart,mm,pp,thick,dx,dy,(CondType2D)NT_WNS_2D,pTestFlow2D,Y,TM,scale,attack_angle,f_stream);
+                        if (Airfoil_Type == 0) { // NACA Airfoil
+                           SBA = new SolidBoundAirfoil2D(NameContour,J,Xstart,Ystart,mm,pp,thick,dx,dy,(CondType2D)NT_WNS_2D,pTestFlow2D,Y,TM,scale,attack_angle,f_stream);
+                        } else {                // TsAGI Airfoil
+                           SBA = new SolidBoundAirfoil2D(NameContour,J,Xstart,Ystart,AirfoilInputData,dx,dy,(CondType2D)NT_WNS_2D,pTestFlow2D,Y,TM,scale,attack_angle,f_stream);
+                        }
                         *f_stream << "OK\n" << flush;
                         delete SBA;
                     }
                 }
-                */
+                
                 //  Areas
             if ( !PreloadFlag ) {
 #ifdef _DEBUG_0
@@ -4605,10 +4631,12 @@ for (int i=0;i<(int)pJ2D->GetX();i++ ) {
 
                              wx = iw * FlowNode2D<FP,NUM_COMPONENTS>::dx;
                              wy = jw * FlowNode2D<FP,NUM_COMPONENTS>::dy;
+                             
+                             FP _l_min = sqrt((x-wx)*(x-wx) + (y-wy)*(y-wy));
 
-                             pJ2D->GetValue(i,j).l_min = min(pJ2D->GetValue(i,j).l_min,
-                                                             sqrt((x-wx)*(x-wx) + (y-wy)*(y-wy)));
-                             if (pJ2D->GetValue(i,j).l_min == sqrt((x-wx)*(x-wx) + (y-wy)*(y-wy))) {
+                             pJ2D->GetValue(i,j).l_min = min(pJ2D->GetValue(i,j).l_min,_l_min);
+
+                             if (pJ2D->GetValue(i,j).l_min == _l_min) {
                                  pJ2D->GetValue(i,j).i_wall = iw;
                                  pJ2D->GetValue(i,j).j_wall = jw;
                              }

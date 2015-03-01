@@ -286,9 +286,9 @@ FP CalcXForce2D(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* pJ,
                 // Pressure forces
 
                 if (i > 0 && pJ->GetValue(i-1,j).isCond2D(CT_SOLID_2D)) {                         // [solid]<-[gas] -force
-                    Fp -= Sp*pJ->GetValue(i,j).p;
-                } else if ( i < (int)pJ->GetX()-1  && pJ->GetValue(i+1,j).isCond2D(CT_SOLID_2D)) { // [gas]->[solid] +force
                     Fp += Sp*pJ->GetValue(i,j).p;
+                } else if ( i < (int)pJ->GetX()-1  && pJ->GetValue(i+1,j).isCond2D(CT_SOLID_2D)) { // [gas]->[solid] +force
+                    Fp -= Sp*pJ->GetValue(i,j).p;
                 }
 
                 // Drag forces
@@ -307,8 +307,8 @@ FP CalcXForce2D(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* pJ,
             }
         }
 
-//    cout << "\nPressure force (X):" << Fp << " N" << endl;
-//    cout << "Drag force (X):" << Fd << " N" << endl;
+    //cout << "\nCalc Cx\nPressure force (X):" << Fp << " N" << endl;
+    //cout << "Drag force (X):" << Fd << " N" << endl;
 
     return(Fp+Fd);
 }
@@ -350,9 +350,9 @@ FP CalcYForce2D(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* pJ,
                 // Pressure forces
 
                 if (j > 0 && pJ->GetValue(i,j-1).isCond2D(CT_SOLID_2D) ) { //  [gas]
-                    Fp+= Sp*pJ->GetValue(i,j).p;                           // [solid] down force (+)
+                    Fp-= Sp*pJ->GetValue(i,j).p;                           // [solid] down force (+)
                 } else if ( j < (int)pJ->GetY()-1  && pJ->GetValue(i,j+1).isCond2D(CT_SOLID_2D)) {
-                    Fp-= Sp*pJ->GetValue(i,j).p;                           //  [gas]  up force (-)
+                    Fp+= Sp*pJ->GetValue(i,j).p;                           //  [gas]  up force (-)
                 }
 
                 // Drag forces
@@ -371,8 +371,9 @@ FP CalcYForce2D(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* pJ,
 
             }
         }
-//    cout << "\nPressure force (Y):" << Fp << " N" << endl;
-//    cout << "Drag force (Y):" << Fd << " N" << endl;
+    
+    //cout << "\nCalc Cy\nPressure force (Y):" << Fp << " N" << endl;
+    //cout << "Drag force (Y):" << Fd << " N" << endl;
     return(Fp+Fd);
 }
 
@@ -383,15 +384,13 @@ FP   Calc_Cp(FlowNode2D<FP,NUM_COMPONENTS>* CurrentNode, Flow2D* pF) {
         return 0;
 }
 
-
-FP Calc_Cx_2D(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* pJ,
-                  FP x0, 
-                  FP y0,
-                  FP dx, 
-                  FP dy,
-                  Flow2D* pF
-                 ) {
-    FP Fmid=0,Pmax=0;
+FP GetFmid(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* pJ,
+           FP x0, 
+           FP y0,
+           FP dx, 
+           FP dy) {
+    
+    FP Fmid=0;
     int    is_node;
 #ifdef _MPI_OPENMP
 #pragma omp parallel for reduction(+:Fmid)
@@ -421,8 +420,56 @@ FP Calc_Cx_2D(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* pJ,
             }
         }
     }
-    Pmax = pF->ROG()*pF->U()*pF->U()*0.5*Fmid;
-    if (Pmax == 0.)
+    //cout << "\nFmid=" << Fmid << endl;
+    return Fmid;
+}
+
+FP GetS(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* pJ,
+        FP x0, 
+        FP y0,
+        FP dx, 
+        FP dy) {
+    
+    FP S=0;
+    int    is_node;
+#ifdef _MPI_OPENMP
+#pragma omp parallel for reduction(+:Fmid)
+#else
+#ifdef _OPEN_MP
+#pragma omp parallel for reduction(+:Fmid)
+#endif //_OPEN_MP
+#endif // _MPI_OPENMP
+    for (int i=0;i<(int)pJ->GetX();i++ ) {
+        is_node = 0;
+        for (int j=0;j<(int)pJ->GetY();j++ ) {
+            if ( (pJ->GetValue(i,j).isCond2D(CT_WALL_LAW_2D) ||
+                  pJ->GetValue(i,j).isCond2D(CT_WALL_NO_SLIP_2D) ) &&
+                 i >= (int)(x0/FlowNode2D<FP,NUM_COMPONENTS>::dx) &&
+                 i <= (int)((x0+dx)/FlowNode2D<FP,NUM_COMPONENTS>::dx) &&
+                 j >= (int)(y0/FlowNode2D<FP,NUM_COMPONENTS>::dy) &&
+                 j <= (int)((y0+dy)/FlowNode2D<FP,NUM_COMPONENTS>::dy)) {
+                 is_node = 1;
+            }
+        }
+        if (is_node) {
+            S += FlowNode2D<FP,NUM_COMPONENTS>::dx;
+        }
+    }
+    //cout << "\nS=" << S << endl;
+    return S;
+}
+
+FP Calc_Cx_2D(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* pJ,
+              FP x0, 
+              FP y0,
+              FP dx, 
+              FP dy,
+              Flow2D* pF
+             ) {
+
+FP Pmax = pF->ROG()*pF->Wg()*pF->Wg()*0.5*GetS(pJ,x0,y0,dx,dy);
+//cout << "\nPmax=" << Pmax << endl;
+if (Pmax == 0.)
         return 0;
     else
         return CalcXForce2D(pJ,x0,y0,dx,dy)/Pmax;
@@ -434,39 +481,10 @@ FP   Calc_Cy_2D(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* pJ,
                     FP dx, 
                     FP dy,
                     Flow2D* pF) {
-    FP Fmid=0,Pmax=0;
-    int    is_node;
-#ifdef _MPI_OPENMP 
-#pragma omp parallel for reduction(+:Fmid)
-#else
-#ifdef _OPEN_MP
-#pragma omp parallel for reduction(+:Fmid)
-#endif //_OPEN_MP
-#endif // _MPI_OPENMP
 
-    for (int j=0;j<(int)pJ->GetY();j++ ) {
-        is_node = 0;
-        for (int i=0;i<(int)pJ->GetX();i++ ) {
-            if ( (pJ->GetValue(i,j).isCond2D(CT_WALL_LAW_2D) ||
-                  pJ->GetValue(i,j).isCond2D(CT_WALL_NO_SLIP_2D)) &&
-                 i >= (int)(x0/FlowNode2D<FP,NUM_COMPONENTS>::dx) &&
-                 i <= (int)((x0+dx)/FlowNode2D<FP,NUM_COMPONENTS>::dx) &&
-                 j >= (int)(y0/FlowNode2D<FP,NUM_COMPONENTS>::dy) &&
-                 j <= (int)((y0+dy)/FlowNode2D<FP,NUM_COMPONENTS>::dy)) {
-                is_node = 1;
-            }
-            if (is_node) {
-                if (FlowNode2D<FP,NUM_COMPONENTS>::FT == FT_FLAT) {
-                    Fmid += FlowNode2D<FP,NUM_COMPONENTS>::dy;
-                } else {
-                    Fmid += 2 * M_PI * pJ->GetValue(0,j).y*FlowNode2D<FP,NUM_COMPONENTS>::dy;
-                }
-            }
-        }
-    }
-
-    Pmax = pF->ROG()*pF->Wg()*pF->Wg()*0.5*Fmid;
-    if (Pmax == 0.)
+FP Pmax = pF->ROG()*pF->Wg()*pF->Wg()*0.5*GetS(pJ,x0,y0,dx,dy);
+//cout << "\nPmax=" << Pmax << endl;    
+if (Pmax == 0.)
         return 0;
     else
         return CalcYForce2D(pJ,x0,y0,dx,dy)/Pmax;

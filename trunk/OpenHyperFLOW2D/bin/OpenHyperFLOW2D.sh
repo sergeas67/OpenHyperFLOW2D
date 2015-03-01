@@ -38,7 +38,7 @@ ulimit -s unlimited
 #LD_LIBRARY_PATH=${MPILIB} `cat ./.mpi`/mpirun --bind-to-core  -np ${NCORES} -hostfile .hosts ${HYPERFLOW2D} ${ProjectName}.dat
 #-
 # MPI 2
-LD_LIBRARY_PATH=${MPILIB}  `cat ./.mpi`/mpiexec -n ${NCORES}  ${HYPERFLOW2D} ${ProjectName}.dat
+LD_LIBRARY_PATH=${MPILIB}  `cat ./.mpi`/mpiexec --bind-to-core -n ${NCORES}  ${HYPERFLOW2D} ${ProjectName}.dat
 # 1>  ${ProjectName}.out  2> ${ProjectName}.err
 #  taskset -c 0,2,4,6  
 
