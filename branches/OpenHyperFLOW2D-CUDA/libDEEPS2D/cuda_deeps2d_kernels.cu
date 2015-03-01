@@ -409,20 +409,19 @@ cuda_SetMinDistanceToWall2D(FlowNode2D<FP,NUM_COMPONENTS>* pJ2D,
 
               XY<int>*  TmpWallNode = &WallNodes2D[ii]; 
 
-              FP L_x   = (TmpWallNode->X - TmpNode->ix)* _dx - x0;
+              FP L_x   = (TmpWallNode->X - TmpNode->ix)* _dx + x0;
               FP L_y   = (TmpWallNode->Y - TmpNode->iy)* _dy;
               FP l_min = sqrt(L_x*L_x + L_y*L_y);
 
               TmpNode->l_min = max(min(TmpNode->l_min,l_min),min_l_min);
               
               if (TmpNode->l_min == l_min) {
-                  TmpNode->i_wall = TmpWallNode->X - (int)(x0/_dx);
+                  TmpNode->i_wall = TmpWallNode->X + (int)(x0/_dx);
                   TmpNode->j_wall = TmpWallNode->Y;
               }
             }
         }
    }
-   //__syncthreads();
 }
 __global__ void 
 cuda_Recalc_y_plus(FlowNode2D<FP,NUM_COMPONENTS>* pJ2D,

@@ -33,8 +33,7 @@ endif
 
 
 NOPROFILE  = -fomit-frame-pointer
-DEBUG      = 
-#-g
+DEBUG      = -g
 PICFLAGS   = -fPIC
 #STATIC= -static
 

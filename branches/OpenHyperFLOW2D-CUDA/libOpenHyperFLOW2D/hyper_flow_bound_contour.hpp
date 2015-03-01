@@ -35,7 +35,7 @@ using namespace std;
 //////////////////////////////////////////////////
 //  Bound 2D Contour object                     //
 //////////////////////////////////////////////////
-class BoundContour2D : private UArray<Bound2D*> {
+class BoundContour2D : protected UArray<Bound2D*> {
     FP   f_current_x,f_first_x;
     FP   f_current_y,f_first_y;
     Table*   BoundContourTable;

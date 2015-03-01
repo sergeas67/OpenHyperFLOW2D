@@ -335,12 +335,12 @@ void InitSharedData(InputData* _data,
             }
 
 #ifdef _UNIFORM_MESH_
-            FlowNode2D<FP,NUM_COMPONENTS>::dx    = dx;
-            FlowNode2D<FP,NUM_COMPONENTS>::dy    = dy;
+            FlowNode2D<FP,NUM_COMPONENTS>::dx        = dx;
+            FlowNode2D<FP,NUM_COMPONENTS>::dy        = dy;
 #endif //_UNIFORM_MESH_
-            FlowNode2D<FP,NUM_COMPONENTS>::Hu[h_fu] = model_data->H_Fuel;
-            FlowNode2D<FP,NUM_COMPONENTS>::Hu[h_ox] = model_data->H_OX;
-            FlowNode2D<FP,NUM_COMPONENTS>::Hu[h_cp] = model_data->H_cp;
+            FlowNode2D<FP,NUM_COMPONENTS>::Hu[h_fu]  = model_data->H_Fuel;
+            FlowNode2D<FP,NUM_COMPONENTS>::Hu[h_ox]  = model_data->H_OX;
+            FlowNode2D<FP,NUM_COMPONENTS>::Hu[h_cp]  = model_data->H_cp;
             FlowNode2D<FP,NUM_COMPONENTS>::Hu[h_air] = model_data->H_air;
 };
 
@@ -1630,9 +1630,10 @@ void* InitDEEPS2D(void* lpvParam)
                     }
                 }
 // Solid Bound Airfoils
-/*
-            unsigned int numAirfoils=Data->GetIntVal((char*)"NumAirfoils");
-            FP       mm,pp,thick,scale,attack_angle;
+            unsigned int  numAirfoils=Data->GetIntVal((char*)"NumAirfoils");
+            FP            mm,pp,thick,scale,attack_angle;
+            int           Airfoil_Type;
+            InputData*    AirfoilInputData;
             SolidBoundAirfoil2D* SBA;
             if ( p_g==0 )
                 if ( numAirfoils ) {
@@ -1648,17 +1649,30 @@ void* InitDEEPS2D(void* lpvParam)
                         Ystart=Data->GetFloatVal(NameContour);
                         if ( Data->GetDataError()==-1 ) Abort_OpenHyperFLOW2D();
 
-                        sprintf(NameContour,"Airfoil%i.pp",j+1);
-                        pp=Data->GetFloatVal(NameContour);
+
+                        sprintf(NameContour,"Airfoil%i.Type",j+1);
+                        Airfoil_Type=Data->GetFloatVal(NameContour);
                         if ( Data->GetDataError()==-1 ) Abort_OpenHyperFLOW2D();
 
-                        sprintf(NameContour,"Airfoil%i.mm",j+1);
-                        mm=Data->GetFloatVal(NameContour);
-                        if ( Data->GetDataError()==-1 ) Abort_OpenHyperFLOW2D();
+                        if (Airfoil_Type == 0) { // Embedded NACA XXXX Airfoil
+                            sprintf(NameContour,"Airfoil%i.pp",j+1);
+                            pp=Data->GetFloatVal(NameContour);
+                            if ( Data->GetDataError()==-1 ) Abort_OpenHyperFLOW2D();
 
-                        sprintf(NameContour,"Airfoil%i.thick",j+1);
-                        thick=Data->GetFloatVal(NameContour);
-                        if ( Data->GetDataError()==-1 ) Abort_OpenHyperFLOW2D();
+                            sprintf(NameContour,"Airfoil%i.mm",j+1);
+                            mm=Data->GetFloatVal(NameContour);
+                            if ( Data->GetDataError()==-1 ) Abort_OpenHyperFLOW2D();
+
+                            sprintf(NameContour,"Airfoil%i.thick",j+1);
+                            thick=Data->GetFloatVal(NameContour);
+                            if ( Data->GetDataError()==-1 ) Abort_OpenHyperFLOW2D();
+                        } else { // External Airfoil
+                           char* AirfoilInputDataFileName;
+                           sprintf(NameContour,"Airfoil%i.InputData",j+1);
+                           AirfoilInputDataFileName=Data->GetStringVal(NameContour);
+                           if ( Data->GetDataError()==-1 ) Abort_OpenHyperFLOW2D();
+                           AirfoilInputData = new InputData(AirfoilInputDataFileName,DS_FILE,f_stream);
+                        }
 
                         sprintf(NameContour,"Airfoil%i.scale",j+1);
                         scale=Data->GetFloatVal(NameContour);
@@ -1713,12 +1727,15 @@ void* InitDEEPS2D(void* lpvParam)
                             Abort_OpenHyperFLOW2D();
                         }
                         sprintf(NameContour,"Airfoil%i",j+1);
-                        SBA = new SolidBoundAirfoil2D(NameContour,J,Xstart,Ystart,mm,pp,thick,dx,dy,(CondType2D)NT_WNS_2D,pTestFlow2D,Y,TM,scale,attack_angle,f_stream);
+                        if (Airfoil_Type == 0) { // Embedded NACA XXXX Airfoil
+                           SBA = new SolidBoundAirfoil2D(NameContour,J,Xstart,Ystart,mm,pp,thick,dx,dy,(CondType2D)NT_WNS_2D,pTestFlow2D,Y,TM,scale,attack_angle,f_stream);
+                        } else {                // External Airfoil
+                           SBA = new SolidBoundAirfoil2D(NameContour,J,Xstart,Ystart,AirfoilInputData,dx,dy,(CondType2D)NT_WNS_2D,pTestFlow2D,Y,TM,scale,attack_angle,f_stream);
+                        }
                         *f_stream << "OK\n" << flush;
                         delete SBA;
                     }
                 }
-                */
                 //  Areas
             if ( !PreloadFlag )
 #ifdef _DEBUG_0
