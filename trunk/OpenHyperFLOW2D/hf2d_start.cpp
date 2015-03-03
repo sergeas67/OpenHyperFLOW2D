@@ -274,7 +274,7 @@ rank      = MPI::COMM_WORLD.Get_rank();
             x0 = 0;
 
             //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-            DataSnapshot(OutFileName,WM_REWRITE);    //
+            //DataSnapshot(OutFileName,WM_REWRITE);    //
             //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
      
         }

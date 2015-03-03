@@ -433,10 +433,10 @@ FP GetS(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* pJ,
     FP S=0;
     int    is_node;
 #ifdef _MPI_OPENMP
-#pragma omp parallel for reduction(+:Fmid)
+#pragma omp parallel for reduction(+:S)
 #else
 #ifdef _OPEN_MP
-#pragma omp parallel for reduction(+:Fmid)
+#pragma omp parallel for reduction(+:S)
 #endif //_OPEN_MP
 #endif // _MPI_OPENMP
     for (int i=0;i<(int)pJ->GetX();i++ ) {
