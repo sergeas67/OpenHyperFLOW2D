@@ -15,7 +15,7 @@ else
 include   ../gcc.compiler
 endif
 
-DEBUGLEVEL  = 5
+DEBUGLEVEL  = 0
 
 CFLAGS    = $(PICFLAGS) $(OPTIONS) -D_STREAM_COMPAT  \
            -D_REMOVE_SWAPFILE  -D_GNUPLOT_ -D_TECPLOT_ -D_WRITE_LARGE_FILE_ \

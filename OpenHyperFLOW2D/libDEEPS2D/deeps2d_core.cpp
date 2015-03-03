@@ -531,7 +531,7 @@ void DEEPS2D_Run(ofstream* f_stream
     FP*   dt_min;
     int*  i_c;
     int*  j_c;
-    FP    dtmin=1.0;
+    FP    dtmin;
     FP    DD[FlowNode2D<FP,NUM_COMPONENTS>::NumEq];
     FP    sum_RMS[FlowNode2D<FP,NUM_COMPONENTS>::NumEq];
     unsigned long sum_iRMS[FlowNode2D<FP,NUM_COMPONENTS>::NumEq];
@@ -566,6 +566,7 @@ void DEEPS2D_Run(ofstream* f_stream
 #endif // _MPI
 
 #ifndef _MPI
+    
     for(int ii=0;ii<(int)SubDomainArray->GetNumElements();ii++) {
         dt_min[ii] = dtmin = dt;
         i_c[ii] = j_c[ii] = 0;
@@ -638,15 +639,8 @@ void DEEPS2D_Run(ofstream* f_stream
                   } else {
                    FlowNode2D<FP,NUM_COMPONENTS>::isSrcAdd = 0;
                   }
-#ifdef _OPENMP
-                  n_s = (int)SubDomainArray->GetNumElements();
-#pragma omp parallel shared(f_stream,CoreSubDomainArray, SubDomainArray, chemical_reactions,Y_mix,sum_RMS, sum_iRMS, \
-                            Cp,i_max,j_max,k_max,Tg,beta0,CurrentTimePart,DD,dx,dy,MaxX,MaxY,dt_min, dtmin,RMS,iRMS,DD_max,i_c,j_c,n_s) \
-                     private(iter,j,k,n1,n2,n3,n4,N1,N2,N3,N4,n_n,m_m,pC,pJ,err_i,err_j,\
-                             beta,_beta,AddEq,dXX,dYY,DD_local,AAA,StartXLocal,MaxXLocal,\
-                             dtdx,dtdy,dt)
-#endif //_OPENMP
                   iter = 0;
+                  
                   do {
                       FlowNode2D< FP,NUM_COMPONENTS >* CurrentNode=NULL;
                       FlowNodeCore2D< FP,NUM_COMPONENTS >* NextNode=NULL;
@@ -683,7 +677,13 @@ void DEEPS2D_Run(ofstream* f_stream
                       DD_local[kk]             = 0.;                          // local residual
                     }
 #else
+                   n_s = (int)SubDomainArray->GetNumElements();
 #ifdef _OPENMP
+#pragma omp parallel shared(f_stream,CoreSubDomainArray, SubDomainArray, chemical_reactions,Y_mix,sum_RMS, sum_iRMS, \
+                            Cp,i_max,j_max,k_max,Tg,beta0,CurrentTimePart,DD,dx,dy,MaxX,MaxY,dt_min,RMS,iRMS,DD_max,i_c,j_c,n_s) \
+                     private(iter,j,k,n1,n2,n3,n4,N1,N2,N3,N4,n_n,m_m,pC,pJ,err_i,err_j,\
+                             beta,_beta,AddEq,dXX,dYY,DD_local,AAA,StartXLocal,MaxXLocal,\
+                             dtdx,dtdy,dt) reduction(min: dtmin)
 //#pragma omp single
 #endif //_OPENMP
                    {
@@ -696,18 +696,17 @@ void DEEPS2D_Run(ofstream* f_stream
                     k_max_RMS = -1;
 
                     for ( k=0;k<(int)FlowNode2D<FP,NUM_COMPONENTS>::NumEq;k++ ) {
-                           for(int ii=0;ii<(int)SubDomainArray->GetNumElements();ii++) {
-                               sum_RMS[k]  = RMS(k,ii)  = 0.;    // Clean sum residual
-                               sum_iRMS[k] = iRMS(k,ii) = 0;     // num involved nodes
+                           for(int ii=0;ii<n_s;ii++) {
+                               RMS(k,ii)  = 0.;    // Clean sum residual
+                               iRMS(k,ii) = 0;     // num involved nodes
                            }
-                           DD[k]      = 0.;
+                           sum_iRMS[k] = 0;
+                           sum_RMS[k]  = DD[k] = 0.;
                        }
                    }
 #endif //_MPI
-
 #ifdef _OPENMP
-#pragma omp barrier
-#pragma omp for private(CurrentNode,NextNode,UpNode,DownNode,LeftNode,RightNode) schedule(dynamic) ordered nowait
+#pragma omp for private(CurrentNode,NextNode,UpNode,DownNode,LeftNode,RightNode) ordered nowait 
                 for(int ii=0;ii<n_s;ii++) {  // OpenMP version
 #endif //_OPENMP
 
@@ -725,10 +724,8 @@ void DEEPS2D_Run(ofstream* f_stream
 #endif // _MPI
 
 #ifdef _OPENMP
-#pragma omp critical
-                   dtmin = min(dt_min[ii],dtmin);
-                   
                    dt    = dtmin;
+                   
                    i_c[ii] = j_c[ii] = 0;
 #endif //_OPENMP
 
@@ -741,7 +738,7 @@ void DEEPS2D_Run(ofstream* f_stream
                     MPI::COMM_WORLD.Bcast(&dt,1,MPI::DOUBLE,0);
 #else
                     for ( k=0;k<(int)FlowNode2D<FP,NUM_COMPONENTS>::NumEq;k++ ) {
-                       DD_max(k,ii) =  0.;
+                         DD_max(k,ii) =  0.;
                       }
 
                     if( ii == 0)
@@ -955,15 +952,13 @@ void DEEPS2D_Run(ofstream* f_stream
                   }
                }
 #ifdef _OPENMP
-           }
+//#pragma omp barrier
+/*
 #endif // _OPENMP
 
 #ifdef _OPENMP
-#pragma omp barrier
-#pragma omp for private(CurrentNode,NextNode,UpNode,DownNode,LeftNode,RightNode) 
-//schedule(dynamic) ordered nowait
+#pragma omp for private(CurrentNode,NextNode,UpNode,DownNode,LeftNode,RightNode ) schedule(dynamic) ordered nowait
              for(int ii=0;ii<n_s;ii++) {
-
                     pJ = SubDomainArray->GetElement(ii);
                     pC = CoreSubDomainArray->GetElement(ii);
 
@@ -976,6 +971,7 @@ void DEEPS2D_Run(ofstream* f_stream
                     } else {
                         MaxXLocal=pJ->GetX()-1;
                     }
+*/
 #endif //_OPENMP
                    for (int i=StartXLocal;i<(int)MaxXLocal;i++ ) {
                       for ( j=0;j<MaxY;j++ ) {
@@ -1322,9 +1318,8 @@ void DEEPS2D_Run(ofstream* f_stream
        k_max =  k;
      }
   }
-#pragma omp critical
-     dtmin = min(dt_min[ii],dtmin); 
-     dt    = dtmin;
+ 
+ dtmin = min(dt_min[ii],dtmin);
 #endif // _OPENMP
 
 #ifdef _MPI
@@ -1425,7 +1420,8 @@ void DEEPS2D_Run(ofstream* f_stream
                 }
 #else
 #ifdef _OPENMP
- }
+}
+                                       
 
 #pragma omp single
 #endif // _OPENMP
@@ -1745,7 +1741,7 @@ void DEEPS2D_Run(ofstream* f_stream
 #endif //  _MPI
 #ifdef _OPENMP
           }
-#pragma omp barrier
+//#pragma omp barrier
 #endif //  _OPENMP
 
           if(MonitorNumber < 5) {
@@ -2536,7 +2532,10 @@ void SaveRMS(ofstream* OutputData,unsigned int n, FP* outRMS) {
                 } else {
                     *OutputData << "  0  0  0  ";
                 }
-                *OutputData << " " << Calc_Cp(&J->GetValue(i,j),Flow2DList->GetElement(Cx_Flow_index-1)) << "\n" ;
+                if(is_Cx_calc)
+                   *OutputData << " " << Calc_Cp(&J->GetValue(i,j),Flow2DList->GetElement(Cx_Flow_index-1)) << "\n" ;
+                else
+                  *OutputData << " 0\n"; 
             }
             if ( type )
                 *OutputData <<  "\n" ;
@@ -3103,12 +3102,6 @@ void* InitDEEPS2D(void* lpvParam)
             *f_stream << "OK\n" << flush;
             f_stream->flush();
 
-            dt=1.;
-            for (int i = 0;i<(int)FlowList->GetNumElements();i++ ) {
-                 FP CFL_min      = min(CFL,CFL_Scenario->GetVal(iter+last_iter));
-                 dt = min(dt,CFL_min*dx*dy/(dy*(FlowList->GetElement(i)->Asound()*2.)+
-                                            dx*FlowList->GetElement(i)->Asound()));
-            }
 
             sprintf(ErrorMessage, "\nComputation terminated.\nInternal error in OpenHyperFLOW2D/DEEPS.\n");
             static int   isFlow2D=0;
@@ -3680,6 +3673,12 @@ void* InitDEEPS2D(void* lpvParam)
 #endif // _DEBUG_0
 
             dt = 1;
+            
+            for (int i = 0;i<(int)FlowList->GetNumElements();i++ ) {
+                FP CFL_min  = min(CFL,CFL_Scenario->GetVal(iter+last_iter));
+                dt = min(dt,CFL_min*min(dx/(FlowList->GetElement(i)->Asound()+FlowList->GetElement(i)->Wg()),
+                                        dy/(FlowList->GetElement(i)->Asound()+FlowList->GetElement(i)->Wg())));
+            }
 
             for (int i = 0;i<(int)Flow2DList->GetNumElements();i++ ) {
                 FP CFL_min  = min(CFL,CFL_Scenario->GetVal(iter+last_iter));
@@ -4010,12 +4009,13 @@ void* InitDEEPS2D(void* lpvParam)
                 }
 // Solid Bound Airfoils
             unsigned int  numAirfoils=Data->GetIntVal((char*)"NumAirfoils");
-            FP            mm,pp,thick,scale,attack_angle;
-            int           Airfoil_Type;
-            InputData*    AirfoilInputData;
-            SolidBoundAirfoil2D* SBA;
-            if ( p_g==0 )
+            
+            if ( p_g==0 ) {
                 if ( numAirfoils ) {
+                    FP            mm,pp,thick,scale,attack_angle;
+                    int           Airfoil_Type;
+                    InputData*    AirfoilInputData;
+                    SolidBoundAirfoil2D* SBA;
                     for ( j=0;j<numAirfoils;j++ ) {
                         sprintf(NameContour,"Airfoil%i",j+1);    
                         *f_stream << "Add object \""<< NameContour << "\"..." << flush;
@@ -4115,8 +4115,8 @@ void* InitDEEPS2D(void* lpvParam)
                         delete SBA;
                     }
                 }
-                
-                //  Areas
+              }  
+               //  Areas
             if ( !PreloadFlag ) {
 #ifdef _DEBUG_0
            ___try {

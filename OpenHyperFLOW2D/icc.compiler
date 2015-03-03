@@ -46,7 +46,7 @@ endif
 
 PROFILE    = -prof_dir . -prof_file icc.profile
 NOPROFILE  =
-DEBUG      =
+DEBUG      = -g
 # 
 # -opt-multi-version-aggressive -opt-report3 -opt-report-phase:hpo -vec-report5
 # -opt-report -opt-report-phase:hpo -vec-report   -no-vec 
