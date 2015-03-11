@@ -727,8 +727,9 @@ cuda_DEEPS2D_Stage2(FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
                         FP Tmp;
 
                         if(k == i2d_RoU && k == i2d_RoV ) {
-                            Tmp = sqrt(CurrentNode->S[i2d_RoU]*CurrentNode->S[i2d_RoU]+
-                                       CurrentNode->S[i2d_RoV]*CurrentNode->S[i2d_RoV]+1.e-30); // Flux
+                            //Tmp = sqrt(CurrentNode->S[i2d_RoU]*CurrentNode->S[i2d_RoU]+
+                            //           CurrentNode->S[i2d_RoV]*CurrentNode->S[i2d_RoV]+1.e-30);  // Flux
+                            Tmp = max(fabs(CurrentNode->S[i2d_RoU]),fabs(CurrentNode->S[i2d_RoV]));// max Flux
                         } else {
                             Tmp = CurrentNode->S[k];
                         }
@@ -737,7 +738,7 @@ cuda_DEEPS2D_Stage2(FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
                            DD_local = fabs((NextNode->S[k]-CurrentNode->S[k])/Tmp);
                         else
                            DD_local = 0.0;
-
+                        
                         if( b_FF == BFF_L) {
                          //LINEAR locally adopted blending factor function  (LLABFF)
                            CurrentNode->beta[k] = min(beta_min,(beta_min*beta_min)/(beta_min+DD_local));
@@ -757,9 +758,9 @@ cuda_DEEPS2D_Stage2(FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
                          //SQRT() locally adopted blending factor function with relaxation (SQRLABFFR)
                            CurrentNode->beta[k] = min((beta_min+CurrentNode->beta[k])*0.5,(beta_min*beta_min)/(beta_min+sqrt(DD_local))); 
                          } else {
-                           // Default->SQRLABF
+                           // Default->SQRLABF */
                            CurrentNode->beta[k] = min(beta_min,(beta_min*beta_min)/(beta_min+sqrt(DD_local)));
-                 }
+                         }
 #ifdef _RMS_
                          RMS[k+ii*Num_Eq] += DD_local;
                          iRMS[k+ii*Num_Eq]++;
@@ -781,22 +782,25 @@ cuda_DEEPS2D_Stage2(FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
                             CurrentNode->S[k]   =  NextNode->S[k];
                   }
               }
-
-              CurrentNode->droYdx[NUM_COMPONENTS]=CurrentNode->droYdy[NUM_COMPONENTS]=0.;
-
-#pragma unroll
-              for (int k=4;k<NUM_EQ-2;k++ ) {
-                  if ( !CurrentNode->isCond2D(CT_dYdx_NULL_2D) ) {
-                      CurrentNode->droYdx[k-4]=(RightNode->S[k]-LeftNode->S[k])*dx_1*0.5;
-                      CurrentNode->droYdx[NUM_COMPONENTS]+=(RightNode->S[k]-LeftNode->S[k])*dx_1*0.5;
-                  }
-                  if ( !CurrentNode->isCond2D(CT_dYdy_NULL_2D) ) {
-                        CurrentNode->droYdy[k-4]=(UpNode->S[k]-DownNode->S[k])*dy_1*0.5;
-                        CurrentNode->droYdy[NUM_COMPONENTS]+=(DownNode->S[k]-UpNode->S[k])*dy_1*0.5;
-                  }
-              }
+              
+              CurrentNode->beta[i2d_RoV] = CurrentNode->beta[i2d_RoU] = max(CurrentNode->beta[i2d_RoU],CurrentNode->beta[i2d_RoV]);  // for symmetry keeping
 
               if(sm == SM_NS) {
+                  
+                  CurrentNode->droYdx[NUM_COMPONENTS]=CurrentNode->droYdy[NUM_COMPONENTS]=0.;
+
+#pragma unroll
+                  for (int k=4;k<NUM_EQ-2;k++ ) {
+                      if ( !CurrentNode->isCond2D(CT_dYdx_NULL_2D) ) {
+                          CurrentNode->droYdx[k-4]=(RightNode->S[k]-LeftNode->S[k])*dx_1*0.5;
+                          //CurrentNode->droYdx[NUM_COMPONENTS]+=(RightNode->S[k]-LeftNode->S[k])*dx_1*0.5;
+                      }
+                      if ( !CurrentNode->isCond2D(CT_dYdy_NULL_2D) ) {
+                            CurrentNode->droYdy[k-4]=(UpNode->S[k]-DownNode->S[k])*dy_1*0.5;
+                            //CurrentNode->droYdy[NUM_COMPONENTS]+=(UpNode->S[k]-DownNode->S[k])*dy_1*0.5;
+                      }
+                  }
+                  
                   if (CurrentNode->isCond2D(CT_WALL_NO_SLIP_2D) || CurrentNode->isCond2D(CT_WALL_LAW_2D) )  {
                       CurrentNode->dUdx=(RightNode->U*n1-LeftNode->U*n2)*dx_1xn_n_1;
                       CurrentNode->dVdx=(RightNode->V*n1-LeftNode->V*n2)*dx_1xn_n_1;
