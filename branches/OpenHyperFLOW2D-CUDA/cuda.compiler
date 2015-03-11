@@ -1,7 +1,7 @@
 NVCC=/usr/local/cuda-6.5/bin/nvcc
 
 #NOPROFILE  = -fomit-frame-pointer
-CUDA_DEBUG  = -G
+CUDA_DEBUG  =
 
 #PICFLAGS   = -fPIC
 #STATIC= -static
