@@ -293,7 +293,7 @@ BoundState Bound2D::SetBound(int MaterialID) {
         
         for (i=j1;i<=j2;i++) {
             j = k1 +(int)((FP)(i-j1)*tan(Alpha));
-            pMFN->GetValue(i,j).CT  = BNT | CT_NODE_IS_SET_2D;
+            pMFN->GetValue(i,j).CT = pMFN->GetValue(i,j).CT | BNT | CT_NODE_IS_SET_2D;
             pMFN->GetValue(i,j).TurbType  = BTC;
             pMFN->GetValue(i,j).NGX = (3-pMFN->GetValue(i,j).idXr-pMFN->GetValue(i,j).idXl);
             pMFN->GetValue(i,j).NGY = (3-pMFN->GetValue(i,j).idYu-pMFN->GetValue(i,j).idYd);
@@ -325,7 +325,7 @@ BoundState Bound2D::SetBound(int MaterialID) {
             if (tan(Alpha) != 0.)  j = k1 + (int)((FP)(i-j1)/tan(Alpha));
             else                   j = k1;
             
-            pMFN->GetValue(j,i).CT  = BNT | CT_NODE_IS_SET_2D;
+            pMFN->GetValue(j,i).CT  = pMFN->GetValue(j,i).CT | BNT | CT_NODE_IS_SET_2D;
             pMFN->GetValue(j,i).TurbType  = BTC;
             pMFN->GetValue(j,i).NGX = 3-pMFN->GetValue(j,i).idXr-pMFN->GetValue(j,i).idXl;
             pMFN->GetValue(j,i).NGY = 3-pMFN->GetValue(j,i).idYd-pMFN->GetValue(j,i).idYu;
@@ -391,7 +391,7 @@ BoundState Bound2D::SetBound(UArray< FlowNode2D<FP, NUM_COMPONENTS>* >* node_arr
         j2 = max(Start.GetX(),End.GetX());
         for (i=j1;i<=j2;i++) {
             j = k1 +(int)((FP)(i-j1)*tan(Alpha));
-            pMFN->GetValue(i,j).CT  = BNT | CT_NODE_IS_SET_2D;
+            pMFN->GetValue(i,j).CT  = pMFN->GetValue(i,j).CT |  BNT | CT_NODE_IS_SET_2D;
             pMFN->GetValue(i,j).TurbType  = BTC;
             pMFN->GetValue(i,j).NGX = (3-pMFN->GetValue(i,j).idXr-pMFN->GetValue(i,j).idXl);
             pMFN->GetValue(i,j).NGY = (3-pMFN->GetValue(i,j).idYu-pMFN->GetValue(i,j).idYd);
@@ -422,7 +422,7 @@ BoundState Bound2D::SetBound(UArray< FlowNode2D<FP, NUM_COMPONENTS>* >* node_arr
         for (i=j1;i<=j2;i++) {
             if (tan(Alpha) != 0.)  j = k1 + (int)((FP)(i-j1)/tan(Alpha));
             else                   j = k1;
-            pMFN->GetValue(j,i).CT  = BNT | CT_NODE_IS_SET_2D;
+            pMFN->GetValue(j,i).CT  = pMFN->GetValue(j,i).CT | BNT | CT_NODE_IS_SET_2D;
             pMFN->GetValue(j,i).TurbType  = BTC;
             pMFN->GetValue(j,i).NGX = 3-pMFN->GetValue(j,i).idXr-pMFN->GetValue(j,i).idXl;
             pMFN->GetValue(j,i).NGY = 3-pMFN->GetValue(j,i).idYd-pMFN->GetValue(j,i).idYu;
