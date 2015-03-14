@@ -3,6 +3,7 @@
 ######################################
 # Path to compiler
 ICC_PATH  = /opt/intel
+#ICC_PATH  = /home/ss/intel
 
 GCC_VER=`gcc -v 2> .gcc_ver;cat .gcc_ver | tail -n1 | cut -d ' ' -f 3 | tr -d .;rm -f .gcc_ver`
 #ICC_VER=`icc -v 2> .icc_ver;cat .icc_ver | cut -d ' ' -f 3 | cut -d . -f 1;rm -f .icc_ver`
@@ -112,7 +113,7 @@ ifeq ("$(SIMD)","AVX2")
 CPU        = core-avx2
 CPU_EXT    = -opt-prefetch=4
 ALIGN      = 16
-ALIGN2     = 16
+ALIGN2     = 8
 
 endif
 
