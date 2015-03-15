@@ -805,8 +805,8 @@ void* InitDEEPS2D(void* lpvParam)
                                 TmpTurbulenceCT = (TurbulenceCondType2D)(TmpTurbulenceCT | TCT_Smagorinsky_Model_2D);
 
                             // Atomic conditions
-                            if ( strstr(BoundStr,"CT_Ro_CONST_2D") )
-                                TmpCT = (CondType2D)(TmpCT | CT_Ro_CONST_2D);
+                            if ( strstr(BoundStr,"CT_Rho_CONST_2D") )
+                                TmpCT = (CondType2D)(TmpCT | CT_Rho_CONST_2D);
                             if ( strstr(BoundStr,"CT_U_CONST_2D") )
                                 TmpCT = (CondType2D)(TmpCT | CT_U_CONST_2D);
                             if ( strstr(BoundStr,"CT_V_CONST_2D") )
@@ -819,8 +819,8 @@ void* InitDEEPS2D(void* lpvParam)
                                 TmpCT = (CondType2D)(TmpCT | CT_WALL_LAW_2D);
                             if ( strstr(BoundStr,"CT_WALL_NO_SLIP_2D") )
                                 TmpCT = (CondType2D)(TmpCT | CT_WALL_NO_SLIP_2D);
-                            if ( strstr(BoundStr,"CT_dRodx_NULL_2D") )
-                                TmpCT = (CondType2D)(TmpCT | CT_dRodx_NULL_2D);
+                            if ( strstr(BoundStr,"CT_dRhodx_NULL_2D") )
+                                TmpCT = (CondType2D)(TmpCT | CT_dRhodx_NULL_2D);
                             if ( strstr(BoundStr,"CT_dUdx_NULL_2D") )
                                 TmpCT = (CondType2D)(TmpCT | CT_dUdx_NULL_2D);
                             if ( strstr(BoundStr,"CT_dVdx_NULL_2D") )
@@ -829,8 +829,8 @@ void* InitDEEPS2D(void* lpvParam)
                                 TmpCT = (CondType2D)(TmpCT | CT_dTdx_NULL_2D);
                             if ( strstr(BoundStr,"CT_dYdx_NULL_2D") )
                                 TmpCT = (CondType2D)(TmpCT | CT_dYdx_NULL_2D);
-                            if ( strstr(BoundStr,"CT_dRody_NULL_2D") )
-                                TmpCT = (CondType2D)(TmpCT | CT_dRody_NULL_2D);
+                            if ( strstr(BoundStr,"CT_dRhody_NULL_2D") )
+                                TmpCT = (CondType2D)(TmpCT | CT_dRhody_NULL_2D);
                             if ( strstr(BoundStr,"CT_dUdy_NULL_2D") )
                                 TmpCT = (CondType2D)(TmpCT | CT_dUdy_NULL_2D);
                             if ( strstr(BoundStr,"CT_dVdy_NULL_2D") )
@@ -839,8 +839,8 @@ void* InitDEEPS2D(void* lpvParam)
                                 TmpCT = (CondType2D)(TmpCT | CT_dTdy_NULL_2D);
                             if ( strstr(BoundStr,"CT_dYdy_NULL_2D_2D") )
                                 TmpCT = (CondType2D)(TmpCT | CT_dYdy_NULL_2D);
-                            if ( strstr(BoundStr,"CT_d2Rodx2_NULL_2D") )
-                                TmpCT = (CondType2D)(TmpCT | CT_d2Rodx2_NULL_2D);
+                            if ( strstr(BoundStr,"CT_d2Rhodx2_NULL_2D") )
+                                TmpCT = (CondType2D)(TmpCT | CT_d2Rhodx2_NULL_2D);
                             if ( strstr(BoundStr,"CT_d2Udx2_NULL_2D") )
                                 TmpCT = (CondType2D)(TmpCT | CT_d2Udx2_NULL_2D);
                             if ( strstr(BoundStr,"CT_d2Vdx2_NULL_2D") )
@@ -849,8 +849,8 @@ void* InitDEEPS2D(void* lpvParam)
                                 TmpCT = (CondType2D)(TmpCT | CT_d2Tdx2_NULL_2D);
                             if ( strstr(BoundStr,"CT_d2Ydx2_NULL_2D") )
                                 TmpCT = (CondType2D)(TmpCT | CT_d2Ydx2_NULL_2D);
-                            if ( strstr(BoundStr,"CT_d2Rody2_NULL_2D") )
-                                TmpCT = (CondType2D)(TmpCT | CT_d2Rody2_NULL_2D);
+                            if ( strstr(BoundStr,"CT_d2Rhody2_NULL_2D") )
+                                TmpCT = (CondType2D)(TmpCT | CT_d2Rhody2_NULL_2D);
                             if ( strstr(BoundStr,"CT_d2Udy2_NULL_2D") )
                                 TmpCT = (CondType2D)(TmpCT | CT_d2Udy2_NULL_2D);
                             if ( strstr(BoundStr,"CT_d2Vdy2_NULL_2D") )
@@ -1055,8 +1055,8 @@ void* InitDEEPS2D(void* lpvParam)
                                 TmpTurbulenceCT = (TurbulenceCondType2D)(TmpTurbulenceCT | TCT_Smagorinsky_Model_2D);
 
                             // Simple conditions
-                            if ( strstr(BoundStr,"CT_Ro_CONST_2D") )
-                                TmpCT = (CondType2D)(TmpCT | CT_Ro_CONST_2D);
+                            if ( strstr(BoundStr,"CT_Rho_CONST_2D") )
+                                TmpCT = (CondType2D)(TmpCT | CT_Rho_CONST_2D);
                             if ( strstr(BoundStr,"CT_U_CONST_2D") )
                                 TmpCT = (CondType2D)(TmpCT | CT_U_CONST_2D);
                             if ( strstr(BoundStr,"CT_V_CONST_2D") )
@@ -1065,8 +1065,8 @@ void* InitDEEPS2D(void* lpvParam)
                                 TmpCT = (CondType2D)(TmpCT | CT_T_CONST_2D);
                             if ( strstr(BoundStr,"CT_Y_CONST_2D") )
                                 TmpCT = (CondType2D)(TmpCT | CT_Y_CONST_2D);
-                            if ( strstr(BoundStr,"CT_dRodx_NULL_2D") )
-                                TmpCT = (CondType2D)(TmpCT | CT_dRodx_NULL_2D);
+                            if ( strstr(BoundStr,"CT_dRhodx_NULL_2D") )
+                                TmpCT = (CondType2D)(TmpCT | CT_dRhodx_NULL_2D);
                             if ( strstr(BoundStr,"CT_dUdx_NULL_2D") )
                                 TmpCT = (CondType2D)(TmpCT | CT_dUdx_NULL_2D);
                             if ( strstr(BoundStr,"CT_dVdx_NULL_2D") )
@@ -1075,8 +1075,8 @@ void* InitDEEPS2D(void* lpvParam)
                                 TmpCT = (CondType2D)(TmpCT | CT_dTdx_NULL_2D);
                             if ( strstr(BoundStr,"CT_dYdx_NULL_2D") )
                                 TmpCT = (CondType2D)(TmpCT | CT_dYdx_NULL_2D);
-                            if ( strstr(BoundStr,"CT_dRody_NULL_2D") )
-                                TmpCT = (CondType2D)(TmpCT | CT_dRody_NULL_2D);
+                            if ( strstr(BoundStr,"CT_dRhody_NULL_2D") )
+                                TmpCT = (CondType2D)(TmpCT | CT_dRhody_NULL_2D);
                             if ( strstr(BoundStr,"CT_dUdy_NULL_2D") )
                                 TmpCT = (CondType2D)(TmpCT | CT_dUdy_NULL_2D);
                             if ( strstr(BoundStr,"CT_dVdy_NULL_2D") )
@@ -1085,8 +1085,8 @@ void* InitDEEPS2D(void* lpvParam)
                                 TmpCT = (CondType2D)(TmpCT | CT_dTdy_NULL_2D);
                             if ( strstr(BoundStr,"CT_dYdy_NULL_2D") )
                                 TmpCT = (CondType2D)(TmpCT | CT_dYdy_NULL_2D);
-                            if ( strstr(BoundStr,"CT_d2Rodx2_NULL_2D") )
-                                TmpCT = (CondType2D)(TmpCT | CT_d2Rodx2_NULL_2D);
+                            if ( strstr(BoundStr,"CT_d2Rhodx2_NULL_2D") )
+                                TmpCT = (CondType2D)(TmpCT | CT_d2Rhodx2_NULL_2D);
                             if ( strstr(BoundStr,"CT_d2Udx2_NULL_2D") )
                                 TmpCT = (CondType2D)(TmpCT | CT_d2Udx2_NULL_2D);
                             if ( strstr(BoundStr,"CT_d2Vdx2_NULL_2D") )
@@ -1095,8 +1095,8 @@ void* InitDEEPS2D(void* lpvParam)
                                 TmpCT = (CondType2D)(TmpCT | CT_d2Tdx2_NULL_2D);
                             if ( strstr(BoundStr,"CT_d2Ydx2_NULL_2D") )
                                 TmpCT = (CondType2D)(TmpCT | CT_d2Ydx2_NULL_2D);
-                            if ( strstr(BoundStr,"CT_d2Rody2_NULL_2D") )
-                                TmpCT = (CondType2D)(TmpCT | CT_d2Rody2_NULL_2D);
+                            if ( strstr(BoundStr,"CT_d2Rhody2_NULL_2D") )
+                                TmpCT = (CondType2D)(TmpCT | CT_d2Rhody2_NULL_2D);
                             if ( strstr(BoundStr,"CT_d2Udy2_NULL_2D") )
                                 TmpCT = (CondType2D)(TmpCT | CT_d2Udy2_NULL_2D);
                             if ( strstr(BoundStr,"CT_d2Vdy2_NULL_2D") )
@@ -1633,7 +1633,7 @@ void* InitDEEPS2D(void* lpvParam)
             unsigned int  numAirfoils=Data->GetIntVal((char*)"NumAirfoils");
             FP            mm,pp,thick,scale,attack_angle;
             int           Airfoil_Type;
-            InputData*    AirfoilInputData;
+            InputData*    AirfoilInputData=NULL;
             SolidBoundAirfoil2D* SBA;
             if ( p_g==0 )
                 if ( numAirfoils ) {
@@ -1730,7 +1730,7 @@ void* InitDEEPS2D(void* lpvParam)
                         if (Airfoil_Type == 0) { // Embedded NACA XXXX Airfoil
                            SBA = new SolidBoundAirfoil2D(NameContour,J,Xstart,Ystart,mm,pp,thick,dx,dy,(CondType2D)NT_WNS_2D,pTestFlow2D,Y,TM,scale,attack_angle,f_stream);
                         } else {                // External Airfoil
-                           SBA = new SolidBoundAirfoil2D(NameContour,J,Xstart,Ystart,AirfoilInputData,dx,dy,(CondType2D)NT_WNS_2D,pTestFlow2D,Y,TM,scale,attack_angle,f_stream);
+                           SBA = new SolidBoundAirfoil2D(NameContour,J,Xstart,Ystart, AirfoilInputData,dx,dy,(CondType2D)NT_WNS_2D,pTestFlow2D,Y,TM,scale,attack_angle,f_stream);
                         }
                         *f_stream << "OK\n" << flush;
                         delete SBA;
@@ -2267,8 +2267,8 @@ void SetInitBoundaryLayer(ComputationalMatrix2D* pJ, FP delta) {
                        pJ->GetValue(i,j).time == 0. &&
                        delta > 0) {
                        if(pJ->GetValue(i,j).l_min <= delta)
-                          pJ->GetValue(i,j).S[i2d_RoU] = pJ->GetValue(i,j).S[i2d_RoU] * pJ->GetValue(i,j).l_min/delta;
-                          pJ->GetValue(i,j).S[i2d_RoV] = pJ->GetValue(i,j).S[i2d_RoV] * pJ->GetValue(i,j).l_min/delta;
+                          pJ->GetValue(i,j).S[i2d_RhoU] = pJ->GetValue(i,j).S[i2d_RhoU] * pJ->GetValue(i,j).l_min/delta;
+                          pJ->GetValue(i,j).S[i2d_RhoV] = pJ->GetValue(i,j).S[i2d_RhoV] * pJ->GetValue(i,j).l_min/delta;
                           pJ->GetValue(i,j).FillNode2D(0,1);
                    }
            }
@@ -2285,7 +2285,7 @@ void RecalcWallFrictionVelocityArray2D(ComputationalMatrix2D* pJ,
         jw = WallNodes2D->GetElementPtr(ii)->GetY();
         tau_w = (fabs(pJ->GetValue(iw,jw).dUdy)  +
                  fabs(pJ->GetValue(iw,jw).dVdx)) * pJ->GetValue(iw,jw).mu;
-        WallFrictionVelocityArray2D->GetElement(ii) = sqrt(tau_w/pJ->GetValue(iw,jw).S[i2d_Ro]+1e-30);
+        WallFrictionVelocityArray2D->GetElement(ii) = sqrt(tau_w/pJ->GetValue(iw,jw).S[i2d_Rho]+1e-30);
     }
 }
 
@@ -2300,7 +2300,7 @@ UArray<FP>* GetWallFrictionVelocityArray2D(ComputationalMatrix2D* pJ,
         jw = WallNodes2D->GetElementPtr(ii)->GetY();
         tau_w = (fabs(pJ->GetValue(iw,jw).dUdy)  +
                  fabs(pJ->GetValue(iw,jw).dVdx)) * pJ->GetValue(iw,jw).mu;
-        U_w   = sqrt(tau_w/pJ->GetValue(iw,jw).S[i2d_Ro]+1e-30);
+        U_w   = sqrt(tau_w/pJ->GetValue(iw,jw).S[i2d_Rho]+1e-30);
         WallFrictionVelocityArray2D->AddElement(&U_w);
     }
   return WallFrictionVelocityArray2D;
@@ -2405,8 +2405,8 @@ const char* PrintTurbCond(int TM) {
 void PrintCond(ofstream* OutputData, FlowNode2D<FP,NUM_COMPONENTS>* fn) {
     //Const conditions
 
-    if ( fn->isCond2D(CT_Ro_CONST_2D) )
-        *OutputData << "-CT_Ro_CONST_2D" << flush;
+    if ( fn->isCond2D(CT_Rho_CONST_2D) )
+        *OutputData << "-CT_Rho_CONST_2D" << flush;
     if ( fn->isCond2D(CT_U_CONST_2D) )
         *OutputData << "-CT_U_CONST_2D" << flush;
     if ( fn->isCond2D(CT_V_CONST_2D) )
@@ -2417,8 +2417,8 @@ void PrintCond(ofstream* OutputData, FlowNode2D<FP,NUM_COMPONENTS>* fn) {
         *OutputData << "-CT_Y_CONST_2D" << flush;
 
     // dF/dx = 0
-    if ( fn->isCond2D(CT_dRodx_NULL_2D) )
-        *OutputData << "-CT_dRodx_NULL_2D" << flush;
+    if ( fn->isCond2D(CT_dRhodx_NULL_2D) )
+        *OutputData << "-CT_dRhodx_NULL_2D" << flush;
     if ( fn->isCond2D(CT_dUdx_NULL_2D) )
         *OutputData << "-CT_dUdx_NULL_2D" << flush;
     if ( fn->isCond2D(CT_dVdx_NULL_2D) )
@@ -2430,8 +2430,8 @@ void PrintCond(ofstream* OutputData, FlowNode2D<FP,NUM_COMPONENTS>* fn) {
 
     // dF/dy = 0
 
-    if ( fn->isCond2D(CT_dRody_NULL_2D) )
-        *OutputData << "-CT_dRody_NULL_2D"<< flush;
+    if ( fn->isCond2D(CT_dRhody_NULL_2D) )
+        *OutputData << "-CT_dRhody_NULL_2D"<< flush;
     if ( fn->isCond2D(CT_dUdy_NULL_2D) )
         *OutputData << "-CT_dUdy_NULL_2D" << flush;
     if ( fn->isCond2D(CT_dVdy_NULL_2D) )
@@ -2442,8 +2442,8 @@ void PrintCond(ofstream* OutputData, FlowNode2D<FP,NUM_COMPONENTS>* fn) {
         *OutputData << "-CT_dYdy_NULL_2D" << flush;
 
     // d2F/dx2 =
-    if ( fn->isCond2D(CT_d2Rodx2_NULL_2D) )
-        *OutputData << "-CT_d2Rodx2_NULL_2D" << flush;
+    if ( fn->isCond2D(CT_d2Rhodx2_NULL_2D) )
+        *OutputData << "-CT_d2Rhodx2_NULL_2D" << flush;
     if ( fn->isCond2D(CT_d2Udx2_NULL_2D) )
         *OutputData << "-CT_d2Udx2_NULL_2D" << flush;
     if ( fn->isCond2D(CT_d2Vdx2_NULL_2D) )
@@ -2455,8 +2455,8 @@ void PrintCond(ofstream* OutputData, FlowNode2D<FP,NUM_COMPONENTS>* fn) {
 
     // d2F/dy2 = 0
 
-    if ( fn->isCond2D(CT_d2Rody2_NULL_2D) )
-        *OutputData << "-CT_d2Rody2_NULL_2D"<< flush;
+    if ( fn->isCond2D(CT_d2Rhody2_NULL_2D) )
+        *OutputData << "-CT_d2Rhody2_NULL_2D"<< flush;
     if ( fn->isCond2D(CT_d2Udy2_NULL_2D) )
         *OutputData << "-CT_d2Udy2_NULL_2D" << flush;
     if ( fn->isCond2D(CT_d2Vdy2_NULL_2D) )

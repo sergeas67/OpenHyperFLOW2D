@@ -285,11 +285,11 @@ inline void  DEEPS2D_Stage1(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*     pLJ,
                 // Precomputed variables for current node ...
                     c_flag  = dx_flag = dy_flag = dx2_flag = dy2_flag = 0;
                     if ( k < 4 ) { // Make bit flags for future test for current equation
-                        c_flag   = CT_Ro_CONST_2D     << k; 
-                        dx_flag  = CT_dRodx_NULL_2D   << k;
-                        dy_flag  = CT_dRody_NULL_2D   << k;
-                        dx2_flag = CT_d2Rodx2_NULL_2D << k;
-                        dy2_flag = CT_d2Rody2_NULL_2D << k;
+                        c_flag   = CT_Rho_CONST_2D     << k; 
+                        dx_flag  = CT_dRhodx_NULL_2D   << k;
+                        dy_flag  = CT_dRhody_NULL_2D   << k;
+                        dx2_flag = CT_d2Rhodx2_NULL_2D << k;
+                        dy2_flag = CT_d2Rhody2_NULL_2D << k;
                     } else if (k < (4+NUM_COMPONENTS)) {
                         c_flag   = CT_Y_CONST_2D;
                         dx_flag  = CT_dYdx_NULL_2D;
@@ -498,7 +498,7 @@ inline FP DEEPS2D_Stage2(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*     pLJ,
                    int c_flag = 0;
 
                    if ( k < 4 ) // Make bit flags for future test for current equation // FlowNode2D<FP,NUM_COMPONENTS>::NumEq-AddEq-NUM_COMPONENTS ?
-                       c_flag  = CT_Ro_CONST_2D   << k;
+                       c_flag  = CT_Rho_CONST_2D   << k;
                    else if (k<(4+NUM_COMPONENTS))  // 7 ?
                        c_flag  = CT_Y_CONST_2D;
                    else if((CurrentNode->isTurbulenceCond2D(TCT_k_eps_Model_2D) ||
@@ -512,9 +512,9 @@ inline FP DEEPS2D_Stage2(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*     pLJ,
 
                          FP Tmp;
 
-                         if(k == i2d_RoU && k == i2d_RoV ) {
-                             Tmp = sqrt(CurrentNode->S[i2d_RoU]*CurrentNode->S[i2d_RoU]+
-                                        CurrentNode->S[i2d_RoV]*CurrentNode->S[i2d_RoV]+1.e-30); // Flux
+                         if(k == i2d_RhoU && k == i2d_RhoV ) {
+                             Tmp = sqrt(CurrentNode->S[i2d_RhoU]*CurrentNode->S[i2d_RhoU]+
+                                        CurrentNode->S[i2d_RhoV]*CurrentNode->S[i2d_RhoV]+1.e-30); // Flux
                          } else {
                              Tmp = CurrentNode->S[k];
                          }
@@ -609,14 +609,14 @@ inline FP DEEPS2D_Stage2(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*     pLJ,
                    CurrentNode->dVdy=(UpNode->V*n3-DownNode->V*n4)*dy_1*m_m_1;
 
                    if(CurrentNode->isTurbulenceCond2D(TCT_k_eps_Model_2D)){
-                     CurrentNode->dkdx   =(RightNode->S[i2d_k]*n1-LeftNode->S[i2d_k]*n2)*dx_1/CurrentNode->S[i2d_Ro]*n_n_1;
-                     CurrentNode->depsdx =(RightNode->S[i2d_eps]*n1-LeftNode->S[i2d_eps]*n2)*dx_1/CurrentNode->S[i2d_Ro]*n_n_1;
+                     CurrentNode->dkdx   =(RightNode->S[i2d_k]*n1-LeftNode->S[i2d_k]*n2)*dx_1/CurrentNode->S[i2d_Rho]*n_n_1;
+                     CurrentNode->depsdx =(RightNode->S[i2d_eps]*n1-LeftNode->S[i2d_eps]*n2)*dx_1/CurrentNode->S[i2d_Rho]*n_n_1;
 
-                     CurrentNode->dkdy   =(UpNode->S[i2d_k]*n3-DownNode->S[i2d_k]*n4)*dy_1/CurrentNode->S[i2d_Ro]*m_m_1;
-                     CurrentNode->depsdy =(UpNode->S[i2d_eps]*n3-DownNode->S[i2d_eps]*n4)*dy_1/CurrentNode->S[i2d_Ro]*m_m_1;
+                     CurrentNode->dkdy   =(UpNode->S[i2d_k]*n3-DownNode->S[i2d_k]*n4)*dy_1/CurrentNode->S[i2d_Rho]*m_m_1;
+                     CurrentNode->depsdy =(UpNode->S[i2d_eps]*n3-DownNode->S[i2d_eps]*n4)*dy_1/CurrentNode->S[i2d_Rho]*m_m_1;
                    } else if (CurrentNode->isTurbulenceCond2D(TCT_Spalart_Allmaras_Model_2D)) {
-                              CurrentNode->dkdx   =(RightNode->S[i2d_k]*n1-LeftNode->S[i2d_k]*n2)*dx_1/CurrentNode->S[i2d_Ro]*n_n_1;
-                              CurrentNode->dkdy   =(UpNode->S[i2d_k]*n3-DownNode->S[i2d_k]*n4)*dy_1/CurrentNode->S[i2d_Ro]*m_m_1;
+                              CurrentNode->dkdx   =(RightNode->S[i2d_k]*n1-LeftNode->S[i2d_k]*n2)*dx_1/CurrentNode->S[i2d_Rho]*n_n_1;
+                              CurrentNode->dkdy   =(UpNode->S[i2d_k]*n3-DownNode->S[i2d_k]*n4)*dy_1/CurrentNode->S[i2d_Rho]*m_m_1;
                    }
                } else {
                    CurrentNode->dUdx   =(RightNode->U-LeftNode->U)*dx_1*n_n_1;
@@ -625,14 +625,14 @@ inline FP DEEPS2D_Stage2(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*     pLJ,
                    CurrentNode->dUdy   =(UpNode->U-DownNode->U)*dy_1*m_m_1;
                    CurrentNode->dVdy   =(UpNode->V-DownNode->V)*dy_1*m_m_1;
                    if(CurrentNode->isTurbulenceCond2D(TCT_k_eps_Model_2D)){
-                     CurrentNode->dkdx   =(RightNode->S[i2d_k]-LeftNode->S[i2d_k])*dx_1/CurrentNode->S[i2d_Ro]*n_n_1;
-                     CurrentNode->depsdx =(RightNode->S[i2d_eps]-LeftNode->S[i2d_eps])*dx_1/CurrentNode->S[i2d_Ro]*n_n_1;
+                     CurrentNode->dkdx   =(RightNode->S[i2d_k]-LeftNode->S[i2d_k])*dx_1/CurrentNode->S[i2d_Rho]*n_n_1;
+                     CurrentNode->depsdx =(RightNode->S[i2d_eps]-LeftNode->S[i2d_eps])*dx_1/CurrentNode->S[i2d_Rho]*n_n_1;
 
-                     CurrentNode->dkdy   =(UpNode->S[i2d_k]-DownNode->S[i2d_k])*dy_1/CurrentNode->S[i2d_Ro]*m_m_1;
-                     CurrentNode->depsdy =(UpNode->S[i2d_eps]-DownNode->S[i2d_eps])*dy_1/CurrentNode->S[i2d_Ro]*m_m_1;
+                     CurrentNode->dkdy   =(UpNode->S[i2d_k]-DownNode->S[i2d_k])*dy_1/CurrentNode->S[i2d_Rho]*m_m_1;
+                     CurrentNode->depsdy =(UpNode->S[i2d_eps]-DownNode->S[i2d_eps])*dy_1/CurrentNode->S[i2d_Rho]*m_m_1;
                    } else if (CurrentNode->isTurbulenceCond2D(TCT_Spalart_Allmaras_Model_2D)) {
-                              CurrentNode->dkdx   =(RightNode->S[i2d_k]-LeftNode->S[i2d_k])*dx_1/CurrentNode->S[i2d_Ro]*n_n_1;
-                              CurrentNode->dkdy   =(UpNode->S[i2d_k]-DownNode->S[i2d_k])*dy_1/CurrentNode->S[i2d_Ro]*m_m_1;
+                              CurrentNode->dkdx   =(RightNode->S[i2d_k]-LeftNode->S[i2d_k])*dx_1/CurrentNode->S[i2d_Rho]*n_n_1;
+                              CurrentNode->dkdy   =(UpNode->S[i2d_k]-DownNode->S[i2d_k])*dy_1/CurrentNode->S[i2d_Rho]*m_m_1;
                    }
                }
 
@@ -2348,11 +2348,11 @@ void ParallelRecalc_y_plus(ComputationalMatrix2D* pJ,
 
                              if(x == wx && y == wy ) {
                                  pJ->GetValue(i,j).y_plus = U_w*min((FlowNode2D<FP,NUM_COMPONENTS>::dx),
-                                                                    (FlowNode2D<FP,NUM_COMPONENTS>::dy))*pJ->GetValue(i,j).S[i2d_Ro]/pJ->GetValue(i,j).mu;
+                                                                    (FlowNode2D<FP,NUM_COMPONENTS>::dy))*pJ->GetValue(i,j).S[i2d_Rho]/pJ->GetValue(i,j).mu;
                              } else {
                                  if(pJ->GetValue(i,j).l_min == min(pJ->GetValue(i,j).l_min,
                                                                    sqrt((x-wx)*(x-wx) + (y-wy)*(y-wy))))
-                                 pJ->GetValue(i,j).y_plus = U_w*pJ->GetValue(i,j).l_min*pJ->GetValue(i,j).S[i2d_Ro]/pJ->GetValue(i,j).mu;
+                                 pJ->GetValue(i,j).y_plus = U_w*pJ->GetValue(i,j).l_min*pJ->GetValue(i,j).S[i2d_Rho]/pJ->GetValue(i,j).mu;
                              }
                         }
                  }
@@ -2372,7 +2372,7 @@ void Recalc_y_plus(ComputationalMatrix2D* pJ, UArray< XY<int> >* WallNodes) {
         tau_w = (fabs(pJ->GetValue(iw,jw).dUdy) + 
                  fabs(pJ->GetValue(iw,jw).dVdx)) * pJ->GetValue(iw,jw).mu;
 
-        U_w   = sqrt(tau_w/pJ->GetValue(iw,jw).S[i2d_Ro]+1e-30);
+        U_w   = sqrt(tau_w/pJ->GetValue(iw,jw).S[i2d_Rho]+1e-30);
 
         for (int i=0;i<(int)pJ->GetX();i++ ) {
                for (int j=0;j<(int)pJ->GetY();j++ ) {
@@ -2384,7 +2384,7 @@ void Recalc_y_plus(ComputationalMatrix2D* pJ, UArray< XY<int> >* WallNodes) {
                                } else { 
                                    if(pJ->GetValue(i,j).l_min == max(min(dx,dy),sqrt((i-iw)*(i-iw)*dx*dx + 
                                                                                      (j-jw)*(j-jw)*dy*dy)))
-                                      pJ->GetValue(i,j).y_plus = U_w*pJ->GetValue(i,j).l_min*pJ->GetValue(i,j).S[i2d_Ro]/pJ->GetValue(i,j).mu;
+                                      pJ->GetValue(i,j).y_plus = U_w*pJ->GetValue(i,j).l_min*pJ->GetValue(i,j).S[i2d_Rho]/pJ->GetValue(i,j).mu;
                                }
                          }
                        }
@@ -2476,8 +2476,8 @@ inline  void CalcHeatOnWallSources(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* F
                         else
                            DownNode->Q_conv = -lam_eff*(DownNode->Tg - CurrentNode->Tg)/dy_local;
                         
-                        CurrentNode->SrcAdd[i2d_RoE] = -dt*DownNode->Q_conv/dy;
-                        //CurrentNode->SrcAdd[i2d_RoE] += dt*lam_eff*(DownNode->Tg - CurrentNode->Tg)/dy2;
+                        CurrentNode->SrcAdd[i2d_RhoE] = -dt*DownNode->Q_conv/dy;
+                        //CurrentNode->SrcAdd[i2d_RhoE] += dt*lam_eff*(DownNode->Tg - CurrentNode->Tg)/dy2;
                     }
                     
                     if ( UpNode && UpNode->isCond2D(CT_SOLID_2D) ) {
@@ -2497,8 +2497,8 @@ inline  void CalcHeatOnWallSources(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* F
                         else
                            UpNode->Q_conv = -lam_eff*(UpNode->Tg - CurrentNode->Tg)/dy_local;
                         
-                        CurrentNode->SrcAdd[i2d_RoE] = -dt*UpNode->Q_conv/dy;
-                        //CurrentNode->SrcAdd[i2d_RoE] += dt*lam_eff*(UpNode->Tg - CurrentNode->Tg)/dy2;
+                        CurrentNode->SrcAdd[i2d_RhoE] = -dt*UpNode->Q_conv/dy;
+                        //CurrentNode->SrcAdd[i2d_RhoE] += dt*lam_eff*(UpNode->Tg - CurrentNode->Tg)/dy2;
                     }
                     
                     if ( LeftNode && LeftNode->isCond2D(CT_SOLID_2D) ) {
@@ -2518,8 +2518,8 @@ inline  void CalcHeatOnWallSources(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* F
                         else
                            LeftNode->Q_conv = -lam_eff*(LeftNode->Tg - CurrentNode->Tg)/dx_local;
                         
-                        CurrentNode->SrcAdd[i2d_RoE] = -dt*LeftNode->Q_conv/dx;
-                        //CurrentNode->SrcAdd[i2d_RoE] += dt*lam_eff*(LeftNode->Tg - CurrentNode->Tg)/dx2;
+                        CurrentNode->SrcAdd[i2d_RhoE] = -dt*LeftNode->Q_conv/dx;
+                        //CurrentNode->SrcAdd[i2d_RhoE] += dt*lam_eff*(LeftNode->Tg - CurrentNode->Tg)/dx2;
                     }
                     
                     if ( RightNode && RightNode->isCond2D(CT_SOLID_2D) ) {
@@ -2539,8 +2539,8 @@ inline  void CalcHeatOnWallSources(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* F
                         else
                            RightNode->Q_conv = -lam_eff*(RightNode->Tg - CurrentNode->Tg)/dx_local;
                         
-                        CurrentNode->SrcAdd[i2d_RoE] = -dt*RightNode->Q_conv/dx;
-                        //CurrentNode->SrcAdd[i2d_RoE] += dt*lam_eff*(RightNode->Tg - CurrentNode->Tg)/dx2;
+                        CurrentNode->SrcAdd[i2d_RhoE] = -dt*RightNode->Q_conv/dx;
+                        //CurrentNode->SrcAdd[i2d_RhoE] += dt*lam_eff*(RightNode->Tg - CurrentNode->Tg)/dx2;
                     }
                 }
             }

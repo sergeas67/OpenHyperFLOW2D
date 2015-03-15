@@ -41,20 +41,20 @@ unsigned int x,y;
         
         if(FlowNode2D<FP,NUM_COMPONENTS>::FT==FT_AXISYMMETRIC) {
             if(sy == 0 || ey ==0) {
-              F->GetValue(sx,sy).Src[i2d_Ro]      =  M_s0/(M_PI*F->GetValue(sx,sy).dx*F->GetValue(sx,sy).dy*F->GetValue(sx,sy).dy);
+              F->GetValue(sx,sy).Src[i2d_Rho]      =  M_s0/(M_PI*F->GetValue(sx,sy).dx*F->GetValue(sx,sy).dy*F->GetValue(sx,sy).dy);
             } else {
-              F->GetValue(sx,sy).Src[i2d_Ro]      =  M_s0/(2*M_PI*F->GetValue(sx,sy).dx*F->GetValue(sx,sy).dy*F->GetValue(sx,sy).y);
+              F->GetValue(sx,sy).Src[i2d_Rho]      =  M_s0/(2*M_PI*F->GetValue(sx,sy).dx*F->GetValue(sx,sy).dy*F->GetValue(sx,sy).y);
             }
         } else {
-              F->GetValue(sx,sy).Src[i2d_Ro]      =  M_s0/(F->GetValue(sx,sy).dx*F->GetValue(sx,sy).dy); 
+              F->GetValue(sx,sy).Src[i2d_Rho]      =  M_s0/(F->GetValue(sx,sy).dx*F->GetValue(sx,sy).dy); 
         }
            
-        F->GetValue(sx,sy).SrcAdd[i2d_Ro] =  0.;
-        F->GetValue(sx,sy).Src[i2d_RoU]   =  0;
+        F->GetValue(sx,sy).SrcAdd[i2d_Rho] =  0.;
+        F->GetValue(sx,sy).Src[i2d_RhoU]   =  0;
         F->GetValue(sx,sy).Tf             =  T_f;
         if(c_index < 4)
-          F->GetValue(sx,sy).Src[c_index+4] =  F->GetValue(sx,sy).Src[i2d_Ro];
-        F->GetValue(sx,sy).Src[i2d_RoE]     =  Cp*T*F->GetValue(sx,sy).Src[i2d_Ro];
+          F->GetValue(sx,sy).Src[c_index+4] =  F->GetValue(sx,sy).Src[i2d_Rho];
+        F->GetValue(sx,sy).Src[i2d_RhoE]     =  Cp*T*F->GetValue(sx,sy).Src[i2d_Rho];
         return;
     }
 
@@ -74,23 +74,23 @@ unsigned int x,y;
             if(FlowNode2D<FP,NUM_COMPONENTS>::FT==FT_AXISYMMETRIC) {
              if(sy == 0 || ey ==0) {
                 DR = DY*F->GetValue(sx,sy).dy;
-                F->GetValue(x,y).Src[i2d_Ro]      =  M_s0/(M_PI*(F->GetValue(sx,sy).dx*DR*DR));
+                F->GetValue(x,y).Src[i2d_Rho]      =  M_s0/(M_PI*(F->GetValue(sx,sy).dx*DR*DR));
              } else {
                 DR2 = M_PI*fabs(sy*sy*F->GetValue(sx,sy).dy*F->GetValue(sx,sy).dy-
                            ey*ey*F->GetValue(sx,sy).dy*F->GetValue(sx,sy).dy);
-                F->GetValue(x,y).Src[i2d_Ro]      =  M_s0/(F->GetValue(sx,sy).dx*DR2);
+                F->GetValue(x,y).Src[i2d_Rho]      =  M_s0/(F->GetValue(sx,sy).dx*DR2);
              }
                 
             } else { 
-                F->GetValue(x,y).Src[i2d_Ro]      =  M_s0/(F->GetValue(sx,sy).dx*F->GetValue(sx,sy).dy);
+                F->GetValue(x,y).Src[i2d_Rho]      =  M_s0/(F->GetValue(sx,sy).dx*F->GetValue(sx,sy).dy);
             }
                
-            F->GetValue(x,y).SrcAdd[i2d_Ro] =  0.;
+            F->GetValue(x,y).SrcAdd[i2d_Rho] =  0.;
             F->GetValue(x,y).Tf             =  T_f;
-            F->GetValue(x,y).Src[i2d_RoU]   =  0;
-            F->GetValue(x,y).Src[i2d_RoV]   =  0;
-            F->GetValue(x,y).Src[c_index+4] =  F->GetValue(x,y).Src[i2d_Ro];
-            F->GetValue(x,y).Src[i2d_RoE]   =  Cp*T*F->GetValue(x,y).Src[i2d_Ro];
+            F->GetValue(x,y).Src[i2d_RhoU]   =  0;
+            F->GetValue(x,y).Src[i2d_RhoV]   =  0;
+            F->GetValue(x,y).Src[c_index+4] =  F->GetValue(x,y).Src[i2d_Rho];
+            F->GetValue(x,y).Src[i2d_RhoE]   =  Cp*T*F->GetValue(x,y).Src[i2d_Rho];
         }
     } else {
         if ( DY>0 )SKY=1;
@@ -106,20 +106,20 @@ unsigned int x,y;
             if(FlowNode2D<FP,NUM_COMPONENTS>::FT==FT_AXISYMMETRIC) {
                 if(sy == 0 || ey ==0) {
                    DR = DY*F->GetValue(sx,sy).dy;
-                   F->GetValue(x,y).Src[i2d_Ro]      =  M_s0/(M_PI*(F->GetValue(sx,sy).dx*DR*DR));
+                   F->GetValue(x,y).Src[i2d_Rho]      =  M_s0/(M_PI*(F->GetValue(sx,sy).dx*DR*DR));
                 } else   {
                     DR2 = M_PI*fabs(sy*sy*F->GetValue(sx,sy).dy*F->GetValue(sx,sy).dy-
                                     ey*ey*F->GetValue(sx,sy).dy*F->GetValue(sx,sy).dy);
-                    F->GetValue(x,y).Src[i2d_Ro]  =  M_s0/(F->GetValue(sx,sy).dx*DR2);
+                    F->GetValue(x,y).Src[i2d_Rho]  =  M_s0/(F->GetValue(sx,sy).dx*DR2);
                 }
               }
 
-            F->GetValue(x,y).SrcAdd[i2d_Ro] =  0.;
+            F->GetValue(x,y).SrcAdd[i2d_Rho] =  0.;
             F->GetValue(x,y).Tf             =  T_f;
-            F->GetValue(x,y).Src[i2d_RoU]   =  0;
-            F->GetValue(x,y).Src[i2d_RoV]   =  0;
-            F->GetValue(x,y).Src[c_index+4] =  F->GetValue(x,y).Src[i2d_Ro];
-            F->GetValue(x,y).Src[i2d_RoE]   =  Cp*T*F->GetValue(x,y).Src[i2d_Ro];
+            F->GetValue(x,y).Src[i2d_RhoU]   =  0;
+            F->GetValue(x,y).Src[i2d_RhoV]   =  0;
+            F->GetValue(x,y).Src[c_index+4] =  F->GetValue(x,y).Src[i2d_Rho];
+            F->GetValue(x,y).Src[i2d_RhoE]   =  Cp*T*F->GetValue(x,y).Src[i2d_Rho];
         }
     }
     return;

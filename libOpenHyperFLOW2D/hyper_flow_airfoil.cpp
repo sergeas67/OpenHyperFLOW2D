@@ -93,7 +93,7 @@ SolidBoundAirfoil2D::SolidBoundAirfoil2D(char* name,
                                                                              (int)(x/dx+0.4999),
                                                                              (int)(y/dy+0.4999)
                                                                              ),Area2D(name,JM) {
-    int     k,i,ret;
+    int     i,ret; // k,
     FP      xx1,yy1,xx2,yy2,r,fi;
     int     ix,iy;
     Table*  UpperSurface = airfoil_input_data->GetTable((char*)"UpperSurface");
