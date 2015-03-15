@@ -27,7 +27,7 @@ FP p_asterisk(FlowNode2D<FP,NUM_COMPONENTS>* node ) {
 }
 
 FP Schliren(FlowNode2D<FP,NUM_COMPONENTS>* node ) {
-   return sqrt(node->dSdx[i2d_Ro]*node->dSdx[i2d_Ro] + node->dSdy[i2d_Ro]*node->dSdy[i2d_Ro]);
+   return sqrt(node->dSdx[i2d_Rho]*node->dSdx[i2d_Rho] + node->dSdy[i2d_Rho]*node->dSdy[i2d_Rho]);
 }
 
 
@@ -183,9 +183,9 @@ unsigned int jj_end = (unsigned int)((y0+dy)/FlowNode2D<FP,NUM_COMPONENTS>::dy);
     for (int j=jj_start;j<(int)jj_end;j++ ) {
         if ( !pJ->GetValue(i,j).isCond2D(CT_SOLID_2D)) {
             if (FlowNode2D<FP,NUM_COMPONENTS>::FT == FT_FLAT)
-                Mp+= FlowNode2D<FP,NUM_COMPONENTS>::dy*pJ->GetValue(i,j).S[i2d_RoU];
+                Mp+= FlowNode2D<FP,NUM_COMPONENTS>::dy*pJ->GetValue(i,j).S[i2d_RhoU];
             else
-                Mp+= 2 * M_PI *FlowNode2D<FP,NUM_COMPONENTS>::dy*pJ->GetValue(i,j).y*pJ->GetValue(i,j).S[i2d_RoU];
+                Mp+= 2 * M_PI *FlowNode2D<FP,NUM_COMPONENTS>::dy*pJ->GetValue(i,j).y*pJ->GetValue(i,j).S[i2d_RhoU];
         }
     }
     return(Mp);
@@ -778,9 +778,9 @@ unsigned int jj_end = (unsigned int)((y0+dy)/FlowNode2D<FP,NUM_COMPONENTS>::dy);
     for (int j=jj_start;j<(int)jj_end;j++ ) {
         if ( !pJ->GetValue(i,j).isCond2D(CT_SOLID_2D)) {
             if (FlowNode2D<FP,NUM_COMPONENTS>::FT == FT_FLAT) {
-                Fv+= FlowNode2D<FP,NUM_COMPONENTS>::dy*(pJ->GetValue(i,j).S[i2d_RoU]*pJ->GetValue(i,j).U+(pJ->GetValue(i,j).p - p_amb));
+                Fv+= FlowNode2D<FP,NUM_COMPONENTS>::dy*(pJ->GetValue(i,j).S[i2d_RhoU]*pJ->GetValue(i,j).U+(pJ->GetValue(i,j).p - p_amb));
             } else {
-                Fv+= 2 * M_PI *FlowNode2D<FP,NUM_COMPONENTS>::dy*pJ->GetValue(i,j).y*(pJ->GetValue(i,j).S[i2d_RoU]*pJ->GetValue(i,j).U+(pJ->GetValue(i,j).p - p_amb));
+                Fv+= 2 * M_PI *FlowNode2D<FP,NUM_COMPONENTS>::dy*pJ->GetValue(i,j).y*(pJ->GetValue(i,j).S[i2d_RhoU]*pJ->GetValue(i,j).U+(pJ->GetValue(i,j).p - p_amb));
             }
         }
     }
