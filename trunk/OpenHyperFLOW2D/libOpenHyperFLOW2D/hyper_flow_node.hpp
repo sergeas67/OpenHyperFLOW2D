@@ -62,7 +62,7 @@ enum     FlowType {
 // 2D Condition types
 enum CondType2D   {                  // Condition type (bit flags)
     CT_NO_COND_2D      = 0x0,        // 0  - no BC
-    CT_Ro_CONST_2D     = 0x01,       // 1  - Rho constant (Dirichlet BC)
+    CT_Rho_CONST_2D    = 0x01,       // 1  - Rho constant (Dirichlet BC)
     CT_U_CONST_2D      = 0x02,       // 2  - RhoU constant (Dirichlet BC)
     CT_V_CONST_2D      = 0x04,       // 3  - RhoV constant (Dirichlet BC)
     CT_T_CONST_2D      = 0x08,       // 4  - RhoE constant (Dirichlet BC)
@@ -102,7 +102,7 @@ enum CondType2D   {                  // Condition type (bit flags)
 // Macro bound types as combination of CondType bit flags
 enum     NodeType2D {
     NT_UNDEF_2D      = 0,                                            // Undefinded node type
-    NT_FC_2D         = CT_Ro_CONST_2D | CT_U_CONST_2D | CT_V_CONST_2D | CT_Y_CONST_2D | CT_T_CONST_2D  |
+    NT_FC_2D         = CT_Rho_CONST_2D | CT_U_CONST_2D | CT_V_CONST_2D | CT_Y_CONST_2D | CT_T_CONST_2D  |
                        CT_NODE_IS_SET_2D,                            // External gas flow
     NT_D0X_2D        = CT_NODE_IS_SET_2D | CT_dRhodx_NULL_2D | CT_dUdx_NULL_2D | CT_dVdx_NULL_2D | CT_dTdx_NULL_2D  |
                        CT_dYdx_NULL_2D,                              // Nongradient condition  (dF/dx = 0) in x direction
@@ -122,7 +122,7 @@ enum     NodeType2D {
                        CT_U_CONST_2D | CT_V_CONST_2D,                // condition
     NT_S_2D          = CT_SOLID_2D   | CT_NODE_IS_SET_2D,            // Solid body
     NT_F_2D          = !CT_SOLID_2D  | CT_NODE_IS_SET_2D,            // Internal gas area
-    NT_FC_TIME_DEPEND_2D = CT_Ro_CONST_2D | CT_U_CONST_2D | CT_V_CONST_2D | CT_Y_CONST_2D | CT_T_CONST_2D  |
+    NT_FC_TIME_DEPEND_2D = CT_Rho_CONST_2D | CT_U_CONST_2D | CT_V_CONST_2D | CT_Y_CONST_2D | CT_T_CONST_2D  |
                       CT_TIME_DEPEND_2D | CT_NODE_IS_SET_2D,         // Time depend External gas flow
     NT_FARFIELD_2D   = NT_FC_2D | CT_NONREFLECTED_2D                 // Nonreflected far-field BC
 };
@@ -151,10 +151,10 @@ public:
     T                x,y;         // x, y(r)
     int              ix,iy;       // i_x,i_y
 // Neighboring nodes
-    FlowNode2D<T,a>*            UpNode;
-    FlowNode2D<T,a>*            DownNode;
-    FlowNode2D<T,a>*            LeftNode;
-    FlowNode2D<T,a>*            RightNode;
+    FlowNode2D<T,a>* UpNode;
+    FlowNode2D<T,a>* DownNode;
+    FlowNode2D<T,a>* LeftNode;
+    FlowNode2D<T,a>* RightNode;
 
     T          p;                    // pressure 
     int        idXl;                 // is left node present ? (0 or 1)
