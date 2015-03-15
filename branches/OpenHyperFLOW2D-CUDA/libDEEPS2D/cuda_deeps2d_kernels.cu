@@ -489,9 +489,6 @@ cuda_DEEPS2D_Stage1(FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
               
               FlowNodeCore2D< FP,NUM_COMPONENTS >* NextNode=&pLC[index];
 
-              FP beta[NUM_COMPONENTS+6];
-              FP _beta[NUM_COMPONENTS+6];
-
               int  n1 = CurrentNode->idXl; 
               int  n2 = CurrentNode->idXr;
               int  n3 = CurrentNode->idYu;
@@ -504,7 +501,10 @@ cuda_DEEPS2D_Stage1(FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
               FlowNode2D< FP,NUM_COMPONENTS >* DownNode  = CurrentNode->DownNode;
               FlowNode2D< FP,NUM_COMPONENTS >* RightNode = CurrentNode->RightNode;
               FlowNode2D< FP,NUM_COMPONENTS >* LeftNode  = CurrentNode->LeftNode;
-
+              
+              FP beta;
+              FP _beta;
+              
               // Scan equation system ... k - number of equation
 #pragma unroll
               for (int k=0;k<Num_Eq;k++ ) {
@@ -513,10 +513,10 @@ cuda_DEEPS2D_Stage1(FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
                   int      dx_flag, dx2_flag;
 
                   int      dy_flag, dy2_flag;
-                  FP   dXX,dYY;
+                  FP       dXX,dYY;
 
-                  beta[k]  = CurrentNode->beta[k];
-                  _beta[k] = 1. - beta[k];
+                  beta  = CurrentNode->beta[k];
+                  _beta = 1. - beta;
 
                 // Precomputed variables for current node ...
                     c_flag  = dx_flag = dy_flag = dx2_flag = dy2_flag = 0;
@@ -634,10 +634,10 @@ cuda_DEEPS2D_Stage1(FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
                         }
                         
                         if ( _FT ) {
-                            NextNode->S[k] = CurrentNode->S[k]*beta[k]+_beta[k]*(dxx*(LeftNode->S[k]+RightNode->S[k])+dyy*(UpNode->S[k]+DownNode->S[k]))*0.5
+                            NextNode->S[k] = CurrentNode->S[k]*beta+_beta*(dxx*(LeftNode->S[k]+RightNode->S[k])+dyy*(UpNode->S[k]+DownNode->S[k]))*0.5
                                           - (dtdx*dXX+dtdy*(dYY+CurrentNode->F[k]/(CurrentNode->ix+0.5))) + (CurrentNode->Src[k])*_dt+CurrentNode->SrcAdd[k];
                         } else {
-                            NextNode->S[k] = CurrentNode->S[k]*beta[k]+_beta[k]*(dxx*(LeftNode->S[k]+RightNode->S[k])+dyy*(UpNode->S[k]+DownNode->S[k]))*0.5
+                            NextNode->S[k] = CurrentNode->S[k]*beta+_beta*(dxx*(LeftNode->S[k]+RightNode->S[k])+dyy*(UpNode->S[k]+DownNode->S[k]))*0.5
                                           - (dtdx*dXX+dtdy*dYY) + (CurrentNode->Src[k])*_dt+CurrentNode->SrcAdd[k];
                         }
                 }
