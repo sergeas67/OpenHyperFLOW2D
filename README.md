@@ -6,8 +6,6 @@ Parallel (C++/MPI/OpenMP/CUDA) research CFD code for simulation 2D (flat/axisymm
 <td>
 <a href='http://www.youtube.com/watch?feature=player_embedded&v=77A-nXxhyZQ' target='_blank'><img src='http://img.youtube.com/vi/77A-nXxhyZQ/0.jpg' width='425' height=344 /></a>
 </td>
-</tr>
-<tr>
 <td>
 <a href='http://www.youtube.com/watch?feature=player_embedded&v=Lysyg37Nrb0' target='_blank'><img src='http://img.youtube.com/vi/Lysyg37Nrb0/0.jpg' width='425' height=344 /></a> 
 </td>
