@@ -115,19 +115,18 @@ void InitSharedData(InputData* _data,
             if ( _data->GetDataError()==-1 ) {
                 Abort_OpenHyperFLOW2D();
             }
-            
+
             ProblemType = (SolverMode)(_data->GetIntVal((char*)"ProblemType"));
             if ( _data->GetDataError()==-1 ) {
                 Abort_OpenHyperFLOW2D();
             }
-            
+
             /*
             isRecalcYplus  = _data->GetIntVal((char*)"isRecalcYplus");
             if ( _data->GetDataError()==-1 ) {
                 Abort_OpenHyperFLOW2D();
             }
-            
-            
+
             isHighOrder = _data->GetIntVal((char*)"isHighOrder");
             if ( _data->GetDataError()==-1 ) {
                 Abort_OpenHyperFLOW2D();
@@ -1174,6 +1173,8 @@ void* InitDEEPS2D(void* lpvParam)
                                 TmpCT = (CondType2D)(TmpCT | NT_FC_2D);
                             if ( strstr(BoundStr,"NT_S_2D") )
                                 TmpCT = (CondType2D)(TmpCT | NT_S_2D);
+                            if ( strstr(BoundStr,"NT_FALSE_2D") )
+                                TmpCT = (CondType2D)(TmpCT | CT_NODE_IS_SET_2D);
 
                             if ( TmpCT==CT_NO_COND_2D  &&  TmpTurbulenceCT == 0) {
                                 *f_stream << "\n";
