@@ -72,23 +72,21 @@
 
 ;Maximum time of calculation, s
 ; Courant number (for gas phase only)
-<data/CFL=0.1>
+<data/CFL=0.05>
 
 ; CFL scenario
 <table=CFL_Scenario/2>
-0       0.1
-200000  0.1
+0       0.05
+2000    0.05
 <endtable>
 
 ; Base blending factor
-<data/beta=0.9885>
+<data/beta=0.975>
 
 ; Base blending factor scenario
-<table=beta_Scenario/4>
-0       0.95
+<table=beta_Scenario/2>
+0       0.975
 500     0.975
-1000    0.985
-5000    0.9875
 <endtable>
 
 ; Maximum number of steps
