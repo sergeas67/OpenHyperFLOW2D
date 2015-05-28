@@ -27,6 +27,7 @@ int            TurbStartIter;
 int            TurbExtModel;
 int            err_i, err_j;
 int            turb_mod_name_index = 0;
+int            isAlternateRMS;
 FP             Ts0,A,W,Mach;
 
 UArray< XY<int> >* GlobalSubDomain;
@@ -270,6 +271,11 @@ void InitSharedData(InputData* _data,
             if(NOutStep >= Nstep)
                Nstep = NOutStep + 1;
             
+            isAlternateRMS = _data->GetIntVal((char*)"isAlternateRMS");
+            if ( _data->GetDataError()==-1 ) {
+                Abort_OpenHyperFLOW2D();
+            }
+
             MonitorNumber = _data->GetIntVal((char*)"MonitorNumber");
             if ( _data->GetDataError()==-1 ) {
                 Abort_OpenHyperFLOW2D();
@@ -588,21 +594,27 @@ void DEEPS2D_Run(ofstream* f_stream
 #ifdef __ICC
     __declspec(align(_ALIGN)) FP    dtmin;
     __declspec(align(_ALIGN)) FP    sum_RMS[FlowNode2D<FP,NUM_COMPONENTS>::NumEq];
+    __declspec(align(_ALIGN)) FP    sum_RMS_Div[FlowNode2D<FP,NUM_COMPONENTS>::NumEq];
 #else
     FP    dtmin __attribute__ ((aligned (_ALIGN)));
     FP    sum_RMS[FlowNode2D<FP,NUM_COMPONENTS>::NumEq] __attribute__ ((aligned (_ALIGN)));
+    FP    sum_RMS_Div[FlowNode2D<FP,NUM_COMPONENTS>::NumEq] __attribute__ ((aligned (_ALIGN)));
 #endif // __ICC
     
-    unsigned long sum_iRMS[FlowNode2D<FP,NUM_COMPONENTS>::NumEq];
-    UMatrix2D<FP> RMS(FlowNode2D<FP,NUM_COMPONENTS>::NumEq,SubDomainArray->GetNumElements());
-    UMatrix2D<int>    iRMS(FlowNode2D<FP,NUM_COMPONENTS>::NumEq,SubDomainArray->GetNumElements());
-    UMatrix2D<FP> DD_max(FlowNode2D<FP,NUM_COMPONENTS>::NumEq,SubDomainArray->GetNumElements());
+    unsigned long  sum_iRMS[FlowNode2D<FP,NUM_COMPONENTS>::NumEq];
+    UMatrix2D<FP>  RMS(FlowNode2D<FP,NUM_COMPONENTS>::NumEq,SubDomainArray->GetNumElements());
+    UMatrix2D<FP>  sumDiv(FlowNode2D<FP,NUM_COMPONENTS>::NumEq,SubDomainArray->GetNumElements());
+    UMatrix2D<int> iRMS(FlowNode2D<FP,NUM_COMPONENTS>::NumEq,SubDomainArray->GetNumElements());
+    UMatrix2D<FP>  DD_max(FlowNode2D<FP,NUM_COMPONENTS>::NumEq,SubDomainArray->GetNumElements());
 #else
 
 #ifdef __ICC
     __declspec(align(_ALIGN)) FP   RMS[FlowNode2D<FP,NUM_COMPONENTS>::NumEq];
+    __declspec(align(_ALIGN)) FP   sumDiv[FlowNode2D<FP,NUM_COMPONENTS>::NumEq];
+
 #else
     FP   RMS[FlowNode2D<FP,NUM_COMPONENTS>::NumEq] __attribute__ ((aligned (_ALIGN)));
+    FP   sumDiv[FlowNode2D<FP,NUM_COMPONENTS>::NumEq] __attribute__ ((aligned (_ALIGN)));
 #endif // __ICC
     
     unsigned long iRMS[FlowNode2D<FP,NUM_COMPONENTS>::NumEq];
@@ -712,29 +724,29 @@ void DEEPS2D_Run(ofstream* f_stream
                       CFL_Scenario_Val  = CFL_Scenario->GetVal(iter+last_iter); 
 #ifdef _MPI
 // MPI version
-                  if(rank == 0 ) {
-                    if(MonitorNumber < 5)
-                      max_RMS =  0.5*ExitMonitorValue;
-                    else
-                      max_RMS = 0.;
-                  } else {
-                    if(MonitorNumber < 5)
-                       max_RMS = 2*ExitMonitorValue;
-                    else
-                       max_RMS = 0.5*ExitMonitorValue;
-                  }
+                      if(rank == 0 ) {
+                          max_RMS =  0;
+                      } else {
+                        if(MonitorNumber < 5)
+                           max_RMS = 0;
+                        else
+                           max_RMS = 0.5*ExitMonitorValue;
+                      }
 
                   k_max_RMS = -1;
 
                   for (int kk=0;kk<FlowNode2D<FP,NUM_COMPONENTS>::NumEq;kk++ ) {
-                      RMS[kk] = 0.;                                           // Clean sum residual
-                      iRMS[kk]= 0;                                            // num involved nodes
-                      DD_max[rank].DD[kk].RMS  = 0.;                          // sum residual per rank
-                      DD_max[rank].DD[kk].iRMS = 0;                           // num involved nodes per rank
-                      DD_max[rank].DD[kk].DD   = 0.;                          // max residual per rank
-                      DD_max[rank].DD[kk].i    = 0;                           // max residual x-coord
-                      DD_max[rank].DD[kk].j    = 0;                           // max residual y-coord
-                      DD_local[kk]             = 0.;                          // local residual
+                      RMS[kk]    = 0.;                                         // Clean sum residual
+                      iRMS[kk]   = 0;                                          // num involved nodes
+                      sumDiv[kk] = 0.;
+                      
+                      DD_max[rank].DD[kk].RMS    = 0.;                          // sum residual per rank
+                      DD_max[rank].DD[kk].iRMS   = 0;                           // num involved nodes per rank
+                      DD_max[rank].DD[kk].sumDiv = 0;                           // sum Div param
+                      DD_max[rank].DD[kk].DD     = 0.;                          // max residual per rank
+                      DD_max[rank].DD[kk].i      = 0;                           // max residual x-coord
+                      DD_max[rank].DD[kk].j      = 0;                           // max residual y-coord
+                      DD_local[kk]               = 0.;                          // local residual
                     }
 #else
                    n_s = (int)SubDomainArray->GetNumElements();
@@ -742,7 +754,7 @@ void DEEPS2D_Run(ofstream* f_stream
 #pragma omp parallel shared(f_stream,CoreSubDomainArray, SubDomainArray, chemical_reactions,Y_mix,sum_RMS, sum_iRMS, \
                             Cp,i_max,j_max,k_max,Tg,beta0,CurrentTimePart,DD,dx,dy,MaxX,MaxY,dt_min,RMS,iRMS,DD_max,i_c,j_c,n_s) \
                      private(iter,j,k,n1,n2,n3,n4,N1,N2,N3,N4,n_n,m_m,pC,pJ,err_i,err_j,\
-                             AddEq,dXX,dYY,DD_local,AAA,StartXLocal,MaxXLocal,\
+                             dXX,dYY,DD_local,AAA,StartXLocal,MaxXLocal,\
                              dtdx,dtdy,dt) reduction(min: dtmin)
 //#pragma omp single
 #endif //_OPENMP
@@ -757,11 +769,12 @@ void DEEPS2D_Run(ofstream* f_stream
 
                     for ( k=0;k<(int)FlowNode2D<FP,NUM_COMPONENTS>::NumEq;k++ ) {
                            for(int ii=0;ii<n_s;ii++) {
-                               RMS(k,ii)  = 0.;    // Clean sum residual
-                               iRMS(k,ii) = 0;     // num involved nodes
+                               RMS(k,ii)    = 0.;    // Clean sum residual
+                               iRMS(k,ii)   = 0;     // num involved nodes
+                               sumDiv(k,ii) = 0;     // sum div params 
                            }
                            sum_iRMS[k] = 0;
-                           sum_RMS[k]  = DD[k] = 0.;
+                           sum_RMS_Div[k] = sum_RMS[k] = DD[k] = 0.;
                        }
                    }
 #endif //_MPI
@@ -777,8 +790,8 @@ void DEEPS2D_Run(ofstream* f_stream
 #endif //_OPENMP
 #else
                      dt  = 1.;
-                     for (int ii=0;(int)ii<last_rank+1;ii++) {                     // Choose
-                         dt  = min(DD_max[ii].dt_min,dt);                          // minimal
+                     for (int ii=0;(int)ii<last_rank+1;ii++) {                  // Choose
+                         dt  = min(DD_max[ii].dt_min,dt);                       // minimal
                     }
 
 #endif // _MPI
@@ -1052,18 +1065,21 @@ void DEEPS2D_Run(ofstream* f_stream
                                         FP Tmp = CurrentNode->S[k];
                                         FP beta_min;
                                         FP sqrt_RES = 0;
+                                        FP absDD    = 0.;
 
                                         if(k == i2d_RhoU && k == i2d_RhoV ) {
                                             //Tmp = sqrt(CurrentNode->S[i2d_RhoU]*CurrentNode->S[i2d_RhoU]+
                                             //           CurrentNode->S[i2d_RhoV]*CurrentNode->S[i2d_RhoV]+1.e-30); // Flux
                                             Tmp = max(fabs(CurrentNode->S[i2d_RhoU]),fabs(CurrentNode->S[i2d_RhoV]));// max Flux
                                         }
-                                       
+                                        
+                                        absDD       = NextNode->S[k]-CurrentNode->S[k];
+                                        
                                         if(fabs(Tmp) > 1.e-15) {
-                                            DD_local[k] = fabs((NextNode->S[k]-CurrentNode->S[k])/Tmp);
+                                            DD_local[k] = fabs(absDD/Tmp);
                                             sqrt_RES    = sqrt(DD_local[k]);
                                         } else {
-                                            DD_local[k] = 0.0;
+                                            DD_local[k] = 1.0;
                                         }
 
                                         beta_min = min(beta0,beta_Scenario_Val);
@@ -1087,10 +1103,16 @@ void DEEPS2D_Run(ofstream* f_stream
                                           CurrentNode->beta[k] = min((beta_min+CurrentNode->beta[k])*0.5,(beta_min*beta_min)/(beta_min+sqrt_RES)); 
                                         }
 #ifdef _MPI
-                                            DD_max[rank].DD[k].DD   = max(DD_max[rank].DD[k].DD,DD_local[k]);
-                                            DD_max[rank].DD[k].RMS += DD_local[k]*DD_local[k];
+                                            DD_max[rank].DD[k].DD      = max(DD_max[rank].DD[k].DD,DD_local[k]);
+                                            
+                                            if (isAlternateRMS) {
+                                                DD_max[rank].DD[k].RMS    += absDD*absDD;
+                                            } else {
+                                                DD_max[rank].DD[k].RMS    += DD_local[k]*DD_local[k];
+                                            }
+                                            
+                                            DD_max[rank].DD[k].sumDiv += Tmp*Tmp;
                                             DD_max[rank].DD[k].iRMS++;
-
 
                                               if (DD_max[rank].DD[k].DD==DD_local[k] ) {
                                                   DD_max[rank].DD[k].i = i;
@@ -1098,9 +1120,17 @@ void DEEPS2D_Run(ofstream* f_stream
                                               }
 
 #else
-                                        RMS(k,ii) += DD_local[k]*DD_local[k];
-                                        iRMS(k,ii)++;
-                                        DD_max(k,ii) = max(DD_max(k,ii),DD_local[k]);
+                                        
+                                        if (isAlternateRMS) {
+                                             sumDiv(k,ii) += Tmp*Tmp;
+                                             RMS(k,ii)    += absDD;
+                                         } else {
+                                             RMS(k,ii)    += DD_local[k]*DD_local[k];
+                                         }
+                                        
+                                         iRMS(k,ii)++;
+                                        
+                                         DD_max(k,ii) = max(DD_max(k,ii),DD_local[k]);
 
                                         if ( DD_max(k,ii) == DD_local[k] ) {
                                              i_c[ii] = i;
@@ -1184,6 +1214,7 @@ void DEEPS2D_Run(ofstream* f_stream
                                               CurrentNode->dkdy   =(UpNode->S[i2d_k]-DownNode->S[i2d_k])*dy_1_m_m_1/CurrentNode->S[i2d_Rho];
                                               CurrentNode->depsdy =(UpNode->S[i2d_eps]-DownNode->S[i2d_eps])*dy_1_m_m_1/CurrentNode->S[i2d_Rho];
                                             } else if (CurrentNode->isTurbulenceCond2D(TCT_Spalart_Allmaras_Model_2D)) {
+                                                       turb_mod_name_index = 3;
                                                        CurrentNode->dkdx   =(RightNode->S[i2d_k]-LeftNode->S[i2d_k])*dx_1_n_n_1/CurrentNode->S[i2d_Rho];
                                                        CurrentNode->dkdy   =(UpNode->S[i2d_k]-DownNode->S[i2d_k])*dy_1_m_m_1/CurrentNode->S[i2d_Rho];
                                             }
@@ -1193,8 +1224,6 @@ void DEEPS2D_Run(ofstream* f_stream
                                         CurrentNode->dTdy=(UpNode->Tg-DownNode->Tg)*dy_1_m_m_1;
                                     }
                                     
-                                    CalcChemicalReactions(CurrentNode,CRM_ZELDOVICH, (void*)(&chemical_reactions));
-
                                     if((int)(iter+last_iter) < TurbStartIter) {
                                        CurrentNode->FillNode2D(0,1,SigW,SigF,(TurbulenceExtendedModel)TurbExtModel,delta_bl,ProblemType);
                                     } else {
@@ -1272,11 +1301,12 @@ void DEEPS2D_Run(ofstream* f_stream
                                             dt_min_local        = CFL_min*
                                                                   min(dx/(AAA+fabs(CurrentNode->U)),dy/(AAA+fabs(CurrentNode->V)));
 #ifdef _MPI
-                                            DD_max[rank].dt_min = min(DD_max[rank].dt_min, dt_min_local); 
+                                            DD_max[rank].dt_min = min(DD_max[rank].dt_min, dt_min_local);
+
 #else
                                             dt_min[ii]          = min(dt_min[ii],dt_min_local);
 #endif // _MPI
-
+                                            CalcChemicalReactions(CurrentNode,CRM_ZELDOVICH, (void*)(&chemical_reactions));
                                     }
                        }
                   }
@@ -1437,9 +1467,13 @@ void DEEPS2D_Run(ofstream* f_stream
         if(rank == 0) {
             for(int ii=0,DD_max_var=0.;ii<last_rank+1;ii++) {
                 for (k=0;k<(int)(FlowNode2D<FP,NUM_COMPONENTS>::NumEq);k++ ) {
+                   
                    DD_max_var = max(DD_max[ii].DD[k].DD,DD_max_var);
-                   RMS[k] += DD_max[ii].DD[k].RMS;
-                   iRMS[k]+= DD_max[ii].DD[k].iRMS;
+                   
+                   RMS[k]    += DD_max[ii].DD[k].RMS;
+                   iRMS[k]   += DD_max[ii].DD[k].iRMS;
+                   sumDiv[k] += DD_max[ii].DD[k].sumDiv;
+
                    if(DD_max[ii].DD[k].DD == DD_max_var) {
                     i_max = DD_max[ii].DD[k].i;
                     j_max = DD_max[ii].DD[k].j;
@@ -1449,10 +1483,18 @@ void DEEPS2D_Run(ofstream* f_stream
             }
             
             for (k=0;k<(int)(FlowNode2D<FP,NUM_COMPONENTS>::NumEq);k++ ) {
-                 if(iRMS[k] > 0) {
-
-                  RMS[k] = sqrt(RMS[k]/iRMS[k]);
-
+                
+                
+                if (isAlternateRMS) {
+                    if(RMS[k] > 0.0 && sumDiv[k] > 0) { 
+                       RMS[k] = sqrt(RMS[k]/sumDiv[k]);
+                    }
+                } else {
+                    if(iRMS[k] > 0) {
+                       RMS[k] = sqrt(RMS[k]/iRMS[k]);
+                    }
+                }
+                  
                   if(MonitorNumber == 0 || MonitorNumber > 4) {
                      max_RMS = max(RMS[k],max_RMS);
                      if(max_RMS == RMS[k])
@@ -1463,7 +1505,7 @@ void DEEPS2D_Run(ofstream* f_stream
                         k_max_RMS = k;
                   }
 
-                 }
+                 
                 }
 #else
 #ifdef _OPENMP
@@ -1473,18 +1515,30 @@ void DEEPS2D_Run(ofstream* f_stream
 #pragma omp single
 #endif // _OPENMP
     {
-        for(k=0;k<(int)(FlowNode2D<FP,NUM_COMPONENTS>::NumEq);k++ ) {
-         for(int ii=0;ii<(int)SubDomainArray->GetNumElements();ii++) {
-              if(iRMS(k,ii) > 0) {
-                 sum_RMS[k]  += RMS(k,ii);
-                 sum_iRMS[k] += iRMS(k,ii);
+        for(k=0;k<(int)(FlowNode2D<FP,NUM_COMPONENTS>::NumEq);k++ )     {
+         
+            for(int ii=0;ii<(int)SubDomainArray->GetNumElements();ii++) {
+             if (isAlternateRMS) {
+                 if(sumDiv(k,ii) > 0.0) {
+                   sum_RMS[k]      += RMS(k,ii);
+                   sum_RMS_Div[k]  +=sumDiv(k,ii);
+                 }
+                 if(sum_RMS_Div[k] > 0.0 && sum_RMS[k] > 0.0)
+                    sum_RMS[k] = sqrt(sum_RMS[k]/sum_RMS_Div[k]);
+                 else
+                    sum_RMS[k] = 0.0;
+             } else {
+                 if(iRMS(k,ii) > 0) {
+                     sum_RMS[k]  += RMS(k,ii);
+                     sum_iRMS[k] += iRMS(k,ii);
+                 }
+                 if(sum_iRMS[k] != 0 && sum_RMS[k] > 0.0 )
+                    sum_RMS[k] = sqrt(sum_RMS[k]/sum_iRMS[k]);
+                 else
+                    sum_RMS[k] = 0;
              }
+             
            }
-
-           if(sum_iRMS[k] != 0)
-              sum_RMS[k] = sqrt(sum_RMS[k]/sum_iRMS[k]);
-           else
-              sum_RMS[k] = 0;
 
            if( MonitorNumber == 0 || MonitorNumber > 4) {
                max_RMS = max(sum_RMS[k],max_RMS);
@@ -1777,6 +1831,7 @@ void DEEPS2D_Run(ofstream* f_stream
      MPI::COMM_WORLD.Bcast(&GlobalTime,1,MPI::DOUBLE,0);
      MPI::COMM_WORLD.Bcast(&last_iter,1,MPI::INT,0);
      MPI::COMM_WORLD.Bcast(&isRun,1,MPI::INT,0);
+     
      if(!isRun)
          Abort_OpenHyperFLOW2D();
 #endif //  _MPI
@@ -1802,7 +1857,9 @@ void DEEPS2D_Run(ofstream* f_stream
               else
                 MonitorCondition = 0;
            }
-
+#ifdef _MPI
+ MPI::COMM_WORLD.Bcast(&MonitorCondition,1,MPI::INT,0);
+#endif //  _MPI
 }while( MonitorCondition );
 //---   Save  results ---
 #ifdef _MPI
@@ -1843,7 +1900,7 @@ if (rank == 0) {
                 *f_stream << "\nResults saved in file \"" << OutFileName << "\".\n" << flush;
                 f_stream->flush();
                 isRun = 0;
-                //Exit_OpenHyperFLOW2D();
+                //Abort_OpenHyperFLOW2D();
 #ifdef _MPI
        }
        

@@ -99,10 +99,11 @@ enum data_tag {
 };
 
 struct DD_pack {
-          FP         DD;   // max residual
-          FP         RMS;  // sum residual
-          unsigned long  iRMS; // num involved nodes
-          unsigned int   i,j;  // x,y -coordinates
+          FP             DD;     // max residual
+          FP             RMS;    // sum residual
+          FP             sumDiv; // sum param;
+          unsigned long  iRMS;   // num involved nodes
+          unsigned int   i,j;    // x,y -coordinates
 };
 
 struct MonitorPoint {
