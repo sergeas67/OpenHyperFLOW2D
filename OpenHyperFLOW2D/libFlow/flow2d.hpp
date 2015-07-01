@@ -18,43 +18,61 @@ class   Flow2D: public Flow {
     FP Wg(FP w) {
         return Flow::Wg(w);
     }
+
     FP LAM(FP l) {
-        Flow::LAM(l);
-        if(VV == 0.0) {
-           UU = Flow::Wg();
-        } else if (UU == 0.0) {
-           VV = Flow::Wg();
+
+        if(VV != 0.0 && VV !=0.0) {
+          FP angle = atan(VV/UU);
+
+          Flow::LAM(l);
+
+          UU = Flow::Wg()*cos(angle);
+          VV = Flow::Wg()*sin(angle);
         } else {
-          FP W0 = sqrt(UU*UU+VV*VV);
-          FP Ratio = Flow::Wg()/W0;
-          UU = UU * Ratio;
-          VV = VV * Ratio;
-        }
+
+          Flow::LAM(l);
+
+          if(VV == 0.0) {
+             UU = Flow::Wg();
+          } else if (UU == 0.0) {
+             VV = Flow::Wg();
+          }
+       }
         return Flow::LAM();
     }
 
 public:
 
     FP MACH(FP m) {
-        Flow::MACH(m);
-        if(VV == 0.0) {
-           UU = Flow::Wg();
-        } else if (UU == 0.0) {
-           VV = Flow::Wg();
+
+        if(VV != 0.0 && VV !=0.0) {
+          FP angle = atan(VV/UU);
+          Flow::MACH(m);
+
+          UU = Flow::Wg()*cos(angle);
+          VV = Flow::Wg()*sin(angle);
+
         } else {
-          FP W0 = sqrt(UU*UU+VV*VV);
-          FP Ratio = Flow::Wg()/W0;
-          UU = UU * Ratio;
-          VV = VV * Ratio;
-        }
+
+        Flow::MACH(m);
+
+          if(VV == 0.0) {
+             UU = Flow::Wg();
+          } else if (UU == 0.0) {
+             VV = Flow::Wg();
+          }
+       }
         return Flow::MACH();
     }
+
     FP Wg() {
         return /*Flow::Wg()*/sqrt(UU*UU+VV*VV+1.e-5);
     }
+
     FP LAM() {
         return Flow::LAM();
     }
+
     FP MACH() {
         return Flow::MACH();
     }
@@ -63,9 +81,11 @@ public:
     Flow2D() {
         UU = Wg();VV = 0;
     }
+
     Flow2D(Flow& f):Flow(f) {
         UU = Wg();VV = 0;
     }
+
     Flow2D(FP u, FP v);
     Flow2D(Flow& f,FP u, FP v);
     Flow2D(FP _mu,FP _lam,FP Cp,FP T,FP P,FP R,FP u,FP v);

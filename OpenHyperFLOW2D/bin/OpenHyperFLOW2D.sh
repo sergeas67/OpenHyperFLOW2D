@@ -22,7 +22,7 @@ then
 NHOSTS=1
 fi
 
-declare -i CORESPERHOST=`cat /proc/cpuinfo | grep processor | wc -l`/2
+declare -i CORESPERHOST=`cat /proc/cpuinfo | grep processor | wc -l`
 declare -i NCORES=${NHOSTS}*${CORESPERHOST}
 declare -i NUMNODES=${NHOSTS}+1
 ulimit -s unlimited

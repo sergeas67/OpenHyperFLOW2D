@@ -111,7 +111,8 @@ endif
 ifeq ("$(SIMD)","AVX2")
 
 CPU        = core-avx2
-CPU_EXT    = -opt-prefetch=4
+CPU_EXT    = 
+#-no-opt-prefetch
 ALIGN      = 16
 ALIGN2     = 16
 
@@ -132,7 +133,7 @@ ifeq ($(OPTLEVEL),0)
 OPTIMIZE   = -O$(OPTLEVEL) -D_ALIGN=${ALIGN2}
 else
 OPTIMIZE   = -O$(OPTLEVEL) -ip  -march=$(CPU) $(CPU_EXT)  -no-prec-div -fp-model fast=2 -fomit-frame-pointer  -unroll-aggressive -Zp$(ALIGN) \
-             -falign-functions=$(ALIGN) -D_ALIGN=${ALIGN2} ${PP_EXCEPT} -Krtti $(GCC_COMPAT) -D_HAS_TRADITIONAL_IOSTREAMS
+             -opt-prefetch=4 -falign-functions=$(ALIGN) -D_ALIGN=${ALIGN2} ${PP_EXCEPT} -Krtti $(GCC_COMPAT) -D_HAS_TRADITIONAL_IOSTREAMS
 endif
 
 OPTIONS  = $(DEBUG) $(FP_OPTS) -D_DEBUG_$(DEBUGLEVEL) $(PARALLEL) $(OPTIMIZE) $(NOPROFILE) -Wno-deprecated

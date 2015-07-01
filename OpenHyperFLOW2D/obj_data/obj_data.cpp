@@ -741,8 +741,8 @@ FP GetVal(XY_Table* XY, FP x ) {
 
     y = XY->y[i] + (XY->y[i-1] - XY->y[i])*(x - XY->x[i])/(XY->x[i-1] - XY->x[i]);
 
-    if ( y < 0. )
-        y = 0.01;
+    //if ( y < 0. )
+    //    y = 0.01;
 
     return( y );
 }
