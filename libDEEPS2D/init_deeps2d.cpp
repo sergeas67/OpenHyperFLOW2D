@@ -42,7 +42,7 @@ void InitSharedData(InputData* _data,
             if ( _data->GetDataError()==-1 ) {
                 Abort_OpenHyperFLOW2D();
             }
-
+            
             bFF   = (BlendingFactorFunction)_data->GetIntVal((char*)"BFF");  // Blending factor function type
             if ( _data->GetDataError()==-1 ) {
                 Abort_OpenHyperFLOW2D();
@@ -949,7 +949,6 @@ void* InitDEEPS2D(void* lpvParam)
                             }
                             // Check Flow2D at first ...
                             sprintf(NameBound,"%s.Flow2D",NameContour);
-                            FlowIndex = Data->GetIntVal(NameBound);
                             if ( FlowIndex < 1 ) {
                                 *f_stream << "\n";
                                 sprintf(NameBound,"%s.Flow",NameContour);
@@ -964,12 +963,15 @@ void* InitDEEPS2D(void* lpvParam)
                                 pTestFlow = FlowList->GetElement(FlowIndex-1);
                                 sprintf(FlowStr,"Flow%i.CompIndex",FlowIndex);
                                 isFlow2D=0;
-                            } else {
+                            } else if (FlowIndex <= Flow2DList->GetNumElements()){
                                 pTestFlow2D = Flow2DList->GetElement(FlowIndex-1);
                                 sprintf(FlowStr,"Flow2D-%i.CompIndex",FlowIndex);
                                 isFlow2D=1;
+                            } else {
+                                *f_stream << "\n";
+                                *f_stream << "Bad Flow index [" << FlowIndex << "]\n"<< flush;
+                                Abort_OpenHyperFLOW2D();
                             }
-
 
                             CompIndex = Data->GetIntVal(FlowStr);
                             if ( CompIndex==0 )      Y=Y_fuel;
@@ -1200,7 +1202,7 @@ void* InitDEEPS2D(void* lpvParam)
                             FlowIndex = Data->GetIntVal(NameBound);
                             if ( FlowIndex < 1 ) {
                                 *f_stream << "\n";
-                                sprintf(NameBound,"%s.Bound%i.Flow",NameContour,i);
+                                sprintf(NameBound,"%s.Flow",NameContour);
                                 FlowIndex = Data->GetIntVal(NameBound);
                                 if ( FlowIndex < 1 ) {
                                     *f_stream << "\n";
@@ -1212,10 +1214,14 @@ void* InitDEEPS2D(void* lpvParam)
                                 pTestFlow = FlowList->GetElement(FlowIndex-1);
                                 sprintf(FlowStr,"Flow%i.CompIndex",FlowIndex);
                                 isFlow2D=0;
-                            } else {
+                            } else if (FlowIndex <= Flow2DList->GetNumElements()){
                                 pTestFlow2D = Flow2DList->GetElement(FlowIndex-1);
                                 sprintf(FlowStr,"Flow2D-%i.CompIndex",FlowIndex);
                                 isFlow2D=1;
+                            } else {
+                                *f_stream << "\n";
+                                *f_stream << "Bad Flow index [" << FlowIndex << "]\n"<< flush;
+                                Abort_OpenHyperFLOW2D();
                             }
 
                             CompIndex = Data->GetIntVal(FlowStr);
@@ -1511,7 +1517,7 @@ void* InitDEEPS2D(void* lpvParam)
                            TM = (TurbulenceCondType2D)(TM | TCT_k_eps_Model_2D);
                        else if ( TurbMod == 5 )
                            TM = (TurbulenceCondType2D)(TM | TCT_Smagorinsky_Model_2D);
-                       if(FlowIndex < 1)
+                       if(FlowIndex < 1 || FlowIndex > Flow2DList->GetNumElements())
                          {
                            *f_stream << "\nBad Flow index [" << FlowIndex << "]\n"<< flush;
                            f_stream->flush();
@@ -1590,7 +1596,7 @@ void* InitDEEPS2D(void* lpvParam)
                         FlowIndex=Data->GetIntVal(NameContour);
                         if ( Data->GetDataError()==-1 ) Abort_OpenHyperFLOW2D();
 
-                        if ( FlowIndex < 1 ) {
+                        if ( FlowIndex < 1 || FlowIndex > Flow2DList->GetNumElements() ) {
                             *f_stream << "\n";
                             *f_stream << "Bad Flow index [" << FlowIndex << "]\n"<< flush;
                             f_stream->flush();
@@ -1705,7 +1711,7 @@ void* InitDEEPS2D(void* lpvParam)
                         else if ( TurbMod == 5 )
                             TM = (TurbulenceCondType2D)(TM | TCT_Smagorinsky_Model_2D);
 
-                        if ( FlowIndex < 1 ) {
+                        if ( FlowIndex < 1 || FlowIndex > Flow2DList->GetNumElements() ) {
                             *f_stream << "\n";
                             *f_stream << "Bad Flow index [" << FlowIndex << "]\n"<< flush;
                             f_stream->flush();
@@ -1786,7 +1792,7 @@ void* InitDEEPS2D(void* lpvParam)
                             snprintf(AreaName,256,"Area%i.Flow2D",i+1);
                             FlowIndex = Data->GetIntVal(AreaName);
 
-                            if ( FlowIndex < 1 ) {
+                            if ( FlowIndex < 1 || FlowIndex > Flow2DList->GetNumElements() ) {
                                 *f_stream << "\n";
                                 *f_stream << "Bad Flow index [" << FlowIndex << "] \n"<< flush;
                                 f_stream->flush();
@@ -1796,7 +1802,8 @@ void* InitDEEPS2D(void* lpvParam)
                             if ( Data->GetDataError()==-1 ) {
                                 snprintf(AreaName,256,"Area%i.Flow",i+1);
                                 FlowIndex = Data->GetIntVal(AreaName);
-                                if ( FlowIndex < 1 ) {
+                                
+                                if ( FlowIndex < 1 || FlowIndex > Flow2DList->GetNumElements() ) {
                                     *f_stream << "\n";
                                     *f_stream << "Bad Flow index [" << FlowIndex << "]\n"<< flush;
                                     f_stream->flush();

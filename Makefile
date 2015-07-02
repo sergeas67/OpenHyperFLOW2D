@@ -43,7 +43,7 @@ CLFLAGS   +=
 #
 LLIBS_2D     += $(STATIC) -L ./lib -lDEEPS2D -lexcept -lobj_data -lutl2d  -lhf2d -lflow2d -lOutCFD
 	
-TARGET_BASE  = OpenHyperFLOW2D
+TARGET_BASE  = OpenHyperFLOW2D-CUDA
 TARGET_2D    = $(TARGET_BASE)-$(VERSION)
 SOURCES_2D   = hf2d_start.cu
 OBJECTS_2D   = hf2d_start.o

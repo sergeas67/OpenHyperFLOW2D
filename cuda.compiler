@@ -17,8 +17,7 @@ CUDA_OPTIMIZE   = -O$(CUDA_OPTLEVEL) -D_ALIGN=${CUDA_ALIGN}
 
 CUDA_INCPATH    =  /usr/local/cuda-6.5/include
 
-CUDA_OPTIONS    =  $(CUDA_DEBUG) -D_DEBUG_$(DEBUGLEVEL) $(CUDA_OPTIMIZE) -D_UNIFORM_MESH_  -D_CUDA_  -I .. -I .  -I $(CUDA_INCPATH) -gencode arch=compute_30,code=sm_30 -gencode arch=compute_35,code=sm_35 -gencode arch=compute_37,code=sm_37 -gencode arch=compute_52,code=sm_52  --ptxas-options=-v --maxrregcount 255
-
+CUDA_OPTIONS    =  $(CUDA_DEBUG) -D_DEBUG_$(DEBUGLEVEL) $(CUDA_OPTIMIZE) -D_UNIFORM_MESH_  -D_CUDA_  -I .. -I .  -I $(CUDA_INCPATH) -gencode arch=compute_30,code=sm_30 -gencode arch=compute_35,code=sm_35 -gencode arch=compute_37,code=sm_37 -gencode arch=compute_52,code=sm_52  --ptxas-options=-v --maxrregcount 255  --fmad=true
 ifeq   ("$(COMPILER)","Intel")
 intel:
 	@echo

@@ -52,8 +52,6 @@ int LoadTable2GPU(Table* Src, Table*& Dst, int i_dev)
 
  CopyHostToDevice(pTmpTable,Dst,sizeof(Table));
  
- //delete pTmpTable;
- 
  return Src->n;
  
 }
@@ -153,7 +151,8 @@ int cuda_CalcChemicalReactions(FlowNode2D<FP,NUM_COMPONENTS>* CalcNode,
                         GetVal(model_data->lam_cp,CalcNode->Tg)*Ycp+
                         GetVal(model_data->lam_air,CalcNode->Tg)*Yair;
     }
-
+    
+    /*
     if ( Yair<1.e-8 ) {
          Yair =0.;
       }
@@ -166,12 +165,13 @@ int cuda_CalcChemicalReactions(FlowNode2D<FP,NUM_COMPONENTS>* CalcNode,
     if ( Yfu<1.e-8 ) {
          Yfu =0.;
       }
-
-     Y0   = 1./(Yfu+Yox+Ycp+Yair);
-     Yfu  = Yfu*Y0;
-     Yox  = Yox*Y0;
-     Ycp  = Ycp*Y0;
-     Yair = Yair*Y0;
+   */
+     
+    Y0   = 1./(Yfu+Yox+Ycp+Yair);
+    Yfu  = Yfu*Y0;
+    Yox  = Yox*Y0;
+    Ycp  = Ycp*Y0;
+    Yair = Yair*Y0;
 
 
     CalcNode->Y[0] = Yfu;

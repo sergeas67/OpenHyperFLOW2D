@@ -223,7 +223,8 @@ inline void  DEEPS2D_Stage1(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*     pLJ,
                      UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >* pLC,
                      int MIN_X, int MAX_X, int MAX_Y,
                      FP dxx, FP dyy,
-                     FP dtdx, FP dtdy) {
+                     FP dtdx, FP dtdy,
+                     int is_local_timestep) {
 
     for (int i = MIN_X;i<MAX_X;i++ ) {
        for (int j = 0;j<MAX_Y;j++ ) {
@@ -440,7 +441,7 @@ inline FP DEEPS2D_Stage2(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*     pLJ,
                          int ii,
 #endif //_MPI 
 #endif // _RMS_
-                         TurbulenceExtendedModel TurbExtModel ) {
+                         TurbulenceExtendedModel TurbExtModel) {
 
     FP dt_min_local;
     FP beta_min;
@@ -839,8 +840,6 @@ void DEEPS2D_Run(ofstream* f_stream,
                        dx_1 = 1.0/dx;
                        dy_1 = 1.0/dy;
 
-                       // dt = ??? 
-
                        dtdx = dt/dx;
                        dtdy = dt/dy;
 
@@ -945,7 +944,7 @@ void DEEPS2D_Run(ofstream* f_stream,
                           *f_stream << "\nError set CUDA device no: "<< ii << endl;
                           Exit_OpenHyperFLOW2D(n_s);
                        }
-
+                       
 #ifdef _DEVICE_MMAP_
                        dt_min_host = dt_min_host_Array->GetElement(ii);
                        unsigned int  int2float = *dt_min_host;
@@ -1419,8 +1418,8 @@ void DEEPS2D_Run(ofstream* f_stream
     UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*     pJ=NULL;
     UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >* pC=NULL;
     FP*   dt_min;
-    int*      i_c;
-    int*      j_c;
+    int*  i_c;
+    int*  j_c;
     FP    dtmin=1.0;
     FP    DD[FlowNode2D<FP,NUM_COMPONENTS>::NumEq];
 #ifdef _RMS_
