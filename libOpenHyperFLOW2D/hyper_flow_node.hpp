@@ -501,7 +501,7 @@ inline void FlowNode2D<T,a>::FillNode2D(int is_mu_t,
 
         if( _isSrcAdd ) {
             SrcAdd[i2d_Rho]  = BGX*(U-Uw)*FlowNodeCore2D<T,a>::S[i2d_Rho]/_dx +
-                              BGY*(V-Vw)*FlowNodeCore2D<T,a>::S[i2d_Rho]/_dy;
+                               BGY*(V-Vw)*FlowNodeCore2D<T,a>::S[i2d_Rho]/_dy;
             SrcAdd[i2d_RhoU] = BGX*(U-Uw)*FlowNodeCore2D<T,a>::S[i2d_Rho];
             SrcAdd[i2d_RhoV] = BGY*(V-Vw)*FlowNodeCore2D<T,a>::S[i2d_Rho];
             SrcAdd[i2d_RhoE] = 0.;
@@ -544,11 +544,11 @@ inline void FlowNode2D<T,a>::FillNode2D(int is_mu_t,
 
         if(is_mu_t) {
             if(isCond2D(CT_WALL_NO_SLIP_2D) || isCond2D(CT_WALL_LAW_2D)){
-                _mu = mu+FlowNodeTurbulence2D<T,a>::mu_t*sig_w;
-                _lam   = lam+FlowNodeTurbulence2D<T,a>::lam_t*sig_w; 
+                _mu    = max(0,(mu+FlowNodeTurbulence2D<T,a>::mu_t*sig_w));
+                _lam   = max(0,(lam+FlowNodeTurbulence2D<T,a>::lam_t*sig_w)); 
             } else {
-                _mu = mu+FlowNodeTurbulence2D<T,a>::mu_t*sig_f;
-                _lam   = lam+FlowNodeTurbulence2D<T,a>::lam_t*sig_f; 
+                _mu  =  max(0,(mu+FlowNodeTurbulence2D<T,a>::mu_t*sig_f));
+                _lam =  max(0,(lam+FlowNodeTurbulence2D<T,a>::lam_t*sig_f)); 
             }
         } else {
             _mu = mu;
@@ -1001,21 +1001,21 @@ void  FlowNode2D<T,a>::TurbModRANS2D(int is_mu_t,
 #endif // __ICC
 #ifdef    _UNIFORM_MESH_
  #ifdef __ICC
-           __declspec(align(_ALIGN)) T delta =sqrt( _dx*_dy);
+           __declspec(align(_ALIGN)) T _delta =sqrt( _dx*_dy);
  #else
-           T delta __attribute__ ((aligned (_ALIGN))) =sqrt( _dx*_dy);
+           T _delta __attribute__ ((aligned (_ALIGN))) =sqrt( _dx*_dy);
  #endif // __ICC
 #else
  #ifdef __ICC
-           __declspec(align(_ALIGN)) T delta =sqrt( _dx * _dy );
+           __declspec(align(_ALIGN)) T _delta =sqrt( _dx * _dy );
  #else
-           T delta __attribute__ ((aligned (_ALIGN))) =sqrt( _dx * _dy );    
+           T _delta __attribute__ ((aligned (_ALIGN))) =sqrt( _dx * _dy );    
  #endif // __ICC
 #endif // _UNIFORM_MESH_
           Wxy = 0.5*(dVdx - dUdy);
           Omega = sqrt(2.0*Wxy*Wxy);
             if(is_mu_t) {
-              FlowNodeTurbulence2D<T,a>::mu_t  = FlowNodeCore2D<T,a>::S[i2d_Rho] * (Cs * delta) * (Cs * delta) * Omega;
+              FlowNodeTurbulence2D<T,a>::mu_t  = FlowNodeCore2D<T,a>::S[i2d_Rho] * (Cs * _delta) * (Cs * _delta) * Omega;
               FlowNodeTurbulence2D<T,a>::lam_t = FlowNodeTurbulence2D<T,a>::mu_t * CP;
             }
         }
@@ -1350,21 +1350,21 @@ void  FlowNode2D<T,a>::TurbModRANS2D(int is_mu_t,
 #endif // __ICC
 #ifdef    _UNIFORM_MESH_
  #ifdef __ICC
-           __declspec(align(_ALIGN)) T delta =sqrt( FlowNode2D<T,a>::dx*FlowNode2D<T,a>::dy);
+           __declspec(align(_ALIGN)) T _delta =sqrt( FlowNode2D<T,a>::dx*FlowNode2D<T,a>::dy);
  #else
-           T delta __attribute__ ((aligned (_ALIGN))) =sqrt( FlowNode2D<T,a>::dx*FlowNode2D<T,a>::dy);
+           T _delta __attribute__ ((aligned (_ALIGN))) =sqrt( FlowNode2D<T,a>::dx*FlowNode2D<T,a>::dy);
  #endif // __ICC
 #else
  #ifdef __ICC
-           __declspec(align(_ALIGN)) T delta =sqrt( dx * dy );
+           __declspec(align(_ALIGN)) T _delta =sqrt( dx * dy );
  #else
-           T delta __attribute__ ((aligned (_ALIGN))) =sqrt( dx * dy );    
+           T _delta __attribute__ ((aligned (_ALIGN))) =sqrt( dx * dy );    
  #endif // __ICC
 #endif // _UNIFORM_MESH_
           Wxy = 0.5*(dVdx - dUdy);
           Omega = sqrt(2.0*Wxy*Wxy);
             if(is_mu_t) {
-              FlowNodeTurbulence2D<T,a>::mu_t  = FlowNodeCore2D<T,a>::S[i2d_Rho] * (Cs * delta) * (Cs * delta) * Omega;
+              FlowNodeTurbulence2D<T,a>::mu_t  = FlowNodeCore2D<T,a>::S[i2d_Rho] * (Cs * _delta) * (Cs * _delta) * Omega;
               FlowNodeTurbulence2D<T,a>::lam_t = FlowNodeTurbulence2D<T,a>::mu_t * CP;
             }
         }
@@ -1545,24 +1545,24 @@ inline void FlowNode2D<T,a>::FillNode2D(int is_mu_t,
             for(int i=0;i<NumEq;i++)
                 F[i]=0.;
     }
-    
+
     if (sm == SM_NS) {
-        
+
         _mu = _lam = G = 0.;
         if(is_init)
            FlowNodeTurbulence2D<T,a>::mu_t = FlowNodeTurbulence2D<T,a>::lam_t = 0.;
 
         TurbModRANS2D(is_mu_t,is_init,tem,delta);
-        
+
         FlowNodeTurbulence2D<T,a>::lam_t  = FlowNodeTurbulence2D<T,a>::mu_t*CP;
 
         if(is_mu_t) {
             if(isCond2D(CT_WALL_NO_SLIP_2D) || isCond2D(CT_WALL_LAW_2D)){
-                _mu = mu+FlowNodeTurbulence2D<T,a>::mu_t*sig_w;
-                _lam   = lam+FlowNodeTurbulence2D<T,a>::lam_t*sig_w; 
+                _mu    = max(0,(mu+FlowNodeTurbulence2D<T,a>::mu_t*sig_w));
+                _lam   = max(0,(lam+FlowNodeTurbulence2D<T,a>::lam_t*sig_w)); 
             } else {
-                _mu = mu+FlowNodeTurbulence2D<T,a>::mu_t*sig_f;
-                _lam   = lam+FlowNodeTurbulence2D<T,a>::lam_t*sig_f; 
+                _mu  =  max(0,(mu+FlowNodeTurbulence2D<T,a>::mu_t*sig_f));
+                _lam =  max(0,(lam+FlowNodeTurbulence2D<T,a>::lam_t*sig_f)); 
             }
         } else {
             _mu = mu;
@@ -1976,21 +1976,21 @@ void  FlowNode2D<T,a>::TurbModRANS2D(int is_mu_t,
 #endif // __ICC
 #ifdef    _UNIFORM_MESH_
  #ifdef __ICC
-           __declspec(align(_ALIGN)) T delta =sqrt( FlowNode2D<T,a>::dx*FlowNode2D<T,a>::dy);
+           __declspec(align(_ALIGN)) T _delta =sqrt( FlowNode2D<T,a>::dx*FlowNode2D<T,a>::dy);
  #else
-           T delta __attribute__ ((aligned (_ALIGN))) =sqrt( FlowNode2D<T,a>::dx*FlowNode2D<T,a>::dy);
+           T _delta __attribute__ ((aligned (_ALIGN))) =sqrt( FlowNode2D<T,a>::dx*FlowNode2D<T,a>::dy);
  #endif // __ICC
 #else
  #ifdef __ICC
-           __declspec(align(_ALIGN)) T delta =sqrt( dx * dy );
+           __declspec(align(_ALIGN)) T _delta =sqrt( dx * dy );
  #else
-           T delta __attribute__ ((aligned (_ALIGN))) =sqrt( dx * dy );    
+           T _delta __attribute__ ((aligned (_ALIGN))) =sqrt( dx * dy );
  #endif // __ICC
 #endif // _UNIFORM_MESH_
           Wxy = 0.5*(dVdx - dUdy);
           Omega = sqrt(2.0*Wxy*Wxy);
             if(is_mu_t) {
-              FlowNodeTurbulence2D<T,a>::mu_t  = FlowNodeCore2D<T,a>::S[i2d_Rho] * (Cs * delta) * (Cs * delta) * Omega;
+              FlowNodeTurbulence2D<T,a>::mu_t  = fabs(FlowNodeCore2D<T,a>::S[i2d_Rho] * (Cs * _delta) * (Cs * _delta) * Omega);
               FlowNodeTurbulence2D<T,a>::lam_t = FlowNodeTurbulence2D<T,a>::mu_t * CP;
             }
         }
