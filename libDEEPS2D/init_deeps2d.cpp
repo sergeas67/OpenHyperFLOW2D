@@ -949,6 +949,7 @@ void* InitDEEPS2D(void* lpvParam)
                             }
                             // Check Flow2D at first ...
                             sprintf(NameBound,"%s.Flow2D",NameContour);
+                            FlowIndex = Data->GetIntVal(NameBound); 
                             if ( FlowIndex < 1 ) {
                                 *f_stream << "\n";
                                 sprintf(NameBound,"%s.Flow",NameContour);
