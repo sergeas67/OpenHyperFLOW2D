@@ -12,13 +12,14 @@
 <data/GasSwapFile=.hf2d>
 <data/isAdiabaticWall=0>
 ; Out heat flux on walls along x direction
-<data/isOutHeatFluxX=0>
+<data/isOutHeatFluxX=1>
+<data/y_min=0>
+<data/y_max=300>
+
 ; Out heat flux on walls along y direction
-<data/isOutHeatFluxY=0>
+<data/isOutHeatFluxY=1>
 ; is p* out ?
-<data/is_p_asterisk_out=0>
-; Recalc y+  on each iterations
-<data/isRecalcYplus=0>
+<data/is_p_asterisk_out=1>
 
 ;--------------------------------------------------;
 ; is single GPU mode on ?                          ;
@@ -561,6 +562,7 @@
 <data/dx_body=0.0>
 <data/dy_body=0.0>
 <data/Cx_Flow_Index=1>
+<data/Cp_Flow_Index=1>
 
 <data/NumXCut=0>
 

@@ -39,7 +39,7 @@ UArray<XCut>*                                            XCutArray;
 
 int             Nstep;
 FP              ExitMonitorValue;
-int             MonitorNumber;
+int             MonitorIndex;
 int             MonitorCondition; // 0 - equal
                                   // 1 - less than
                                   // 2 - great than
@@ -276,14 +276,14 @@ void InitSharedData(InputData* _data,
                 Abort_OpenHyperFLOW2D();
             }
 
-            MonitorNumber = _data->GetIntVal((char*)"MonitorNumber");
+            MonitorIndex = _data->GetIntVal((char*)"MonitorIndex");
             if ( _data->GetDataError()==-1 ) {
                 Abort_OpenHyperFLOW2D();
             }
 
-            if(MonitorNumber > 5 ||
-               MonitorNumber < 0) {
-               MonitorNumber = 0;
+            if(MonitorIndex > 5 ||
+               MonitorIndex < 0) {
+               MonitorIndex = 0;
             }
 
             ExitMonitorValue  = _data->GetFloatVal((char*)"ExitMonitorValue");   // Monitor value for exit
@@ -727,7 +727,7 @@ void DEEPS2D_Run(ofstream* f_stream
                       if(rank == 0 ) {
                           max_RMS =  0;
                       } else {
-                        if(MonitorNumber < 5)
+                        if(MonitorIndex < 5)
                            max_RMS = 0;
                         else
                            max_RMS = 0.5*ExitMonitorValue;
@@ -760,7 +760,7 @@ void DEEPS2D_Run(ofstream* f_stream
 #endif //_OPENMP
                    {
 
-                    if(MonitorNumber < 5)
+                    if(MonitorIndex < 5)
                       max_RMS =  0.5*ExitMonitorValue;
                     else
                       max_RMS = 0.;
@@ -1495,13 +1495,13 @@ void DEEPS2D_Run(ofstream* f_stream
                     }
                 }
                   
-                  if(MonitorNumber == 0 || MonitorNumber > 4) {
+                  if(MonitorIndex == 0 || MonitorIndex > 4) {
                      max_RMS = max(RMS[k],max_RMS);
                      if(max_RMS == RMS[k])
                         k_max_RMS = k;
                   } else {
-                     max_RMS = max(RMS[MonitorNumber-1],max_RMS);
-                     if(max_RMS == RMS[MonitorNumber-1])
+                     max_RMS = max(RMS[MonitorIndex-1],max_RMS);
+                     if(max_RMS == RMS[MonitorIndex-1])
                         k_max_RMS = k;
                   }
 
@@ -1540,14 +1540,14 @@ void DEEPS2D_Run(ofstream* f_stream
              
            }
 
-           if( MonitorNumber == 0 || MonitorNumber > 4) {
+           if( MonitorIndex == 0 || MonitorIndex > 4) {
                max_RMS = max(sum_RMS[k],max_RMS);
                if(max_RMS == sum_RMS[k])
                   k_max_RMS = k;
            } else {
-               max_RMS = max(sum_RMS[MonitorNumber-1],max_RMS);
-               if(max_RMS == sum_RMS[MonitorNumber-1])
-                  k_max_RMS = MonitorNumber-1;
+               max_RMS = max(sum_RMS[MonitorIndex-1],max_RMS);
+               if(max_RMS == sum_RMS[MonitorIndex-1])
+                  k_max_RMS = MonitorIndex-1;
            }
 
          }
@@ -1603,11 +1603,11 @@ void DEEPS2D_Run(ofstream* f_stream
              if(k_max_RMS == i2d_nu_t)
                 k_max_RMS +=turb_mod_name_index;
 
-             if(k_max_RMS != -1 && (MonitorNumber == 0 || MonitorNumber == 5))
+             if(k_max_RMS != -1 && (MonitorIndex == 0 || MonitorIndex == 5))
              *f_stream << "Step No " << iter+last_iter << " maxRMS["<< RMS_Name[k_max_RMS] << "]="<< (FP)(max_RMS*100.) \
                         <<  " % step_time=" << (FP)d_time << " sec (" << (FP)VCOMP <<" step/sec) dt="<< dt <<"\n" << flush;
-             else if(MonitorNumber > 0 &&  MonitorNumber < 5 )
-                 *f_stream << "Step No " << iter+last_iter << " maxRMS["<< RMS_Name[MonitorNumber-1] << "]="<< (FP)(max_RMS*100.) \
+             else if(MonitorIndex > 0 &&  MonitorIndex < 5 )
+                 *f_stream << "Step No " << iter+last_iter << " maxRMS["<< RMS_Name[MonitorIndex-1] << "]="<< (FP)(max_RMS*100.) \
                   <<  " % step_time=" << (FP)d_time << " sec (" << (FP)VCOMP <<" step/sec) dt="<< dt <<"\n" << flush;
              else
              *f_stream << "Step No " << iter+last_iter << " maxRMS["<< k_max_RMS << "]="<< (FP)(max_RMS*100.) \
@@ -1846,7 +1846,7 @@ void DEEPS2D_Run(ofstream* f_stream
 //#pragma omp barrier
 #endif //  _OPENMP
 
-          if(MonitorNumber < 5) {
+          if(MonitorIndex < 5) {
               if( max_RMS > ExitMonitorValue )
                 MonitorCondition = 1;
               else
@@ -3107,13 +3107,13 @@ void* InitDEEPS2D(void* lpvParam)
 
                 Flow2DList->AddElement(&TmpFlow2D);
                 *f_stream << "Add object \"Flow2D-" << i+1 << " Mach=" << TmpFlow2D->MACH()
-                                                           << " U=" << TmpFlow2D->U()   << " m/sec"
-                                                           << " V=" << TmpFlow2D->V()   << " m/sec"
-                                                           << " Wg=" << TmpFlow2D->Wg() << " m/sec"
-                                                           << " T=" << TmpFlow2D->Tg()  << " K"
-                                                           << " p=" << TmpFlow2D->Pg()  << " Pa"
-                                                           << " p*=" << TmpFlow2D->P0() << " Pa"
-                                                           << " T*=" << TmpFlow2D->T0() << " K\"...OK\n" << flush;
+                                                           << " U="    << TmpFlow2D->U()   << " m/sec"
+                                                           << " V="    << TmpFlow2D->V()   << " m/sec"
+                                                           << " Wg="   << TmpFlow2D->Wg()  << " m/sec"
+                                                           << " T="    << TmpFlow2D->Tg()  << " K"
+                                                           << " p="    << TmpFlow2D->Pg()  << " Pa"
+                                                           << " p*="   << TmpFlow2D->P0()  << " Pa"
+                                                           << " T*="   << TmpFlow2D->T0()  << " K\"...OK\n" << flush;
                 f_stream->flush(); 
             }
 
@@ -3377,8 +3377,8 @@ void* InitDEEPS2D(void* lpvParam)
                                 TmpCT = (CondType2D)(TmpCT | NT_D2X_2D);
                             if ( strstr(BoundStr,"NT_D2Y_2D") )
                                 TmpCT = (CondType2D)(TmpCT | NT_D2Y_2D);
-                            if ( strstr(BoundStr,"NT_WS_2D") )
-                                TmpCT = (CondType2D)(TmpCT | NT_WS_2D);
+                            if ( strstr(BoundStr,"NT_WALL_LAW_2D") )
+                                TmpCT = (CondType2D)(TmpCT | NT_WALL_LAW_2D);
                             else if ( strstr(BoundStr,"NT_WNS_2D") )
                                 TmpCT = (CondType2D)(TmpCT | NT_WNS_2D);
                             if ( strstr(BoundStr,"NT_FC_2D") )
@@ -3627,8 +3627,8 @@ void* InitDEEPS2D(void* lpvParam)
                                 TmpCT = (CondType2D)(TmpCT | NT_D2X_2D);
                             if ( strstr(BoundStr,"NT_D2Y_2D") )
                                 TmpCT = (CondType2D)(TmpCT | NT_D2Y_2D);
-                            if ( strstr(BoundStr,"NT_WS_2D") )
-                                TmpCT = (CondType2D)(TmpCT | NT_WS_2D);
+                            if ( strstr(BoundStr,"NT_WALL_LAW_2D") )
+                                TmpCT = (CondType2D)(TmpCT | NT_WALL_LAW_2D);
                             else if ( strstr(BoundStr,"NT_WNS_2D") )
                                 TmpCT = (CondType2D)(TmpCT | NT_WNS_2D);
                             if ( strstr(BoundStr,"NT_FC_2D") )
