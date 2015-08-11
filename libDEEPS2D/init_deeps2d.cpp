@@ -919,8 +919,8 @@ void* InitDEEPS2D(void* lpvParam)
                                 TmpCT = (CondType2D)(TmpCT | NT_D2X_2D);
                             if ( strstr(BoundStr,"NT_D2Y_2D") )
                                 TmpCT = (CondType2D)(TmpCT | NT_D2Y_2D);
-                            if ( strstr(BoundStr,"NT_WS_2D") )
-                                TmpCT = (CondType2D)(TmpCT | NT_WS_2D);
+                            if ( strstr(BoundStr,"NT_WALL_LAW_2D") )
+                                TmpCT = (CondType2D)(TmpCT | NT_WALL_LAW_2D);
                             else if ( strstr(BoundStr,"NT_WNS_2D") )
                                 TmpCT = (CondType2D)(TmpCT | NT_WNS_2D);
                             if ( strstr(BoundStr,"NT_FC_2D") )
@@ -1168,8 +1168,8 @@ void* InitDEEPS2D(void* lpvParam)
                                 TmpCT = (CondType2D)(TmpCT | NT_D2X_2D);
                             if ( strstr(BoundStr,"NT_D2Y_2D") )
                                 TmpCT = (CondType2D)(TmpCT | NT_D2Y_2D);
-                            if ( strstr(BoundStr,"NT_WS_2D") )
-                                TmpCT = (CondType2D)(TmpCT | NT_WS_2D);
+                            if ( strstr(BoundStr,"NT_WALL_LAW_2D") )
+                                TmpCT = (CondType2D)(TmpCT | NT_WALL_LAW_2D);
                             else if ( strstr(BoundStr,"NT_WNS_2D") )
                                 TmpCT = (CondType2D)(TmpCT | NT_WNS_2D);
                             if ( strstr(BoundStr,"NT_FC_2D") )

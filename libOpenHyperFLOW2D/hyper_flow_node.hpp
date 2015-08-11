@@ -123,7 +123,7 @@ enum     NodeType2D {
 
     NT_AY_2D         = CT_NODE_IS_SET_2D | NT_D0X_2D | CT_U_CONST_2D,// AXIAL condition (axi has Y direction)
     NT_AX_2D         = CT_NODE_IS_SET_2D | NT_D0Y_2D | CT_V_CONST_2D,// AXIAL condition (axi has X direction)
-    NT_WS_2D         = CT_NODE_IS_SET_2D | CT_WALL_LAW_2D,          // Wall slip condition
+    NT_WALL_LAW_2D   = CT_NODE_IS_SET_2D | CT_WALL_LAW_2D,           // Wall slip condition
     NT_WNS_2D        = CT_NODE_IS_SET_2D | CT_WALL_NO_SLIP_2D |      // Wall no-slip
                        CT_U_CONST_2D | CT_V_CONST_2D,                // condition
     NT_S_2D          = CT_SOLID_2D   | CT_NODE_IS_SET_2D,            // Solid body
