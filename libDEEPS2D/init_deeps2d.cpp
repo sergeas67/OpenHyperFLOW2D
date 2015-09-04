@@ -156,7 +156,7 @@ void InitSharedData(InputData* _data,
             if(NOutStep >= Nstep)
                Nstep = NOutStep + 1;
 
-            MonitorNumber = _data->GetIntVal((char*)"MonitorNumber");
+            MonitorNumber = _data->GetIntVal((char*)"MonitorIndex");
             if ( _data->GetDataError()==-1 ) {
                 Abort_OpenHyperFLOW2D();
             }

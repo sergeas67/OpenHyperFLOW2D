@@ -52,6 +52,8 @@
 ;------------------------------------------------------------------;
 ; Computation parameters                                           ;
 ;------------------------------------------------------------------;
+; RMS calc algo
+<data/isAlternateRMS=1>
 ;
 ; Monitor:
 ; 0 - max residual
@@ -60,7 +62,7 @@
 ; 3 - Rho*V residual
 ; 4 - Rho*E residual
 ; 5 - Time
-<data/MonitorNumber=5>
+<data/MonitorIndex=5>
 <data/ExitMonitorValue=1.0>
 
 <data/NumMonitorPoints=0>

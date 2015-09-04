@@ -17,8 +17,6 @@
 <data/isOutHeatFluxY=0>
 ; is p* out ?
 <data/is_p_asterisk_out=0>
-; Recalc y+  on each iterations
-<data/isRecalcYplus=0>
 
 ;--------------------------------------------------;
 ; is single GPU mode on ?                          ;
@@ -31,7 +29,7 @@
 ; Problem Type
 ; 0 - Euler
 ; 1 - Navier-Stokes
-<data/ProblemType=0>
+<data/ProblemType=1>
 
 ;FlowType
 ; 0 - FLAT
@@ -52,6 +50,8 @@
 ;--------------------------------------------------
 ; Computation parameters
 ;--------------------------------------------------
+; RMS calc algo
+<data/isAlternateRMS=1>
 ;
 ; Monitor:
 ; 0 - max residual
@@ -60,7 +60,7 @@
 ; 3 - Rho*V residual
 ; 4 - Rho*E residual
 ; 5 - Time
-<data/MonitorNumber=5>
+<data/MonitorIndex=5>
 <data/ExitMonitorValue=0.0025>
 
 <data/NumMonitorPoints=0>
@@ -117,7 +117,7 @@
 ; 3 - One equation models
 ; 4 - Two equations models
 ; 5 - Smagorinsky
-<data/TurbulenceModel=0>
+<data/TurbulenceModel=3>
 <data/isTurbulenceReset=1>
 <data/ZeroEqFactor=0>
 ; turbulence  Pr_t near wall
@@ -137,8 +137,8 @@
 ; 6 - Jones-Launder k-eps model
 ; 7 - Launder and Sharma, with Yap-correction k-eps model
 ; 8 - RNG k-eps model
-; 9 - Spalart-Allmares model
-<data/TurbExtModel=0>
+; 10 - Spalart-Allmares model
+<data/TurbExtModel=10>
 
 ;--------------------------------------------------
 ; Solid body temperature Ts0, K

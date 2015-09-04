@@ -26,6 +26,7 @@
 ;--------------------------------------------------;
 ; General parameters                               ;
 ;--------------------------------------------------;
+
 ; Problem Type
 ; 0 - Euler
 ; 1 - Navier-Stokes
@@ -50,6 +51,9 @@
 ;--------------------------------------------------
 ; Computation parameters
 ;--------------------------------------------------
+; RMS calc algo
+<data/isAlternateRMS=1>
+
 ; Monitor:
 ; 0 - max residual
 ; 1 - Rho residual
