@@ -12,14 +12,11 @@
 <data/GasSwapFile=.hf2d>
 <data/isAdiabaticWall=0>
 ; Out heat flux on walls along x direction
-<data/isOutHeatFluxX=1>
-<data/y_min=0>
-<data/y_max=300>
-
+<data/isOutHeatFluxX=0>
 ; Out heat flux on walls along y direction
-<data/isOutHeatFluxY=1>
+<data/isOutHeatFluxY=0>
 ; is p* out ?
-<data/is_p_asterisk_out=1>
+<data/is_p_asterisk_out=0>
 
 ;--------------------------------------------------;
 ; is single GPU mode on ?                          ;
@@ -63,7 +60,7 @@
 ; 3 - Rho*V residual
 ; 4 - Rho*E residual
 ; 5 - Time
-<data/MonitorNumber=5>
+<data/MonitorIndex=5>
 <data/ExitMonitorValue=0.0025>
 
 <data/NumMonitorPoints=0>
@@ -562,7 +559,6 @@
 <data/dx_body=0.0>
 <data/dy_body=0.0>
 <data/Cx_Flow_Index=1>
-<data/Cp_Flow_Index=1>
 
 <data/NumXCut=0>
 
