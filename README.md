@@ -1,6 +1,12 @@
 # <img src=https://github.com/sergeas67/openhyperflow2d/blob/master/OpenHyperFLOW2D/doc/OpenHyperFLOW2D-Logo.png align=center> OpenHyperFLOW2D 
 Parallel (C++/MPI/OpenMP/CUDA) research-educational CFD code for simulation 2D (flat/axisymmetrical) transient viscous compressible multicomponent sub/trans/supersonic reacting gas flows. 
 
+This code is provided entirely free of charge but your donations are welcome.
+
+BTC:1GpTDjxxaSpEKzurqyXuegfR23o6cPAMSu
+LTC:Ld219CMcbJThCGQhe8Yam3oqVVWxvKS51i
+DASH:XjXmHvTDR7gWJtxNvhReGQoGUj1ZN1oNkR
+
 <table>
 <tr>
 <td>
@@ -23,3 +29,4 @@ Parallel (C++/MPI/OpenMP/CUDA) research-educational CFD code for simulation 2D (
 </td>
 </tr>
 </table>
+
