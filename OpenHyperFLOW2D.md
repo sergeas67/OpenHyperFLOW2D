@@ -1,4 +1,4 @@
-# Open-Source code for CFD simulation **OpenHyperFLOW2D** #
+# Open-Source code for CFD simulation *"OpenHyperFLOW2D"* #
 
 |![http://openhyperflow2d.googlecode.com/svn/trunk/OpenHyperFLOW2D/doc/OpenHyperFLOW2D-Logo.png](http://openhyperflow2d.googlecode.com/svn/trunk/OpenHyperFLOW2D/doc/OpenHyperFLOW2D-Logo.png) | Copyright (C)  1995-2014 by Serge A. Suchkov |
 |:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------------------------------------------|
