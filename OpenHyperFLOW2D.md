@@ -1,6 +1,6 @@
 # Open-Source code for CFD simulation *"OpenHyperFLOW2D"* #
 
-|![http://openhyperflow2d.googlecode.com/svn/trunk/OpenHyperFLOW2D/doc/OpenHyperFLOW2D-Logo.png](https://github.com/sergeas67/openhyperflow2d/blob/master/OpenHyperFLOW2D/doc/OpenHyperFLOW2D-Logo.png) | Copyright (C)  1995-2014 by Serge A. Suchkov |
+|![http://openhyperflow2d.googlecode.com/svn/trunk/OpenHyperFLOW2D/doc/OpenHyperFLOW2D-Logo.png](https://github.com/sergeas67/openhyperflow2d/blob/master/OpenHyperFLOW2D/doc/OpenHyperFLOW2D-Logo.png) | Copyright (C)  1995-2015 by Serge A. Suchkov |
 |:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------------------------------------------|
 |  | Copyright policy: LGPL V3 |
 
