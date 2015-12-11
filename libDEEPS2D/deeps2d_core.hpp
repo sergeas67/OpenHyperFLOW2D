@@ -275,6 +275,7 @@ extern int                                           num_gpus;  // number of CUD
 // External functions
 
 #ifdef _CUDA_
+extern cudaDeviceProp                        dprop;
 extern void                                  CopyDeviceToHost(void* src, void* dst, size_t length, cudaStream_t stream=0);
 extern void                                  CopyHostToDevice(void* src, void* dst, size_t length, cudaStream_t stream=0);
 extern void                                  CopyDeviceToDevice(void* src, void* dst, size_t length, cudaStream_t stream=0);

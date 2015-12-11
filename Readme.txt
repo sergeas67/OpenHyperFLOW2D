@@ -47,9 +47,3 @@ with reduced functionality, and can be used without restriction for educational
 and academic purpose. Reference at the publication is obligatory.
 
 ----------------------------------------------------------------------------------------
-
-This code is provided entirely free of charge but your donations are welcome.
-
-BTC:1GpTDjxxaSpEKzurqyXuegfR23o6cPAMSu
-LTC:Ld219CMcbJThCGQhe8Yam3oqVVWxvKS51i
-DASH:XjXmHvTDR7gWJtxNvhReGQoGUj1ZN1oNkR

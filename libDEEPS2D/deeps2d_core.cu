@@ -198,25 +198,26 @@ void ChkCudaState(cudaError_t cudaState, char* name) {
 
 int CalibrateThreadBlockSize(int  cur_block_size,
                              int* opt_block_size,
-                             FP*  opt_round_trip,
-                             FP   round_trip){
-   if(opt_block_size[1] != 1) {
-       if(opt_round_trip[0] == 0.0) {
-         opt_block_size[0] = opt_block_size[1] =  cur_block_size;
-      } else if (opt_round_trip[0] > round_trip) {
+                             FP&  opt_round_trip,
+                             FP   round_trip) {
+   
+    if(opt_round_trip == 0.0) {
+        opt_block_size[0] = opt_block_size[1] =  cur_block_size;
+        opt_round_trip    =  round_trip;
+   } else if (opt_round_trip > round_trip) {
         opt_block_size[0] = cur_block_size;
         opt_block_size[1] = cur_block_size/2;
-      } else {
+        opt_round_trip    = round_trip;
+   } else {
         opt_block_size[1] = cur_block_size/2; 
-      }
    }
 
-   opt_round_trip[0] = round_trip;
+   //opt_round_trip[1] = min(opt_round_trip[0],round_trip);
    
-   if(opt_block_size[1] == 1)
-     return opt_block_size[0];
-   else
-     return max(1,opt_block_size[1]);
+   //if(opt_block_size[1] == 0)
+     return opt_block_size[1];
+   //else
+   //  return max(1,opt_block_size[1]);
 };
 
 inline void  DEEPS2D_Stage1(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*     pLJ,
@@ -684,7 +685,7 @@ void DEEPS2D_Run(ofstream* f_stream,
     int      TmpMaxX;
     int      current_div;
     int      opt_thread_block_size[2];
-    FP       opt_round_trip[1];
+    FP       opt_round_trip = 0.0;
 
     int      num_cuda_threads;
     int      num_cuda_blocks; 
@@ -752,7 +753,7 @@ void DEEPS2D_Run(ofstream* f_stream,
                     FlowNode2D<FP,NUM_COMPONENTS>*      cudaJ;
                     FlowNodeCore2D<FP,NUM_COMPONENTS>*  cudaC;
                     dtmin = dt;
-                    current_div =  4*warp_size;
+                    current_div =  dprop.multiProcessorCount*warp_size;
                     int2float_scale  = (FP)(INT_MAX)/(256*dt);
 
              do {
@@ -817,7 +818,7 @@ void DEEPS2D_Run(ofstream* f_stream,
                        cudaJ = cudaSubDomainArray->GetElement(ii);
                        cudaC = cudaCoreSubDomainArray->GetElement(ii);
 
-                       num_cuda_threads =  4*warp_size/max(1,current_div);
+                       num_cuda_threads =  dprop.multiProcessorCount*warp_size/max(1,current_div);
                        num_cuda_blocks  = (max_X*max_Y)/num_cuda_threads;
 
                        if(num_cuda_blocks*num_cuda_threads != max_X*max_Y)
@@ -874,7 +875,7 @@ void DEEPS2D_Run(ofstream* f_stream,
                        cudaJ = cudaSubDomainArray->GetElement(ii);
                        cudaC = cudaCoreSubDomainArray->GetElement(ii);
 
-                       num_cuda_threads = min(max_num_threads,4*warp_size/max(1,current_div));
+                       num_cuda_threads = min(max_num_threads,dprop.multiProcessorCount*warp_size/max(1,current_div));
                        num_cuda_blocks  = (max_X*max_Y)/num_cuda_threads;
 
                        if(num_cuda_blocks*num_cuda_threads != max_X*max_Y)
@@ -1028,12 +1029,19 @@ void DEEPS2D_Run(ofstream* f_stream,
              else
                  VCOMP = 0.;
              
-             if(iter > 2)
-               current_div = max(1,CalibrateThreadBlockSize(current_div,
-                                                            opt_thread_block_size,
-                                                            opt_round_trip,
-                                                            d_time));
+             if(iter+last_iter > 2 && iter+last_iter < NOutStep*12) {
+                 
+                 current_div = max(1,CalibrateThreadBlockSize(current_div,
+                                                              opt_thread_block_size,
+                                                              opt_round_trip,
+                                                              d_time));
+
+                 *f_stream << "Calibrate: blocks=" <<  num_cuda_blocks << " threads="  << num_cuda_threads << " round_trip=" << d_time << endl;
+             }
              
+             if(iter+last_iter > NOutStep*12)
+                current_div = opt_thread_block_size[0];
+              
              memcpy(&mark2,&mark1,sizeof(mark1));
 #ifdef _RMS_
              SaveRMS(pRMS_OutFile,last_iter+iter, sum_RMS);
@@ -1051,10 +1059,7 @@ void DEEPS2D_Run(ofstream* f_stream,
              *f_stream << "Step No " << iter+last_iter << " maxRMS["<< k_max_RMS << "]="<< (FP)(max_RMS*100.) \
                         <<  " % step_time=" << (FP)d_time << " sec (" << (FP)VCOMP <<" step/sec) dt="<< dt <<"\n" << flush;
 #else
-             *f_stream << "Step No " << iter+last_iter <<  "/" << Nstep <<" step_time=" << (FP)d_time << " sec (" << (FP)VCOMP <<" step/sec) dt="<< dt <<
-              " blocks=" <<  num_cuda_blocks << " threads="  << num_cuda_threads << " div=" << current_div <<" \n"
-                 
-                 << flush;
+             *f_stream << "Step No " << iter+last_iter <<  "/" << Nstep <<" step_time=" << (FP)d_time << " sec (" << (FP)VCOMP <<" step/sec) dt="<< dt << endl;
 #endif // _RMS_
              if(MonitorPointsArray && MonitorPointsArray->GetNumElements() > 0) {
                 SaveMonitors(pMonitors_OutFile,GlobalTime+CurrentTimePart,MonitorPointsArray);

@@ -22,12 +22,14 @@
 #include "libDEEPS2D/deeps2d_core.hpp"
  
 SolverMode ProblemType;
+
 int rank;
 int last_rank;
 int warp_size = 0;
 FP _dt_test=1.0;
 
 timeval mark1, mark2;
+cudaDeviceProp dprop;
 
 // Arrays for multiGPU
 UArray< FlowNode2D<FP,NUM_COMPONENTS>* >*     cudaArraySubDomain      = NULL;
@@ -114,10 +116,9 @@ int main( int argc, char **argv )
         }
 
         printf("Number of CUDA devices:\t%d\n", num_gpus);
-        //int num_dev;
+        
         for (int i = 0; i < num_gpus; i++)
         {
-         cudaDeviceProp dprop;
          cudaGetDeviceProperties(&dprop, i);
          printf("\t   %d: %s\n", i, dprop.name);
          max_num_threads  = dprop.maxThreadsPerBlock;
