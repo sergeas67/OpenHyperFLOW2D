@@ -212,12 +212,7 @@ int CalibrateThreadBlockSize(int  cur_block_size,
         opt_block_size[1] = cur_block_size/2; 
    }
 
-   //opt_round_trip[1] = min(opt_round_trip[0],round_trip);
-   
-   //if(opt_block_size[1] == 0)
      return opt_block_size[1];
-   //else
-   //  return max(1,opt_block_size[1]);
 };
 
 inline void  DEEPS2D_Stage1(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*     pLJ,

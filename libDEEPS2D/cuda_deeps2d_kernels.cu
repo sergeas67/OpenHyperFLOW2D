@@ -117,35 +117,32 @@ int cuda_CalcChemicalReactions(FlowNode2D<FP,NUM_COMPONENTS>* CalcNode,
 
     if(cr_model==CRM_ZELDOVICH) {
 //--- chemical reactions (Zeldovich model) -------------------------------------------------->
-      if ( !CalcNode->isCond2D(CT_Y_CONST_2D) ) {
-          if ( CalcNode->Tg > CalcNode->Tf ) {
-              if ( Yox > 0 && Yfu > 0 && Yox > Yfu*model_data->K0 ) { // Yo2 > Yfuel
-                   Yox = Yox - Yfu*model_data->K0*model_data->gamma;
-                   Yfu = Yfu*(1.0-model_data->gamma);
-                   Ycp = 1.- Yox - Yair - Yfu;
+        if ( !CalcNode->isCond2D(CT_Y_CONST_2D) ) {
+            Y0   = 1./(Yfu+Yox+Ycp+Yair);
+            Yfu  = Yfu*Y0;
+            Yox  = Yox*Y0;
+            Ycp  = Ycp*Y0;
 
-              } else if (Yox > 0 && Yfu > 0 ) {                          // Yo2 < Yfuel
-                   Yfu = Yfu - Yox/model_data->K0*model_data->gamma;
-                   Yox = Yox*(1.0-model_data->gamma);
-                   Ycp = 1. - Yox - Yair - Yfu;
-              }
-           }
-        }
-
-      Y0   = Yfu+Yox+Ycp+Yair;
-
-      Yfu  = min(1.0,Yfu/Y0);
-      Yox  = min(1.0,Yox/Y0);
-      Ycp  = min(1.0,Ycp/Y0);
-
-      if(CalcNode->Y[3] > 0 ) {
-        Yair = 1. - (Yfu+Yox+Ycp); 
-      } else {
-        Yair = 0;
-      }
-
+            if ( CalcNode->Tg > CalcNode->Tf ) {
+                if ( Yox > Yfu*model_data->K0 ) { // Yo2 > Yfuel
+                     Yox = Yox - Yfu*model_data->K0;
+                     Yfu = 0.;
+                     Ycp = 1.-Yox-Yair;
+                } else {                          // Yo2 < Yfuel
+                     Yfu = Yfu - Yox/model_data->K0;
+                     Yox = 0.;
+                     Ycp = 1. -Yfu-Yair;
+                }
+             }
+          }
 //--- chemical reactions (Zeldovich model) -------------------------------------------------->
     }
+    
+    Y0   = 1./(Yfu+Yox+Ycp+Yair);
+    Yfu  = Yfu*Y0;
+    Yox  = Yox*Y0;
+    Ycp  = Ycp*Y0;
+    Yair = Yair*Y0;
 
     CalcNode->R   = model_data->R_Fuel*Yfu+
                     model_data->R_OX*Yox+
@@ -165,7 +162,7 @@ int cuda_CalcChemicalReactions(FlowNode2D<FP,NUM_COMPONENTS>* CalcNode,
                         GetVal(model_data->lam_cp,CalcNode->Tg)*Ycp+
                         GetVal(model_data->lam_air,CalcNode->Tg)*Yair;
     }
-
+        
     CalcNode->Y[0] = Yfu;
     CalcNode->Y[1] = Yox;
     CalcNode->Y[2] = Ycp;
@@ -603,7 +600,7 @@ cuda_DEEPS2D_Stage1(FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
                     }
 
                     if ( c_flag ) {
-                        if ( dx_flag ) {
+                        if ( dx_flag) {
                             dXX = CurrentNode->dSdx[k] = (RightNode->A[k]-LeftNode->A[k])*n_n_1; //  
                         } else {
                             CurrentNode->S[k] = (LeftNode->S[k]*n2+RightNode->S[k]*n1)*n_n_1;
