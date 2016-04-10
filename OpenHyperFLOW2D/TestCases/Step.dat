@@ -85,6 +85,9 @@
 ; Base blending factor
 <data/beta=0.975>
 
+; Base blending factor for non-reflected BC
+<data/beta_NonReflectedBC=0.25>
+
 ; Base blending factor scenario
 <table=beta_Scenario/2>
 0       0.975
@@ -412,6 +415,20 @@
 
 ; Numper of "Flow2D" objects
 <data/NumFlow2D=2>
+;--------------------------------------
+; Init Mode
+;--------------------------------------                 
+; 0 - U + V + static p, T
+; 1 - U + V + total p*, T*
+; 2 - Mach + Angle + static p, T
+; 3 - Mach + Angle + total p*, T*
+;--------------------------------------
+; Flow Component index:
+;--------------------------------------
+; 0 - fuel
+; 1 - oxygen
+; 2 - combustion products
+; 3 - air
 
 ;---- Flow2D 1 -------
 <data/Flow2D-1.CompIndex=3>
@@ -468,9 +485,9 @@
 <data/Contour1.MaterialID=0>
 
 <data/Contour1.Bound1.Cond=NT_AX_2D>
-<data/Contour1.Bound2.Cond=NT_FC_2D>
+<data/Contour1.Bound2.Cond=NT_FARFIELD_2D>
 <data/Contour1.Bound3.Cond=NT_AX_2D>
-<data/Contour1.Bound4.Cond=NT_D0X_2D>
+<data/Contour1.Bound4.Cond=NT_D0X_2D, CT_NONREFLECTED_2D>
 <data/Contour1.Bound5.Cond=NT_AX_2D>
 <data/Contour1.Bound6.Cond=NT_AY_2D>
 

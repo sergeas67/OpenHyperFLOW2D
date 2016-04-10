@@ -1,6 +1,6 @@
 /*************************************************
 *  Libflow v2.2                                  *
-*  Copyright (C)  1995-2015 by Serge A. Suchkov  *
+*  Copyright (C)  1995-2016 by Serge A. Suchkov  *
 *  Copyright policy: LGPL V3                     *
 *  http://openhyperflow2d.googlecode.com         *
 *************************************************/
@@ -375,14 +375,24 @@ Flow& Flow::operator = (Flow& NewFlow) {
 }
 
 void   Flow::CorrectFlow(FP T, FP p, FP ref_val, FixedValue fv) {
-
+    FP res_p = 1.0, res_t = 1.0;
+    int iter=0;
     if(fv == FV_MACH) {
+       do {
+           MACH(ref_val);
+           t0 = T/TAU();
+           p0 = p/PF();
+           res_p = fabs((p0-p/PF())/p0);
+           res_t = fabs((t0-T/TAU())/t0);
+           Wg(ref_val*Asound());
+           iter++;
+         } while ((res_p > 0.0001 || res_t > 0.0001) && iter < 100);
+       /*
        MACH(ref_val);
        t0 = T/TAU();
        p0 = p/PF();
+       */
     } else if(fv == FV_VELOCITY) {
-       FP res_p = 1.0, res_t = 1.0;
-       int iter=0;
        do {
            MACH(ref_val/Asound());
            t0 = T/TAU();

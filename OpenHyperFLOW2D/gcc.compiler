@@ -45,7 +45,7 @@ endif
 
 
 NOPROFILE  = -fomit-frame-pointer
-DEBUG      = 
+DEBUG      = -g
 PICFLAGS   = -fPIC
 #STATIC= -static
 
@@ -67,7 +67,7 @@ endif
 CXXOPTIONS = -Wno-deprecated 
 COPTIONS   =
 
-OPTLEVEL   = 3
+OPTLEVEL   = 0
 
 ifeq     ($(OPTLEVEL),0)
 OPTIMIZE   = -O$(OPTLEVEL) -D_ALIGN=${ALIGN}

@@ -1,12 +1,12 @@
 /*******************************************************************************
 *   OpenHyperFLOW2D                                                            *
 *                                                                              *
-*   Version  1.0.2                                                             *
-*   Copyright (C)  1995-2015 by Serge A. Suchkov                               *
+*   Version  1.0.3                                                             *
+*   Copyright (C)  1995-2016 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
 *   http://openhyperflow2d.googlecode.com                                      *
 *                                                                              *
-*   last update: 01/02/2015                                                    *
+*   last update: 04/07/2016                                                    *
 *******************************************************************************/
 
 #ifndef  _hyper_flow_node_hpp
@@ -87,7 +87,7 @@ enum CondType2D   {                  // Condition type (bit flags)
     CT_d2Vdy2_NULL_2D  = 0x0400000,  // 23 - d2RhoV/dy2 = 0 (Cauchy BC)
     CT_d2Tdy2_NULL_2D  = 0x0800000,  // 24 - d2RhoE/dy2 = 0 (Cauchy BC)
     CT_d2Ydy2_NULL_2D  = 0x01000000, // 25 - d2RhoY1...RhoYn/dy2 = 0 (Cauchy BC)
-    CT_TIME_DEPEND_2D  = 0x02000000, // 26 - time depended Dirichlet BC / F=f(t) /
+    CT_NONREFLECTED_2D = 0x02000000, // 26 - non-reflected BC
     CT_WALL_NO_SLIP_2D = 0x04000000, // 27 - (if this bit set this node is WALL whis no-slip condition)
     CT_WALL_LAW_2D     = 0x08000000, // 28 - (if this bit set this node is WALL law  condition)
     CT_GAS_2D          = 0x010000000,// 29 - (if this bit set this node is GAS)
@@ -95,12 +95,12 @@ enum CondType2D   {                  // Condition type (bit flags)
     CT_SOLID_2D        = 0x040000000,// 31 - (if this bit set this node is SOLID)
     CT_NODE_IS_SET_2D  = 0x080000000,// 32 - (if this bit set, node alredy initialized, use for seek uninitialized nodes)
     CT_LIQUID_2D       = 0x0100000000,//33 - node is LIQUID
-    CT_NONREFLECTED_2D = 0x0200000000,//34 - non-reflected BC
+    CT_TIME_DEPEND_2D  = 0x0200000000,//34 - time depended Dirichlet BC / F=f(t) /
 };
 
 
 // Macro bound types as combination of CondType bit flags
-enum     NodeType2D {
+enum NodeType2D {
     NT_UNDEF_2D      = 0,                                            // Undefinded node type
     NT_FC_2D         = CT_Rho_CONST_2D | CT_U_CONST_2D | CT_V_CONST_2D | CT_Y_CONST_2D | CT_T_CONST_2D  |
                        CT_NODE_IS_SET_2D,                            // External gas flow
@@ -900,7 +900,7 @@ void  FlowNode2D<T,a>::TurbModRANS2D(int is_mu_t,
              TurbulenceAxisymmAddOn(is_init);
 
             if(is_mu_t) {
-              FlowNodeTurbulence2D<T,a>::mu_t  = FlowNodeCore2D<T,a>::S[i2d_Rho] * FlowNodeCore2D<T,a>::S[i2d_nu_t] * fv1;
+              FlowNodeTurbulence2D<T,a>::mu_t  = max(0,(FlowNodeCore2D<T,a>::S[i2d_Rho] * FlowNodeCore2D<T,a>::S[i2d_nu_t] * fv1));
               FlowNodeTurbulence2D<T,a>::lam_t = FlowNodeTurbulence2D<T,a>::mu_t * CP;
             }
 
@@ -938,7 +938,7 @@ void  FlowNode2D<T,a>::TurbModRANS2D(int is_mu_t,
           Wxy = 0.5*(dVdx - dUdy);
           Omega = sqrt(2.0*Wxy*Wxy);
             if(is_mu_t) {
-              FlowNodeTurbulence2D<T,a>::mu_t  = FlowNodeCore2D<T,a>::S[i2d_Rho] * (Cs * _delta) * (Cs * _delta) * Omega;
+              FlowNodeTurbulence2D<T,a>::mu_t  = max(0,(FlowNodeCore2D<T,a>::S[i2d_Rho] * (Cs * _delta) * (Cs * _delta) * Omega));
               FlowNodeTurbulence2D<T,a>::lam_t = FlowNodeTurbulence2D<T,a>::mu_t * CP;
             }
         }

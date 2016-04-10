@@ -1,12 +1,12 @@
 /*******************************************************************************
 *   OpenHyperFLOW2D                                                            *
 *                                                                              *
-*   Version  1.0.2                                                             *
-*   Copyright (C)  1995-2015 by Serge A. Suchkov                               *
+*   Version  1.0.3                                                             *
+*   Copyright (C)  1995-2016 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
 *   http://openhyperflow2d.googlecode.com                                      *
 *                                                                              *
-*   last update: 01/02/2015                                                    *
+*   last update: 04/07/2016                                                    *
 *******************************************************************************/
 #include "libExcept/except.hpp"
 #include "libOpenHyperFLOW2D/hyper_flow_bound_circle.hpp"
@@ -37,9 +37,19 @@ BoundCircle2D::BoundCircle2D(char* name,
         pInFlow2D->U(0.);
         pInFlow2D->V(0.);
     }
-    int    ix,iy;
-    k = max(1,(int)(2*pi*r/sqrt(dx*dx+dy*dy)));
+    int    ix,iy,ix0,iy0;
+
+    k   = max(1,(int)(2*pi*r/sqrt(dx*dx+dy*dy)));
     
+    ix0 = (unsigned int)(x1/dx+0.499999);
+    iy0 = (unsigned int)(y1/dx+0.499999);
+    
+    /*
+    ix0 = max(0,ix0);
+    iy0 = max(0,iy0);
+    ix0 = min(ix0,JM->GetX() - 1);
+    iy0 = min(iy0,JM->GetY() - 1); 
+    */
     for (i=0; i<k; i++) {
         xx2 = x1+(r*sin(fi0+(2.*pi*i)/k-pi/2.)); 
         yy2 = y1+(r*cos(fi0+(2.*pi*i)/k-pi/2.));
@@ -53,9 +63,14 @@ BoundCircle2D::BoundCircle2D(char* name,
          ix <= ((int)JM->GetX() - 1) && 
          iy <= ((int)JM->GetY() - 1)) {
         AddBound2D(name,ix,iy,ct, NULL, pInFlow2D,Y,bctt); 
-      }
-        xx1 = xx2;
-        yy1 = yy2;
+      } /* else {
+        ix = max(0,ix);
+        iy = max(0,iy);
+        ix = min(ix,JM->GetX() - 1);
+        iy = min(iy,JM->GetY() - 1); 
+      }*/
+      xx1 = xx2;
+      yy1 = yy2;
     }
     CloseContour2D(name,ct, NULL, pInFlow2D,Y,bctt);
     SetBounds();

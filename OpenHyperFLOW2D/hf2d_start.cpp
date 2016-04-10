@@ -1,14 +1,14 @@
 /*******************************************************************************
 *   OpenHyperFLOW2D                                                            *
 *                                                                              *
-*   Version  1.0.2                                                             *
-*   Copyright (C)  1995-2015 by Serge A. Suchkov                               *
+*   Version  1.0.3                                                             *
+*   Copyright (C)  1995-2016 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
 *   http://openhyperflow2d.googlecode.com                                      *
 *                                                                              *
 *  hf2d_start.cpp: OpenHyperFLOW2D solver init code....                        *
 *                                                                              *
-*  last update: 01/02/2015                                                     *
+*  last update: 04/07/2016                                                     *
 ********************************************************************************/
 #include "libDEEPS2D/deeps2d_core.hpp"
 #include <sys/time.h>
@@ -65,7 +65,7 @@ int main( int argc, char **argv )
 #else
             printf("(parallel MPI version)\n");
 #endif // _MPI
-            printf("Copyright (C) 1995-2015 by Serge A. Suchkov\nCopyright policy: LGPL V3\nUsage: %s [{input_data_file}]\n",argv[0]);
+            printf("Copyright (C) 1995-2016 by Serge A. Suchkov\nCopyright policy: LGPL V3\nUsage: %s [{input_data_file}]\n",argv[0]);
 
             printf("\n\t* Density-based 2D-Navier-Stokes solver for ");
 #ifdef _UNIFORM_MESH_

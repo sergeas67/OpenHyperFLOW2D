@@ -1,6 +1,6 @@
                      OpenHyperFLOW2D
 
-Copyright (C)  1995-2015 by Serge A. Suchkov (sergeas67@gmail.com)
+Copyright (C)  1995-2016 by Serge A. Suchkov (sergeas67@gmail.com)
                    Copyright policy: LGPL V3
 	    http://openhyperflow2d.googlecode.com	   
 	

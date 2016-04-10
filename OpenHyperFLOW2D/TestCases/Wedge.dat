@@ -61,7 +61,7 @@
 ; 4 - Rho*E residual
 ; 5 - Time
 <data/MonitorIndex=5>
-<data/ExitMonitorValue=0.0025>
+<data/ExitMonitorValue=0.25>
 
 <data/NumMonitorPoints=0>
 
@@ -72,28 +72,31 @@
 
 ;Maximum time of calculation, s
 ; Courant number (for gas phase only)
-<data/CFL=0.5>
+<data/CFL=0.1>
 
 ; CFL scenario
 <table=CFL_Scenario/4>
 0       0.05
 1000    0.10
-20000   0.15
-200000  0.20
+20000   0.10
+200000  0.10
 <endtable>
 
 ; Base blending factor
-<data/beta=0.9895>
+<data/beta=0.9875>
+
+; Base blending factor for non-reflected BC
+<data/beta_NonReflectedBC=0.25>
 
 ; Base blending factor scenario
 <table=beta_Scenario/3>
-0       0.9855
-20000   0.9895
-100000  0.9895
+0       0.95
+20000   0.985
+100000  0.9875
 <endtable>
 
 ; Maximum number of steps
-<data/Nmax=24000>
+<data/Nmax=1000>
 ; Every NOutStep-th step is displayed
 <data/NOutStep=100>
 <data/NSaveStep=1>
@@ -423,10 +426,26 @@
 
 ; Numper of "Flow2D" objects
 <data/NumFlow2D=2>
+;--------------------------------------
+; Init Mode
+;--------------------------------------                 
+; 0 - U + V + static p, T
+; 1 - U + V + total p*, T*
+; 2 - Mach + Angle + static p, T
+; 3 - Mach + Angle + total p*, T*
+;--------------------------------------
+; Flow Component index:
+;--------------------------------------
+; 0 - fuel
+; 1 - oxygen
+; 2 - combustion products
+; 3 - air
 
 ;---- Flow2D 1 -------
 <data/Flow2D-1.CompIndex=3>
-<data/Flow2D-1.Mode=0>
+<data/Flow2D-1.Mode=2>
+<data/Flow2D-1.Mach=2.5>
+<data/Flow2D-1.Angle=0.0>
 
 ; Flow pressure (p*) , Pa.
 <data/Flow2D-1.p=101350.0>
@@ -435,7 +454,7 @@
 <data/Flow2D-1.T=288.9>
 
 ; Flow velocity (U/V) , m/sec.
-<data/Flow2D-1.U=851.84>
+<data/Flow2D-1.U=0.0>
 <data/Flow2D-1.V=0.0>
 
 ;---- Flow2D 2 -------
@@ -490,11 +509,11 @@
 ; Material ID
 <data/Contour1.MaterialID=0>
 
-<data/Contour1.Bound1.Cond=NT_D0Y_2D, CT_V_CONST_2D>
-<data/Contour1.Bound2.Cond=NT_D0X_2D>
+<data/Contour1.Bound1.Cond=NT_FARFIELD_2D>
+<data/Contour1.Bound2.Cond=NT_D0X_2D | CT_NONREFLECTED_2D>
 <data/Contour1.Bound3.Cond=NT_WNS_2D>
 <data/Contour1.Bound4.Cond=NT_D0Y_2D, CT_V_CONST_2D>
-<data/Contour1.Bound5.Cond=NT_FC_2D>
+<data/Contour1.Bound5.Cond=NT_FARFIELD_2D>
 
 <data/Contour1.Bound1.Flow2D=1>
 <data/Contour1.Bound2.Flow2D=1>

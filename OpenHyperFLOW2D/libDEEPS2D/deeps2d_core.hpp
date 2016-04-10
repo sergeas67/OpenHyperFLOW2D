@@ -3,14 +3,14 @@
 *                                                                              *
 *   Transient, Density based Effective Explicit Parallel Solver (T-DEEPS2D)    *
 *                                                                              *
-*   Version  1.0.2                                                             *
-*   Copyright (C)  1995-2015 by Serge A. Suchkov                               *
+*   Version  1.0.3                                                             *
+*   Copyright (C)  1995-2016 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
 *   http://openhyperflow2d.googlecode.com                                      *
 *                                                                              *
 *   Common function declarations file.                                         *
 *                                                                              *
-*  last update: 01/02/2015                                                     *
+*  last update: 04/07/2016                                                     *
 ********************************************************************************/
 #ifdef _MPI
 #include <mpi.h>
@@ -174,7 +174,10 @@ extern void CalcHeatOnWallSources(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* F,
 extern UArray< XY<int> >* ScanArea(ofstream* f_str,ComputationalMatrix2D* pJ ,int isPrint);
 extern int CalcChemicalReactions(FlowNode2D<FP,NUM_COMPONENTS>* CalcNode,
                                  ChemicalReactionsModel cr_model, void* CRM_data);
-
+int SetNonReflectedBC(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* OutputMatrix2D,
+                      FP beta_nrbc,
+                      ofstream* f_stream);
+void PrintCond(ofstream* OutputData, FlowNode2D<FP,NUM_COMPONENTS>* fn);
 void RecalcWallFrictionVelocityArray2D(ComputationalMatrix2D* pJ,
                                        UArray<FP>* WallFrictionVelocityArray2D,
                                        UArray< XY<int> >* WallNodes2D);
