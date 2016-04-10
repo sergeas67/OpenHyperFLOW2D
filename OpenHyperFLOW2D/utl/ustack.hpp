@@ -3,7 +3,7 @@
 *  Copyright (C) 1994-2010 Serge A. Suchkov                     *
 *  Copyright policy: LGPL V2.0                                  *
 *  Stack template (LIFO object).                                *
-*   http://openhyperflow2d.googlecode.com                       *
+*   http://github.com/sergeas67/openhyperflow2d                       *
 *  Please report all bugs and problems to "sergeas67@gmail.com".*
 *****************************************************************/
 #ifndef _ustack_hpp_

@@ -2,7 +2,7 @@
 #
 #  Copyright (C)  1995-2016 by Serge A. Suchkov                        
 #  Copyright policy: LGPL V3
-#   http://openhyperflow2d.googlecode.com                                           
+#   http://github.com/sergeas67/openhyperflow2d                                           
 
 include   ../.compiler
 include   ../.parallel
