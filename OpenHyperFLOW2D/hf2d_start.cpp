@@ -4,7 +4,7 @@
 *   Version  1.0.3                                                             *
 *   Copyright (C)  1995-2016 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
-*   http://github.com/sergeas67/openhyperflow2d                                      *
+*   http://github.com/sergeas67/openhyperflow2d                                *
 *                                                                              *
 *  hf2d_start.cpp: OpenHyperFLOW2D solver init code....                        *
 *                                                                              *
@@ -127,8 +127,9 @@ rank      = MPI::COMM_WORLD.Get_rank();
                    SetMinDistanceToWall2D(J,WallNodes);
                    *o_stream << "OK\n" << flush;
                    Recalc_y_plus(J,WallNodes);                        // Calculate initial y+ value         
-
-                   SetInitBoundaryLayer(J,delta_bl);                  // Set Initial boundary layer profile
+                   
+                   if(!PreloadFlag)
+                      SetInitBoundaryLayer(J,delta_bl);               // Set Initial boundary layer profile
  #else
                    *o_stream << "\nParallel calc min distance to wall..." << endl;
                    
@@ -244,7 +245,8 @@ rank      = MPI::COMM_WORLD.Get_rank();
         
 #ifdef _PARALLEL_RECALC_Y_PLUS_
         if(ProblemType == SM_NS) {
-           SetInitBoundaryLayer(TmpSubDomain,delta_bl);                                                // Set Initial boundary layer profile
+            if(!PreloadFlag)
+               SetInitBoundaryLayer(TmpSubDomain,delta_bl);                                               // Set Initial boundary layer linear profile
             if( rank == 0 ) {
                 if(WallNodes && !WallNodesUw_2D && J) 
                     WallNodesUw_2D = GetWallFrictionVelocityArray2D(J,WallNodes);
@@ -295,7 +297,9 @@ rank      = MPI::COMM_WORLD.Get_rank();
            WallNodes = GetWallNodes((ofstream*)o_stream,J,Data->GetIntVal((char*)"isVerboseOutput")); 
            SetMinDistanceToWall2D(J,WallNodes);
            Recalc_y_plus(J,WallNodes);                        // Calculate initial y+ value
-           SetInitBoundaryLayer(J,delta_bl);                  // Set Initial boundary layer profile
+           
+           if(!PreloadFlag)
+              SetInitBoundaryLayer(J,delta_bl);               // Set Initial boundary layer profile
        }
        UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* TmpSubDomain=NULL;
        UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >* TmpCoreSubDomain=NULL;

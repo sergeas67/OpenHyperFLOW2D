@@ -6,7 +6,7 @@
 *   Version  1.0.3                                                             *
 *   Copyright (C)  1995-2016 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
-*   http://github.com/sergeas67/openhyperflow2d                                      *
+*   http://github.com/sergeas67/openhyperflow2d                                *
 *   deeps2d_core.cpp: OpenHyperFLOW2D solver core code....                     *
 *                                                                              *
 *  last update: 04/07/2016                                                     *
@@ -20,6 +20,7 @@
 int NumContour;
 int start_iter = 5;
 int n_s;
+int PreloadFlag = 0,p_g=0;
 
 SourceList2D*  SrcList = NULL;
 int            isGasSource=0;
@@ -2847,7 +2848,6 @@ void* InitDEEPS2D(void* lpvParam)
         BoundContour2D*   BC; 
         char            ErrorMessage[255];
         u_long          FileSizeGas=0;
-        static int      PreloadFlag = 0,p_g=0;
 
         SubDomainArray     = new UArray<UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* >();
         CoreSubDomainArray = new UArray<UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >* >();

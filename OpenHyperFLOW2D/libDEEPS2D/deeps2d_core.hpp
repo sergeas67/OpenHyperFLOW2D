@@ -128,20 +128,21 @@ extern UArray< MonitorPoint >*      MonitorPointsArray;
 extern UArray< XY<int> >* GetWallNodes(ofstream* f_str, ComputationalMatrix2D* pJ, int isPrint);
 
 extern UArray< FP >*     WallNodesUw_2D;
-extern int                   NumWallNodes;
-//extern FP                x0;
+extern int               NumWallNodes;
+//extern FP              x0;
 // External variables
 extern SolverMode                                               ProblemType;
 extern UArray< XY<int> >*                                       GlobalSubDomain;
 extern UArray<UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*>*     SubDomainArray;
 extern UArray<UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >*>* CoreSubDomainArray;
-extern InputData*                            Data;                     // Object data loader
-extern UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*     J;          // Main computation area
-extern UArray<Flow*>*                        FlowList;                 // Flow list
+extern InputData*                            Data;              // Object data loader
+extern UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*     J;       // Main computation area
+extern UArray<Flow*>*                        FlowList;          // Flow list
 extern unsigned int                          MaxX;
 extern unsigned int                          MaxY;
-extern FP                                dx;
-extern FP                                dy;
+extern FP                                    dx;
+extern FP                                    dy;
+extern int                                   PreloadFlag;
 extern int                                   EndFLAG;
 extern int                                   PrintFLAG;
 extern int                                   isVerboseOutput;
