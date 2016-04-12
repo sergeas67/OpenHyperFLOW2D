@@ -3,7 +3,11 @@
 *                                                                      *
 *  Copyright (C)  1995-2016 by Serge A. Suchkov                        *
 *  Copyright policy: LGPL V3                                           *
+<<<<<<< .mine
+*  http://github.com/sergeas67/openhyperflow2d                         *
+=======
 *  http://github.com/sergeas67/openhyperflow2d                               *
+>>>>>>> .r192
 ***********************************************************************/
 
 #include "libExcept/except.hpp"
