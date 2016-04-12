@@ -17,7 +17,7 @@
 <data/isOutHeatFluxY=0>
 ; is p* out ?
 <data/is_p_asterisk_out=0>
-
+<data/isIgnoreUnsetNodes=0>
 ;--------------------------------------------------;
 ; is single GPU mode on ?                          ;
 ;--------------------------------------------------;
@@ -96,7 +96,11 @@
 <endtable>
 
 ; Maximum number of steps
+<<<<<<< .mine
+<data/Nmax=10000>
+=======
 <data/Nmax=1000>
+>>>>>>> .r187
 ; Every NOutStep-th step is displayed
 <data/NOutStep=100>
 <data/NSaveStep=1>
