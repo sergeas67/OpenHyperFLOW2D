@@ -4,7 +4,7 @@
 *   Version  1.0.3                                                             *
 *   Copyright (C)  1995-2016 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
-*   http://github.com/sergeas67/openhyperflow2d                                      *
+*   http://github.com/sergeas67/openhyperflow2d                                *
 *                                                                              *
 *   last update: 04/07/2016                                                    *
 *******************************************************************************/
@@ -34,6 +34,7 @@ FP dy;  // cut width
 FP T_asterisk(FlowNode2D<FP,NUM_COMPONENTS>* node );
 FP p_asterisk(FlowNode2D<FP,NUM_COMPONENTS>* node );
 FP Schliren(FlowNode2D<FP,NUM_COMPONENTS>* node );
+FP Re_Airfoil(FP chord, Flow2D* Flow);
 
 FP CalcaveragePressure2D(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* pJ,
                              FP x0, // initial point of probed area
