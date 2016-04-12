@@ -4,12 +4,18 @@
 *   Version  1.0.3                                                             *
 *   Copyright (C)  1995-2016 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
-*   http://github.com/sergeas67/openhyperflow2d                                      *
+*   http://github.com/sergeas67/openhyperflow2d                                *
 *                                                                              *
 *   last update: 04/07/2016                                                    *
 *******************************************************************************/
 
 #include "libOutCFD/out_cfd_param.hpp"
+
+FP Re_Airfoil(FP chord, Flow2D* Flow) {
+
+return Flow->Wg()*chord*Flow->ROG()/Flow->mu;
+
+}
 
 FP Calc_I(FlowNode2D<FP,NUM_COMPONENTS>* node)
 {
