@@ -19,6 +19,7 @@
 <data/is_p_asterisk_out=0>
 ; Recalc y+  on each iterations
 <data/isRecalcYplus=0>
+<data/isIgnoreUnsetNodes=0>
 
 ;--------------------------------------------------;
 ; is single GPU mode on ?                          ;
