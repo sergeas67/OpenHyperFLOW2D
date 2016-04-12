@@ -29,6 +29,7 @@ int            TurbExtModel;
 int            err_i, err_j;
 int            turb_mod_name_index = 0;
 int            isAlternateRMS;
+int            isIgnoreUnsetNodes;
 FP             Ts0,A,W,Mach;
 
 UArray< XY<int> >* GlobalSubDomain;
@@ -51,6 +52,7 @@ FP      beta0;
 FP      CFL;
 Table*  CFL_Scenario;
 Table*  beta_Scenario;
+FP      chord = 0;
 #ifdef _OPEN_MP
 FP      DD_max_var;
 #endif // OPEN_MP
@@ -272,8 +274,13 @@ void InitSharedData(InputData* _data,
 
             if(NOutStep >= Nstep)
                Nstep = NOutStep + 1;
-            
+
             isAlternateRMS = _data->GetIntVal((char*)"isAlternateRMS");
+            if ( _data->GetDataError()==-1 ) {
+                Abort_OpenHyperFLOW2D();
+            }
+
+            isIgnoreUnsetNodes = _data->GetIntVal((char*)"isIgnoreUnsetNodes");
             if ( _data->GetDataError()==-1 ) {
                 Abort_OpenHyperFLOW2D();
             }
@@ -295,7 +302,7 @@ void InitSharedData(InputData* _data,
 
 
             int NumMonitorPoints = _data->GetIntVal((char*)"NumMonitorPoints");
-            
+
             if ( _data->GetDataError()==-1 ) {
                 Abort_OpenHyperFLOW2D();
             }
@@ -1075,8 +1082,6 @@ void DEEPS2D_Run(ofstream* f_stream
                                         FP absDD    = 0.;
 
                                         if(k == i2d_RhoU && k == i2d_RhoV ) {
-                                            //Tmp = sqrt(CurrentNode->S[i2d_RhoU]*CurrentNode->S[i2d_RhoU]+
-                                            //           CurrentNode->S[i2d_RhoV]*CurrentNode->S[i2d_RhoV]+1.e-30); // Flux
                                             Tmp = max(fabs(CurrentNode->S[i2d_RhoU]),fabs(CurrentNode->S[i2d_RhoV]));// max Flux
                                         }
                                         
@@ -1788,7 +1793,7 @@ void DEEPS2D_Run(ofstream* f_stream
           snprintf(HeatFluxXFileName,255,"HeatFlux-X-%s",OutFileName);
           CutFile(HeatFluxXFileName);
           pHeatFlux_OutFile = OpenData(HeatFluxXFileName);
-          
+
           SaveXHeatFlux2D(pHeatFlux_OutFile,J,Flow2DList->GetElement(Cp_Flow_index-1),Ts0,y_max,y_min);
           pHeatFlux_OutFile->close();
          }
@@ -1805,7 +1810,7 @@ void DEEPS2D_Run(ofstream* f_stream
          if(is_Cx_calc) { // For Airfoils only
           *f_stream << "\nCx = " << Calc_Cx_2D(J,x0_body,y0_body,dx_body,dy_body,Flow2DList->GetElement(Cx_Flow_index-1)) << 
                        " Cy = "  << Calc_Cy_2D(J,x0_body,y0_body,dx_body,dy_body,Flow2DList->GetElement(Cx_Flow_index-1)) << 
-                       " Fx = "  << CalcXForce2D(J,x0_body,y0_body,dx_body,dy_body) << " Fy = " << CalcYForce2D(J,x0_body,y0_body,dx_body,dy_body) << endl;
+                       " Fx = "  << CalcXForce2D(J,x0_body,y0_body,dx_body,dy_body) << " Fy = " << CalcYForce2D(J,x0_body,y0_body,dx_body,dy_body)  << endl;
          }
 
 
@@ -3091,6 +3096,7 @@ void* InitDEEPS2D(void* lpvParam)
                     f_stream->flush();
                     Abort_OpenHyperFLOW2D();
                 }
+
                 snprintf(FlowStr,256,"Flow2D-%i.U",i+1);
                 Ug = Data->GetFloatVal(FlowStr);
                 if ( Data->GetDataError()==-1 ) {
@@ -3102,13 +3108,26 @@ void* InitDEEPS2D(void* lpvParam)
                     Abort_OpenHyperFLOW2D();
                 }
 
-                TmpFlow2D = new Flow2D(lam,mu,Cp,Tg,Pg,Rg,Ug,Vg);
+                //TmpFlow2D = new Flow2D(lam,mu,Cp,Tg,Pg,Rg,Ug,Vg);
 
                 snprintf(FlowStr,256,"Flow2D-%i.Mode",i+1); 
                 int FlowMode = Data->GetIntVal(FlowStr);
                 if ( Data->GetDataError()==-1 ) {
                     Abort_OpenHyperFLOW2D();
                 }
+<<<<<<< .mine
+                // 0 - U + V + static p, T
+                // 1 - U + V + total p*, T*
+                // 2 - Mach + Angle + static p*, T*
+                // 3 - Mach + Angle + total p, T
+
+                if(FlowMode == 2) {
+                  Ug = Vg = 0;
+                }
+
+                TmpFlow2D = new Flow2D(mu,lam,Cp,Tg,Pg,Rg,Ug,Vg);
+
+=======
                 // 0 - U + V + static p, T
                 // 1 - U + V + total p*, T*
                 // 2 - Mach + Angle + static p*, T*
@@ -3120,10 +3139,16 @@ void* InitDEEPS2D(void* lpvParam)
 
                 TmpFlow2D = new Flow2D(lam,mu,Cp,Tg,Pg,Rg,Ug,Vg);
 
+>>>>>>> .r187
                 if(FlowMode == 0) {
                     TmpFlow2D->CorrectFlow(Tg,Pg,sqrt(Ug*Ug+Vg*Vg+1.e-30),FV_VELOCITY);
+<<<<<<< .mine
+
+                } if(FlowMode == 2 || FlowMode == 3) {
+=======
                 
                 } if(FlowMode == 2 || FlowMode == 3) {
+>>>>>>> .r187
                     snprintf(FlowStr,256,"Flow2D-%i.Mach",i+1);
                     FP Mach = Data->GetFloatVal(FlowStr);
                     if ( Data->GetDataError()==-1 ) {
@@ -3140,12 +3165,30 @@ void* InitDEEPS2D(void* lpvParam)
                        TmpFlow2D->CorrectFlow(Tg,Pg,Mach);
                     }
                     
+                    snprintf(FlowStr,256,"Flow2D-%i.Angle",i+1); // Angle (deg.)
+                    FP Angle = Data->GetFloatVal(FlowStr);
+                    if ( Data->GetDataError()==-1 ) {
+                        Abort_OpenHyperFLOW2D();
+                    }
+
+                    if(FlowMode == 2 ) {
+                       TmpFlow2D->CorrectFlow(Tg,Pg,Mach);
+                    }
+
                     TmpFlow2D->MACH(Mach);
+<<<<<<< .mine
+
+                    Wg = TmpFlow2D->Wg();
+                    Ug = cos(Angle*M_PI/180)*Wg; 
+                    Vg = sin(Angle*M_PI/180)*Wg;
+                    TmpFlow2D->Wg(Ug,Vg);
+=======
                     
                     Wg = TmpFlow2D->Wg();
                     Ug = cos(Angle*M_PI/180)*Wg; 
                     Vg = sin(Angle*M_PI/180)*Wg;
                     TmpFlow2D->Wg(Ug,Vg);
+>>>>>>> .r187
                 }
 
                 Flow2DList->AddElement(&TmpFlow2D);
@@ -3192,7 +3235,7 @@ void* InitDEEPS2D(void* lpvParam)
             }
 
             FileSizeGas =  MaxX*MaxY*sizeof(FlowNode2D<FP,NUM_COMPONENTS>);
-            
+
 
             GasSwapData   = LoadSwapFile2D(GasSwapFileName,
                                            (int)MaxX,
@@ -3455,7 +3498,7 @@ void* InitDEEPS2D(void* lpvParam)
                             // Check Flow2D at first ...
                             sprintf(NameBound,"%s.Flow2D",NameContour);
                             FlowIndex = Data->GetIntVal(NameBound);
-                            
+
                             if ( FlowIndex < 1 ) {
                                 *f_stream << "\n";
                                 sprintf(NameBound,"%s.Flow",NameContour);
@@ -3713,7 +3756,7 @@ void* InitDEEPS2D(void* lpvParam)
                             // Check Flow2D at first ...
                             sprintf(NameBound,"%s.Bound%i.Flow2D",NameContour,i);
                             FlowIndex = Data->GetIntVal(NameBound);
-                            
+
                             if ( FlowIndex < 1 ) {
                                 *f_stream << "\n";
                                 sprintf(NameBound,"%s.Flow",NameContour);
@@ -3840,7 +3883,7 @@ void* InitDEEPS2D(void* lpvParam)
 #endif // _DEBUG_0
 
             dt = 1;
-            
+
             for (int i = 0;i<(int)FlowList->GetNumElements();i++ ) {
                 FP CFL_min  = min(CFL,CFL_Scenario->GetVal(iter+last_iter));
                 dt = min(dt,CFL_min*min(dx/(FlowList->GetElement(i)->Asound()+FlowList->GetElement(i)->Wg()),
@@ -3852,7 +3895,7 @@ void* InitDEEPS2D(void* lpvParam)
                 dt = min(dt,CFL_min*min(dx/(Flow2DList->GetElement(i)->Asound()+Flow2DList->GetElement(i)->Wg()),
                                         dy/(Flow2DList->GetElement(i)->Asound()+Flow2DList->GetElement(i)->Wg())));
             }
-            
+
             if ( !PreloadFlag ) {
                 CutFile(OutFileName);  
                 *f_stream << "Init computation area..." << flush;
@@ -3871,7 +3914,6 @@ void* InitDEEPS2D(void* lpvParam)
 
                           //if ( FlowNode2D<FP,NUM_COMPONENTS>::FT == FT_AXISYMMETRIC )
                           //     J->GetValue(i,j).r     = (j+1)*dy;
-                          
                           J->GetValue(i,j).x     = (i+0.5)*dx;
                           J->GetValue(i,j).y     = (j+0.5)*dy;
                           J->GetValue(i,j).Tf    = chemical_reactions.Tf;
@@ -4005,7 +4047,6 @@ void* InitDEEPS2D(void* lpvParam)
                 GlobalTime=Data->GetFloatVal((char*)"InitTime");
                 if(Data->GetDataError()==-1) Abort_OpenHyperFLOW2D();
 
-                if(p_g==0)
                 if(numRects)
                   {
                    for(j=0;j<numRects;j++) {
@@ -4030,6 +4071,8 @@ void* InitDEEPS2D(void* lpvParam)
                        sprintf(NameContour,"Rect%i.DY",j+1);
                        Y_0=Data->GetFloatVal(NameContour);
                        if(Data->GetDataError()==-1) Abort_OpenHyperFLOW2D();
+
+                       chord = max(chord,X_0);
 
                        sprintf(NameContour,"Rect%i.Flow2D",j+1);
                        FlowIndex=Data->GetIntVal(NameContour);
@@ -4074,19 +4117,22 @@ void* InitDEEPS2D(void* lpvParam)
                            Abort_OpenHyperFLOW2D();
                        }
                        sprintf(NameContour,"Rect%i",j+1);
-                       SBR = new SolidBoundRect2D(NameContour,J,Xstart,Ystart,X_0,Y_0,dx,dy,(CondType2D)NT_WNS_2D,pTestFlow2D,Y,TM);
+
+                       if(!PreloadFlag) {
+                         SBR = new SolidBoundRect2D(NameContour,J,Xstart,Ystart,X_0,Y_0,dx,dy,(CondType2D)NT_WNS_2D,pTestFlow2D,Y,TM);
+                          delete SBR;
+                       }
+
                        *f_stream << "OK\n" << flush;
-                       delete SBR;
                      }
                   }
             // Bound Circles
             unsigned int numCircles=Data->GetIntVal((char*)"NumCircles");
             TurbulenceCondType2D TM;
             BoundCircle2D* SBC;
-            if ( p_g==0 )
                 if ( numCircles ) {
                     for ( j=0;j<numCircles;j++ ) {
-                        
+
                         sprintf(NameContour,"Circle%i",j+1);
                         *f_stream << "Add object \""<< NameContour << "\"..." << flush;
 
@@ -4105,7 +4151,9 @@ void* InitDEEPS2D(void* lpvParam)
                         sprintf(NameContour,"Circle%i.Y0",j+1);
                         Y_0=Data->GetFloatVal(NameContour);
                         if ( Data->GetDataError()==-1 ) Abort_OpenHyperFLOW2D();
-                        
+
+                        chord = max(chord,sqrt((X_0-Xstart)*(X_0-Xstart) + (Y_0-Ystart*(Y_0-Ystart) )+1.e-60));
+
                         sprintf(NameContour,"Circle%i.MaterialID",j+1);
                         int MaterialID=Data->GetIntVal(NameContour);
                         if ( Data->GetDataError()==-1 ) Abort_OpenHyperFLOW2D();
@@ -4155,7 +4203,7 @@ void* InitDEEPS2D(void* lpvParam)
                             Abort_OpenHyperFLOW2D();
                         }
                         sprintf(NameContour,"Circle%i",j+1);
-                        
+                        if( !PreloadFlag ) {
                         if(MaterialID) { // Solid
                             SBC = new BoundCircle2D(NameContour,J,Xstart,Ystart,X_0,Y_0,dx,dy,(CondType2D)NT_WNS_2D,MaterialID,pTestFlow2D,Y,TM
 #ifdef _DEBUG_1
@@ -4169,15 +4217,18 @@ void* InitDEEPS2D(void* lpvParam)
 #endif //_DEBUG_1 
                                                     );
                         }
-                        
-                        *f_stream << "OK\n" << flush;
                         delete SBC;
+                        }
+                        *f_stream << "OK\n" << flush;
                     }
                 }
 // Solid Bound Airfoils
             unsigned int  numAirfoils=Data->GetIntVal((char*)"NumAirfoils");
+<<<<<<< .mine
+=======
             
             if (!PreloadFlag) {
+>>>>>>> .r187
                 if ( numAirfoils ) {
                     FP            mm,pp,thick,scale,attack_angle;
                     int           Airfoil_Type;
@@ -4223,6 +4274,8 @@ void* InitDEEPS2D(void* lpvParam)
                         sprintf(NameContour,"Airfoil%i.scale",j+1);
                         scale=Data->GetFloatVal(NameContour);
                         if ( Data->GetDataError()==-1 ) Abort_OpenHyperFLOW2D();
+
+                        chord = max(chord,scale);
 
                         sprintf(NameContour,"Airfoil%i.attack_angle",j+1);    
                         attack_angle=Data->GetFloatVal(NameContour);
@@ -4272,17 +4325,21 @@ void* InitDEEPS2D(void* lpvParam)
                             f_stream->flush();
                             Abort_OpenHyperFLOW2D();
                         }
+
+                        *f_stream  << "Airfoil Re = "  << Re_Airfoil(chord,Flow2DList->GetElement(Cx_Flow_index-1)) << endl;
+
                         sprintf(NameContour,"Airfoil%i",j+1);
+                     if (!PreloadFlag) {
                         if (Airfoil_Type == 0) { // NACA Airfoil
                            SBA = new SolidBoundAirfoil2D(NameContour,J,Xstart,Ystart,mm,pp,thick,dx,dy,(CondType2D)NT_WNS_2D,pTestFlow2D,Y,TM,scale,attack_angle,f_stream);
                         } else {                // TsAGI Airfoil
                            SBA = new SolidBoundAirfoil2D(NameContour,J,Xstart,Ystart,AirfoilInputData,dx,dy,(CondType2D)NT_WNS_2D,pTestFlow2D,Y,TM,scale,attack_angle,f_stream);
                         }
-                        *f_stream << "OK\n" << flush;
                         delete SBA;
-                    }
+                     }
+                        *f_stream << "OK\n" << flush;
+                  }
                 }
-              }  
                //  Areas
             if ( !PreloadFlag ) {
 #ifdef _DEBUG_0
@@ -4314,10 +4371,10 @@ void* InitDEEPS2D(void* lpvParam)
                         snprintf(AreaName,256,"initial Area point (%d,%d)...",(unsigned int)AreaPoint->GetX(0),
                                                                               (unsigned int)AreaPoint->GetY(0));
                         *f_stream << AreaName; 
-                        
+
                         snprintf(AreaName,256,"Area%i.MaterialID",i+1);
                         AreaMaterialID = Data->GetIntVal(AreaName);
-                        
+
                         if ( AreaType==0 ) {
                             if ( Data->GetDataError()==-1 ) {
                                 Abort_OpenHyperFLOW2D();
@@ -4494,7 +4551,7 @@ void* InitDEEPS2D(void* lpvParam)
             __end_except;
 #endif  // _DEBUG_0
             }
-            
+
             if ( !PreloadFlag )
 #ifdef _DEBUG_0
               ___try {
@@ -4512,11 +4569,11 @@ void* InitDEEPS2D(void* lpvParam)
                                 J->GetValue(i,j).idYu  = 1;
                                 J->GetValue(i,j).idYd  = 1;
                                 J->GetValue(i,j).l_min = min(dx*MaxX,dy*MaxY);
-                                
+
                                 for (int k=0;k < FlowNode2D<FP,NUM_COMPONENTS>::NumEq;k++) {
                                    J->GetValue(i,j).beta[k]  = beta0;
                                 }
-                                
+
                                 if ( j==0 || J->GetValue(i,j-1).isCond2D(CT_SOLID_2D) ) {           // is down node present ? (0 or 1)
                                     J->GetValue(i,j).idYd=0;/*J->GetValue(i,j).NGY =2;*/
                                 }
@@ -4535,24 +4592,24 @@ void* InitDEEPS2D(void* lpvParam)
                                     J->GetValue(i,j).NGY   = J->GetValue(i,j).idYd - J->GetValue(i,j).idYu + J->GetValue(i,j).idYd*J->GetValue(i,j).idYu;
                                 }
 
-                                if ( !J->GetValue(i,j).isCond2D(CT_NODE_IS_SET_2D) ) {
+                                if (!isIgnoreUnsetNodes && !J->GetValue(i,j).isCond2D(CT_NODE_IS_SET_2D) ) {
                                     *f_stream << "\n";
                                     *f_stream << "Node ("<< i_err << "," << j_err <<") has not CT_NODE_IS_SET flag." << flush;
                                     *f_stream << "\n";
                                     *f_stream << "Possible some \"Area\" objects not defined.\n" << flush;
                                     f_stream->flush();
 //-- debug ----
-//                                    DataSnapshot(ErrFileName);
+                                    DataSnapshot(ErrFileName);
 //-- debug ----
                                     Abort_OpenHyperFLOW2D();
                                 }
-                                
+
                                 if (J->GetValue(i,j).isCond2D(CT_SOLID_2D) ) {
                                     J->GetValue(i,j).Tg = Ts0;
                                 }   else {
                                     J->GetValue(i,j).FillNode2D(0,1);
                                 }
-                                
+
                                 if(J->GetValue(i,j).p == 0.) {
                                    J->GetValue(i,j).Tg = Ts0;
                                 }
@@ -4623,7 +4680,12 @@ void* InitDEEPS2D(void* lpvParam)
                   SrcList = new SourceList2D(J,Data);
                   SrcList->SetSources2D();
              }
-             
+
+             if(!PreloadFlag) {
+                *f_stream << "Seek nodes with non-reflected BC..." << endl;
+                *f_stream << "Found " << SetNonReflectedBC(J,nrbc_beta0,f_stream) << " nodes with non-reflected BC...OK" << endl;
+             }
+
              if(!PreloadFlag) {
                 *f_stream << "Seek nodes with non-reflected BC..." << endl;
                 *f_stream << "Found " << SetNonReflectedBC(J,nrbc_beta0,f_stream) << " nodes with non-reflected BC...OK" << endl;
