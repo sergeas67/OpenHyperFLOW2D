@@ -96,11 +96,7 @@
 <endtable>
 
 ; Maximum number of steps
-<<<<<<< .mine
 <data/Nmax=10000>
-=======
-<data/Nmax=1000>
->>>>>>> .r187
 ; Every NOutStep-th step is displayed
 <data/NOutStep=100>
 <data/NSaveStep=1>
