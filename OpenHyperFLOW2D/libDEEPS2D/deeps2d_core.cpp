@@ -1082,6 +1082,8 @@ void DEEPS2D_Run(ofstream* f_stream
                                         FP absDD    = 0.;
 
                                         if(k == i2d_RhoU && k == i2d_RhoV ) {
+                                            //Tmp = sqrt(CurrentNode->S[i2d_RhoU]*CurrentNode->S[i2d_RhoU]+
+                                            //           CurrentNode->S[i2d_RhoV]*CurrentNode->S[i2d_RhoV]+1.e-30); // Flux
                                             Tmp = max(fabs(CurrentNode->S[i2d_RhoU]),fabs(CurrentNode->S[i2d_RhoV]));// max Flux
                                         }
                                         
@@ -3115,7 +3117,6 @@ void* InitDEEPS2D(void* lpvParam)
                 if ( Data->GetDataError()==-1 ) {
                     Abort_OpenHyperFLOW2D();
                 }
-<<<<<<< .mine
                 // 0 - U + V + static p, T
                 // 1 - U + V + total p*, T*
                 // 2 - Mach + Angle + static p*, T*
@@ -3127,44 +3128,16 @@ void* InitDEEPS2D(void* lpvParam)
 
                 TmpFlow2D = new Flow2D(mu,lam,Cp,Tg,Pg,Rg,Ug,Vg);
 
-=======
-                // 0 - U + V + static p, T
-                // 1 - U + V + total p*, T*
-                // 2 - Mach + Angle + static p*, T*
-                // 3 - Mach + Angle + total p, T
-                
-                if(FlowMode == 2) {
-                  Ug = Vg = 0;
-                }
-
-                TmpFlow2D = new Flow2D(lam,mu,Cp,Tg,Pg,Rg,Ug,Vg);
-
->>>>>>> .r187
                 if(FlowMode == 0) {
                     TmpFlow2D->CorrectFlow(Tg,Pg,sqrt(Ug*Ug+Vg*Vg+1.e-30),FV_VELOCITY);
-<<<<<<< .mine
 
                 } if(FlowMode == 2 || FlowMode == 3) {
-=======
-                
-                } if(FlowMode == 2 || FlowMode == 3) {
->>>>>>> .r187
                     snprintf(FlowStr,256,"Flow2D-%i.Mach",i+1);
                     FP Mach = Data->GetFloatVal(FlowStr);
                     if ( Data->GetDataError()==-1 ) {
                         Abort_OpenHyperFLOW2D();
                     }
-                    
-                    snprintf(FlowStr,256,"Flow2D-%i.Angle",i+1); // Angle (deg.)
-                    FP Angle = Data->GetFloatVal(FlowStr);
-                    if ( Data->GetDataError()==-1 ) {
-                        Abort_OpenHyperFLOW2D();
-                    }
-                    
-                    if(FlowMode == 2 ) {
-                       TmpFlow2D->CorrectFlow(Tg,Pg,Mach);
-                    }
-                    
+
                     snprintf(FlowStr,256,"Flow2D-%i.Angle",i+1); // Angle (deg.)
                     FP Angle = Data->GetFloatVal(FlowStr);
                     if ( Data->GetDataError()==-1 ) {
@@ -3176,19 +3149,11 @@ void* InitDEEPS2D(void* lpvParam)
                     }
 
                     TmpFlow2D->MACH(Mach);
-<<<<<<< .mine
 
                     Wg = TmpFlow2D->Wg();
                     Ug = cos(Angle*M_PI/180)*Wg; 
                     Vg = sin(Angle*M_PI/180)*Wg;
                     TmpFlow2D->Wg(Ug,Vg);
-=======
-                    
-                    Wg = TmpFlow2D->Wg();
-                    Ug = cos(Angle*M_PI/180)*Wg; 
-                    Vg = sin(Angle*M_PI/180)*Wg;
-                    TmpFlow2D->Wg(Ug,Vg);
->>>>>>> .r187
                 }
 
                 Flow2DList->AddElement(&TmpFlow2D);
@@ -3805,7 +3770,7 @@ void* InitDEEPS2D(void* lpvParam)
                                     BC->AddBound2D(NameBound,ix,iy,TmpCT,NULL,pTestFlow2D,Y,TmpTurbulenceCT);
 
                                 *f_stream << "-["<< BC->GetCurrentX() << ";"<< BC->GetCurrentY() <<"]" << flush;
-                                 
+
                                 if(is_reset)
                                    *f_stream << "...Reset parameters" << flush;
                                 *f_stream << "\n";
@@ -4224,11 +4189,6 @@ void* InitDEEPS2D(void* lpvParam)
                 }
 // Solid Bound Airfoils
             unsigned int  numAirfoils=Data->GetIntVal((char*)"NumAirfoils");
-<<<<<<< .mine
-=======
-            
-            if (!PreloadFlag) {
->>>>>>> .r187
                 if ( numAirfoils ) {
                     FP            mm,pp,thick,scale,attack_angle;
                     int           Airfoil_Type;
@@ -4686,11 +4646,6 @@ void* InitDEEPS2D(void* lpvParam)
                 *f_stream << "Found " << SetNonReflectedBC(J,nrbc_beta0,f_stream) << " nodes with non-reflected BC...OK" << endl;
              }
 
-             if(!PreloadFlag) {
-                *f_stream << "Seek nodes with non-reflected BC..." << endl;
-                *f_stream << "Found " << SetNonReflectedBC(J,nrbc_beta0,f_stream) << " nodes with non-reflected BC...OK" << endl;
-             }
-             
              if(ProblemType == SM_NS) {
                  if(!PreloadFlag) {
                     *f_stream << "Set initial boundary layer...";
