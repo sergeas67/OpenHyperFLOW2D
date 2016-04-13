@@ -1,4 +1,6 @@
 #!/bin/bash
+#echo Wait...15 sec
+#sleep 15
 if [ "$1" == "" ]
 then
 echo "Usage: $0 RMS_data_file"
