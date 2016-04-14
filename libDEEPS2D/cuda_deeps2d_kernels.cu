@@ -3,14 +3,14 @@
 *                                                                              *
 *   Transient, Density based Effective Explicit Parallel Hybrid Solver         *
 *   TDEEPHS (CUDA+MPI)                                                         *
-*   Version  1.0.2                                                             *
-*   Copyright (C)  1995-2015 by Serge A. Suchkov                               *
+*   Version  1.0.3                                                             *
+*   Copyright (C)  1995-2016 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
-*   http://openhyperflow2d.googlecode.com                                      *
+*   http://github.com/sergeas67/openhyperflow2d                                *
 *                                                                              *
 *   deeps2d_core.cpp: CUDA kernels code.                                       *
 *                                                                              *
-*  last update: 01/02/2015                                                     *
+*  last update: 14/04/2016                                                     *
 ********************************************************************************/
 
 #ifdef _CUDA_
@@ -274,7 +274,7 @@ void DisableP2PAccess(int dev1, int dev2) {
 }
 
 void CUDA_BARRIER(char* KernelName) {
-    cudaError_t cudaState = cudaDeviceSynchronize();    
+    cudaError_t cudaState = cudaDeviceSynchronize();
     if(cudaState != cudaSuccess) {
         printf("\nError in %s kernel...\n",KernelName);
         printf("%s\n", cudaGetErrorString( cudaGetLastError() ) );
@@ -643,7 +643,7 @@ cuda_DEEPS2D_Stage2(FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
                     unsigned long r_limit,
                     unsigned long l_limit,
                     FP beta_init, FP  beta0, 
-                    int b_FF, FP CFL0,
+                    int b_FF, FP CFL0, FP nrbc_beta0,
                     ChemicalReactionsModelData2D* pCRMD,
                     int noTurbCond,
                     FP SigW, FP SigF, FP dx_1, FP dy_1, FP delta_bl,
@@ -727,6 +727,10 @@ cuda_DEEPS2D_Stage2(FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
                            DD_local = fabs((NextNode->S[k]-CurrentNode->S[k])/Tmp);
                         else
                            DD_local = 0.0;
+                        
+                        if(CurrentNode->isCond2D(CT_NONREFLECTED_2D)) {
+                           beta_min = nrbc_beta0;
+                        }
                         
                         if( b_FF == BFF_L) {
                          //LINEAR locally adopted blending factor function  (LLABFF)
@@ -859,7 +863,13 @@ cuda_DEEPS2D_Stage2(FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
               }  else {
                   FP AAA          = sqrt(CurrentNode->k*CurrentNode->R*CurrentNode->Tg); 
                   FP dt_min_local = CFL0*min(1.0/(dx_1*(AAA+fabs(CurrentNode->U))),1.0/(dy_1*(AAA+fabs(CurrentNode->V))));
-                  atomicMin(dt_min_device,(unsigned int)(dt_min_local*int2float_scale));
+#if FP == double
+//#warning use double
+                  atomicMin(dt_min_device,double2uint(dt_min_local*int2float_scale));
+#else
+//#warning use float                  
+                  atomicMin(dt_min_device,float2uint(dt_min_local*int2float_scale));
+#endif
               }
          }
       }

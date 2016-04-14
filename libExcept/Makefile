@@ -1,8 +1,8 @@
 # Makefile for Exceptlib v0.1beta (System Exceptions C++ Library)
 #
-#  Copyright (C)  1995-2015 by Serge A. Suchkov                        
-#  Copyright policy: LGPL V3                                           
-#  http://openhyperflow2d.googlecode.com
+#  Copyright (C)  1995-2016 by Serge A. Suchkov                        
+#  Copyright policy: LGPL V3
+#   http://github.com/sergeas67/openhyperflow2d                                           
 
 include   ../.compiler
 include   ../.parallel
@@ -14,7 +14,7 @@ else
 include   ../gcc.compiler
 endif
 
-CFLAGS    = $(OPTIONS) $(PICFLAGS) $(FP_OPTS)
+CFLAGS    = $(OPTIONS) $(PICFLAGS)
 
 TARGET    = libexcept.a
 

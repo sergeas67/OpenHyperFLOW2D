@@ -3,14 +3,14 @@
 *                                                                              *
 *   Transient, Density based Effective Explicit Parallel Hybrid Solver         *
 *   TDEEPHS (CUDA+MPI)                                                         *
-*   Version  1.0.2                                                             *
-*   Copyright (C)  1995-2015 by Serge A. Suchkov                               *
+*   Version  1.0.3                                                             *
+*   Copyright (C)  1995-2016 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
-*   http://openhyperflow2d.googlecode.com                                      *
+*   http://github.com/sergeas67/openhyperflow2d                                *
 *                                                                              *
 * Common function declarations file.                                           *
 *                                                                              *
-*  last update: 01/02/2015                                                     *
+*  last update: 14/04/2016                                                     *
 ********************************************************************************/
 #ifdef _MPI
 #include <mpi.h>
@@ -248,6 +248,7 @@ extern UArray<XCut>*                     XCutArray;
 extern unsigned int                      last_iter;     // Global iteration number
 extern int                               is_Cx_calc;
 extern FP                                x0_body,y0_body,dx_body,dy_body;
+extern FP                                nrbc_beta0;
 extern int                               y_max,y_min;
 extern int                               Cp_Flow_index;
 extern int                               Cx_Flow_index;
@@ -312,6 +313,9 @@ extern void DataSnapshot(char* filename, WRITE_MODE ioMode=WM_REWRITE);
 extern void CalcHeatOnWallSources(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* F, FP dx, FP dr, FP dt, int rank, int last_rank);
 extern UArray< XY<int> >* ScanArea(ofstream* f_str,ComputationalMatrix2D* pJ ,int isPrint);
 
+int SetNonReflectedBC(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* OutputMatrix2D,
+                      FP beta_nrbc,
+                      ofstream* f_stream);
 
 int CalcChemicalReactions(FlowNode2D<FP,NUM_COMPONENTS>* CalcNode,
                           ChemicalReactionsModel cr_model, void* CRM_data);
@@ -385,6 +389,7 @@ cuda_DEEPS2D_Stage2(FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
                     unsigned long l_limit,
                     FP beta_init, FP  beta0, 
                     int b_FF, FP CFL0,
+                    FP nrbc_beta0,
                     ChemicalReactionsModelData2D* pCRMD,
                     int noTurbCond,
                     FP SigW, FP SigF, FP dx_1, FP dy_1, FP delta_bl,

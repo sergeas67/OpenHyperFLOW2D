@@ -3,14 +3,14 @@
 *                                                                              *
 *   Transient, Density based Effective Explicit Parallel Hybrid Solver         *
 *   TDEEPHS (CUDA+MPI)                                                         *
-*   Version  1.0.2                                                             *
-*   Copyright (C)  1995-2015 by Serge A. Suchkov                               *
+*   Version  1.0.3                                                             *
+*   Copyright (C)  1995-2016 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
-*   http://openhyperflow2d.googlecode.com                                      *
+*   http://github.com/sergeas67/openhyperflow2d                                *
 *                                                                              *
 *   deeps2d_core.cpp: OpenHyperFLOW2D solver core code....                     *
 *                                                                              *
-*  last update: 01/02/2015                                                     *
+*  last update: 14/04/2016                                                     *
 ********************************************************************************/
 #include "deeps2d_core.hpp"
 
@@ -32,7 +32,7 @@ int            TurbStartIter;
 int            TurbExtModel;
 int            err_i, err_j;
 int            turb_mod_name_index = 0;
-FP             Ts0,A,W,Mach;
+FP             Ts0,A,W,Mach,nrbc_beta0;
 
 unsigned int*  dt_min_host;
 unsigned int*  dt_min_device;
@@ -681,7 +681,10 @@ void DEEPS2D_Run(ofstream* f_stream,
     int      current_div;
     int      opt_thread_block_size[2];
     FP       opt_round_trip = 0.0;
-
+    
+    int       r_Overlap;
+    int       l_Overlap;
+    
     int      num_cuda_threads;
     int      num_cuda_blocks; 
 
@@ -749,7 +752,7 @@ void DEEPS2D_Run(ofstream* f_stream,
                     FlowNodeCore2D<FP,NUM_COMPONENTS>*  cudaC;
                     dtmin = dt;
                     current_div =  dprop.multiProcessorCount*warp_size;
-                    int2float_scale  = (FP)(INT_MAX)/(256*dt);
+                    int2float_scale  = (FP)(INT_MAX)/(1024*256*dt);
 
              do {
 
@@ -785,7 +788,7 @@ void DEEPS2D_Run(ofstream* f_stream,
 #endif // _RMS_
 
                        unsigned int dtest_int = (unsigned int)(int2float_scale*10);
-
+                       //*f_stream << "dtest_int = " << dtest_int << endl;
                        int iX0=0;
 
                        dtmin = 10*dt;
@@ -794,9 +797,6 @@ void DEEPS2D_Run(ofstream* f_stream,
 
                        int max_X = cudaDimArray->GetElement(ii).GetX();
                        int max_Y = cudaDimArray->GetElement(ii).GetY();
-
-                       int r_Overlap;
-                       int l_Overlap;
 
                        if(cudaSetDevice(ii) != cudaSuccess ) {
                           *f_stream << "\nError set CUDA device no: "<< ii << endl;
@@ -864,9 +864,6 @@ void DEEPS2D_Run(ofstream* f_stream,
                        int max_X = cudaDimArray->GetElement(ii).GetX();
                        int max_Y = cudaDimArray->GetElement(ii).GetY();
 
-                       int r_Overlap;
-                       int l_Overlap;
-
                        cudaJ = cudaSubDomainArray->GetElement(ii);
                        cudaC = cudaCoreSubDomainArray->GetElement(ii);
 
@@ -901,6 +898,7 @@ void DEEPS2D_Run(ofstream* f_stream,
                                                                                                        iX0 + l_Overlap,
                                                                                                        beta_Scenario->GetVal(iter+last_iter),beta0,
                                                                                                        bFF, CFL_Scenario->GetVal(iter+last_iter),
+                                                                                                       nrbc_beta0,
                                                                                                        cudaCRM2D->GetElement(ii),
                                                                                                        noTurbCond,
                                                                                                        SigW,SigF,dx_1,dy_1,delta_bl,
@@ -929,9 +927,6 @@ void DEEPS2D_Run(ofstream* f_stream,
                   CUDA_BARRIER((char*)"cuda_DEEPS2D_Stage2");
 
                    for(int ii=0;ii<n_s;ii++) {
-
-                       int r_Overlap;
-                       int l_Overlap;
                        
                        int max_X;
                        int max_Y;
@@ -943,13 +938,13 @@ void DEEPS2D_Run(ofstream* f_stream,
                        
 #ifdef _DEVICE_MMAP_
                        dt_min_host = dt_min_host_Array->GetElement(ii);
-                       unsigned int  int2float = *dt_min_host;
+                       unsigned int  int2float_var = *dt_min_host;
 #else
-                       unsigned int  int2float;
+                       unsigned int  int2float_var;
                        dt_min_device = dt_min_device_Array->GetElement(ii);
-                       CopyDeviceToHost(dt_min_device,&int2float,sizeof(unsigned int),cuda_streams[ii]);
+                       CopyDeviceToHost(dt_min_device,&int2float_var,sizeof(unsigned int),cuda_streams[ii]);
 #endif //_DEVICE_MMAP_
-                       dtmin  =  min(dtmin,(FP)(int2float)/int2float_scale);
+                       dtmin  =  min(dtmin,(FP)(int2float_var)/int2float_scale);
 
                        if(dtmin == 0) {
                           *f_stream << "\nERROR: Computational unstability  on iteration " << iter+last_iter<< endl;
@@ -1068,7 +1063,6 @@ void DEEPS2D_Run(ofstream* f_stream,
        
 for (unsigned int i=0;i<GlobalSubDomain->GetNumElements();i++) {
 
-      int r_Overlap, l_Overlap;
       int SubStartIndex = GlobalSubDomain->GetElementPtr(i)->GetX();
       int SubMaxX = GlobalSubDomain->GetElementPtr(i)->GetY();
 
@@ -1125,7 +1119,6 @@ for (unsigned int i=0;i<GlobalSubDomain->GetNumElements();i++) {
             *f_stream << "OK" << endl;
             for (unsigned int i=0;i<GlobalSubDomain->GetNumElements();i++) {
 
-                 int r_Overlap, l_Overlap;
                  int SubStartIndex = GlobalSubDomain->GetElementPtr(i)->GetX();
                  int SubMaxX = GlobalSubDomain->GetElementPtr(i)->GetY();
 
@@ -2611,6 +2604,63 @@ for (int i=0;i<(int)pJ2D->GetX();i++ ) {
       }
    }
 }
+
+int SetNonReflectedBC(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* OutputMatrix2D,
+                      FP beta_nrbc,
+                      ofstream* f_stream) {
+    int nr_nodes = 0;
+// Clean walls nodes
+#ifdef _OPEN_MP
+#pragma omp parallel for \
+        reduction(+:nr_nodes)
+#endif //_OPEN_MP
+
+    for ( int ii=0;ii<OutputMatrix2D->GetX();ii++ ) {
+        for ( int jj=0;jj<OutputMatrix2D->GetY();jj++ ) {
+                if ( OutputMatrix2D->GetValue(ii,jj).isCond2D(NT_FARFIELD_2D) ) {
+                    nr_nodes++;
+                    if ( ii > 0 &&
+                         OutputMatrix2D->GetValue(ii-1,jj).isCond2D(CT_NODE_IS_SET_2D) &&
+                         !OutputMatrix2D->GetValue(ii-1,jj).isCond2D(CT_WALL_NO_SLIP_2D) &&
+                         !OutputMatrix2D->GetValue(ii-1,jj).isCond2D(CT_SOLID_2D) &&
+                         !OutputMatrix2D->GetValue(ii-1,jj).isCond2D(NT_FC_2D) ) {
+
+                        OutputMatrix2D->GetValue(ii-1,jj).SetCond2D(CT_NONREFLECTED_2D);
+                        nr_nodes++;
+                    }
+                    if ( ii < OutputMatrix2D->GetX() - 1 &&
+                         OutputMatrix2D->GetValue(ii+1,jj).isCond2D(CT_NODE_IS_SET_2D) &&
+                         !OutputMatrix2D->GetValue(ii+1,jj).isCond2D(CT_WALL_NO_SLIP_2D) &&
+                         !OutputMatrix2D->GetValue(ii+1,jj).isCond2D(CT_SOLID_2D) &&
+                         !OutputMatrix2D->GetValue(ii+1,jj).isCond2D(NT_FC_2D) ) {
+
+                        OutputMatrix2D->GetValue(ii+1,jj).SetCond2D(CT_NONREFLECTED_2D);
+                        nr_nodes++;
+                    }
+                    if ( jj > 0 &&
+                         OutputMatrix2D->GetValue(ii,jj-1).isCond2D(CT_NODE_IS_SET_2D) &&
+                         !OutputMatrix2D->GetValue(ii,jj-1).isCond2D(CT_WALL_NO_SLIP_2D) &&
+                         !OutputMatrix2D->GetValue(ii,jj-1).isCond2D(CT_SOLID_2D) &&
+                         !OutputMatrix2D->GetValue(ii,jj-1).isCond2D(NT_FC_2D) ) {
+
+                        OutputMatrix2D->GetValue(ii,jj-1).SetCond2D(CT_NONREFLECTED_2D);
+                        nr_nodes++;
+                    }
+                    if ( jj < OutputMatrix2D->GetY() - 1 &&
+                         OutputMatrix2D->GetValue(ii,jj+1).isCond2D(CT_NODE_IS_SET_2D) &&
+                         !OutputMatrix2D->GetValue(ii,jj+1).isCond2D(CT_WALL_NO_SLIP_2D) &&
+                         !OutputMatrix2D->GetValue(ii,jj+1).isCond2D(CT_SOLID_2D) &&
+                         !OutputMatrix2D->GetValue(ii,jj+1).isCond2D(NT_FC_2D) ) {
+
+                        OutputMatrix2D->GetValue(ii,jj+1).SetCond2D(CT_NONREFLECTED_2D);
+                        nr_nodes++;
+                    }
+                }
+            }
+        }
+    return nr_nodes;
+}
+
 
 #ifdef _IMPI_
 void LongSend(int rank, void* src,  size_t len, int data_tag) {

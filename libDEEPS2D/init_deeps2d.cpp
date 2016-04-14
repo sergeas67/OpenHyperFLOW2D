@@ -3,14 +3,14 @@
 *                                                                              *
 *   Transient, Density based Effective Explicit Parallel Hybrid Solver         *
 *   TDEEPHS (CUDA+MPI)                                                         *
-*   Version  1.0.2                                                             *
-*   Copyright (C)  1995-2015 by Serge A. Suchkov                               *
+*   Version  1.0.3                                                             *
+*   Copyright (C)  1995-2016 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
-*   http://openhyperflow2d.googlecode.com                                      *
+*   http://github.com/sergeas67/openhyperflow2d                                *
 *                                                                              *
 *   init_deeps2d.cpp: OpenHyperFLOW2D solver init code....                     *
 *                                                                              *
-*  last update: 01/02/2015                                                     *
+*  last update: 14/04/2016                                                     *
 ********************************************************************************/
 #include "deeps2d_core.hpp"
 
@@ -215,6 +215,11 @@ void InitSharedData(InputData* _data,
             if ( _data->GetDataError()==-1 ) {
                 Abort_OpenHyperFLOW2D();
             }
+            
+            nrbc_beta0 = _data->GetFloatVal((char*)"beta_NonReflectedBC");      // Base blending factor for non-reflected BC.
+            if ( _data->GetDataError()==-1 ) {
+                Abort_OpenHyperFLOW2D();
+            }
 
             beta_Scenario  = _data->GetTable((char*)"beta_Scenario");           //  Base blending factor scenario
             if ( _data->GetDataError()==-1 ) {
@@ -365,6 +370,7 @@ void* InitDEEPS2D(void* lpvParam)
         char            ErrorMessage[255];
         u_long          FileSizeGas=0;
         static int      PreloadFlag = 0,p_g=0;
+        FP              chord = 0;
 
         SubDomainArray     = new UArray<UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* >();
         CoreSubDomainArray = new UArray<UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >* >();
@@ -618,37 +624,63 @@ void* InitDEEPS2D(void* lpvParam)
                 if ( Data->GetDataError()==-1 ) {
                     Abort_OpenHyperFLOW2D();
                 }
-
-                TmpFlow2D = new Flow2D(lam,mu,Cp,Tg,Pg,Rg,Ug,Vg);
+                
                 snprintf(FlowStr,256,"Flow2D-%i.Mode",i+1); 
                 int FlowMode = Data->GetIntVal(FlowStr);
                 if ( Data->GetDataError()==-1 ) {
                     Abort_OpenHyperFLOW2D();
                 }
-                // 0 - static p, T
-                // 1 - total p*, T*
-                // 2 - reserved
-                // 3 - Mach
+                // 0 - U + V + static p, T
+                // 1 - U + V + total p*, T*
+                // 2 - Mach + Angle + static p*, T*
+                // 3 - Mach + Angle + total p, T
+
+                if(FlowMode == 2) {
+                  Ug = Vg = 0;
+                }
+
+                TmpFlow2D = new Flow2D(mu,lam,Cp,Tg,Pg,Rg,Ug,Vg);
+                
+                //*f_stream << "mu=" << TmpFlow2D->mu << endl;
+                //*f_stream << "lam=" << TmpFlow2D->lam << endl;
+
                 if(FlowMode == 0) {
                     TmpFlow2D->CorrectFlow(Tg,Pg,sqrt(Ug*Ug+Vg*Vg+1.e-30),FV_VELOCITY);
-                
-                } if(FlowMode == 3) {
+
+                } if(FlowMode == 2 || FlowMode == 3) {
                     snprintf(FlowStr,256,"Flow2D-%i.Mach",i+1);
                     FP Mach = Data->GetFloatVal(FlowStr);
                     if ( Data->GetDataError()==-1 ) {
                         Abort_OpenHyperFLOW2D();
                     }
-                    
+
+                    snprintf(FlowStr,256,"Flow2D-%i.Angle",i+1); // Angle (deg.)
+                    FP Angle = Data->GetFloatVal(FlowStr);
+                    if ( Data->GetDataError()==-1 ) {
+                        Abort_OpenHyperFLOW2D();
+                    }
+
+                    if(FlowMode == 2 ) {
+                       TmpFlow2D->CorrectFlow(Tg,Pg,Mach);
+                    }
+
                     TmpFlow2D->MACH(Mach);
+
+                    Wg = TmpFlow2D->Wg();
+                    Ug = cos(Angle*M_PI/180)*Wg; 
+                    Vg = sin(Angle*M_PI/180)*Wg;
+                    TmpFlow2D->Wg(Ug,Vg);
                 }
 
                 Flow2DList->AddElement(&TmpFlow2D);
                 *f_stream << "Add object \"Flow2D-" << i+1 << " Mach=" << TmpFlow2D->MACH()
-                                                           << " W=" << TmpFlow2D->Wg() 
-                                                           << " T=" << TmpFlow2D->Tg() 
-                                                           << " p=" << TmpFlow2D->Pg() 
-                                                           << " p*=" << TmpFlow2D->P0()
-                                                           << " T*=" << TmpFlow2D->T0() << "\"...OK\n" << flush;
+                                                           << " U="    << TmpFlow2D->U()   << " m/sec"
+                                                           << " V="    << TmpFlow2D->V()   << " m/sec"
+                                                           << " Wg="   << TmpFlow2D->Wg()  << " m/sec"
+                                                           << " T="    << TmpFlow2D->Tg()  << " K"
+                                                           << " p="    << TmpFlow2D->Pg()  << " Pa"
+                                                           << " p*="   << TmpFlow2D->P0()  << " Pa"
+                                                           << " T*="   << TmpFlow2D->T0()  << " K\"...OK\n" << flush;
                 f_stream->flush(); 
             }
 
@@ -862,6 +894,8 @@ void* InitDEEPS2D(void* lpvParam)
                                 TmpCT = (CondType2D)(TmpCT | CT_SOLID_2D);
                             if ( strstr(BoundStr,"CT_BL_REFINEMENT_2D") )
                                 TmpCT = (CondType2D)(TmpCT | CT_BL_REFINEMENT_2D);
+                            if ( strstr(BoundStr,"CT_NONREFLECTED_2D") )
+                                TmpCT = (CondType2D)(TmpCT | CT_NONREFLECTED_2D);
 
                             if ( strstr(BoundStr,"TCT_k_eps_Model_2D") )
                                 TmpTurbulenceCT = (TurbulenceCondType2D)(TmpTurbulenceCT | TCT_k_eps_Model_2D);
@@ -929,6 +963,8 @@ void* InitDEEPS2D(void* lpvParam)
                                 TmpCT = (CondType2D)(TmpCT | NT_S_2D);
                             if ( strstr(BoundStr,"NT_FALSE_2D") )
                                 TmpCT = (CondType2D)(TmpCT | CT_NODE_IS_SET_2D);
+                            if ( strstr(BoundStr,"NT_FARFIELD_2D") )
+                                TmpCT = (CondType2D)(TmpCT | NT_FARFIELD_2D);
 
                             if ( TmpCT==CT_NO_COND_2D ) {
                                 *f_stream << "\n";
@@ -964,7 +1000,7 @@ void* InitDEEPS2D(void* lpvParam)
                                 pTestFlow = FlowList->GetElement(FlowIndex-1);
                                 sprintf(FlowStr,"Flow%i.CompIndex",FlowIndex);
                                 isFlow2D=0;
-                            } else if (FlowIndex <= Flow2DList->GetNumElements()){
+                            } else if (FlowIndex <= (int)Flow2DList->GetNumElements()){
                                 pTestFlow2D = Flow2DList->GetElement(FlowIndex-1);
                                 sprintf(FlowStr,"Flow2D-%i.CompIndex",FlowIndex);
                                 isFlow2D=1;
@@ -1002,11 +1038,15 @@ void* InitDEEPS2D(void* lpvParam)
                                     SingleBound = new Bound2D(NameContour,J,s_x,s_y,e_x,e_y,TmpCT, pTestFlow2D,Y,TmpTurbulenceCT);
 
                                 *f_stream << "-["<< e_x << ";"<< e_y <<"]" << flush;
+                                
                                 if(is_reset)
                                    *f_stream << "...Reset parameters\n" << flush;
                                 else
                                    *f_stream << "\n" << flush;
-                                SingleBound->SetBound(BoundMaterialID);
+                                
+                                if(is_reset || !PreloadFlag )
+                                   SingleBound->SetBound(BoundMaterialID);
+                                
                                 delete SingleBound;
                                 f_stream->flush();
                             }
@@ -1111,6 +1151,9 @@ void* InitDEEPS2D(void* lpvParam)
                                 TmpCT = (CondType2D)(TmpCT | CT_SOLID_2D);
                             if ( strstr(BoundStr,"CT_BL_REFINEMENT_2D") )
                                 TmpCT = (CondType2D)(TmpCT | CT_BL_REFINEMENT_2D);
+                            if ( strstr(BoundStr,"CT_NONREFLECTED_2D") )
+                                TmpCT = (CondType2D)(TmpCT | CT_NONREFLECTED_2D);
+
 
                             if ( strstr(BoundStr,"TCT_k_eps_Model_2D") )
                                 TmpTurbulenceCT = (TurbulenceCondType2D)(TmpTurbulenceCT | TCT_k_eps_Model_2D);
@@ -1178,6 +1221,9 @@ void* InitDEEPS2D(void* lpvParam)
                                 TmpCT = (CondType2D)(TmpCT | NT_S_2D);
                             if ( strstr(BoundStr,"NT_FALSE_2D") )
                                 TmpCT = (CondType2D)(TmpCT | CT_NODE_IS_SET_2D);
+                            if ( strstr(BoundStr,"NT_FARFIELD_2D") )
+                                TmpCT = (CondType2D)(TmpCT | NT_FARFIELD_2D);
+
 
                             if ( TmpCT==CT_NO_COND_2D  &&  TmpTurbulenceCT == 0) {
                                 *f_stream << "\n";
@@ -1215,7 +1261,7 @@ void* InitDEEPS2D(void* lpvParam)
                                 pTestFlow = FlowList->GetElement(FlowIndex-1);
                                 sprintf(FlowStr,"Flow%i.CompIndex",FlowIndex);
                                 isFlow2D=0;
-                            } else if (FlowIndex <= Flow2DList->GetNumElements()){
+                            } else if (FlowIndex <= (int)Flow2DList->GetNumElements()){
                                 pTestFlow2D = Flow2DList->GetElement(FlowIndex-1);
                                 sprintf(FlowStr,"Flow2D-%i.CompIndex",FlowIndex);
                                 isFlow2D=1;
@@ -1257,8 +1303,8 @@ void* InitDEEPS2D(void* lpvParam)
                             }
                         }
 
-                        if(!is_reset)
-                            pTestFlow = pTestFlow2D=NULL;
+                        
+                        //pTestFlow = pTestFlow2D = NULL;
 
                         sprintf(NameBound,"%s.Bound%i",NameContour,i_last);
 
@@ -1266,7 +1312,9 @@ void* InitDEEPS2D(void* lpvParam)
                             BC->CloseContour2D(NameBound,TmpCT,pTestFlow,NULL,Y,TmpTurbulenceCT);
                         else
                             BC->CloseContour2D(NameBound,TmpCT,NULL,pTestFlow2D,Y,TmpTurbulenceCT);
+                        
                         *f_stream << "-["<< BC->GetCurrentX() << ";"<< BC->GetCurrentY() <<"]" << flush;
+                        
                         if(is_reset)
                            *f_stream << "...Reset parameters" << flush;
                         *f_stream << "\nEnd bounds..." << flush;
@@ -1280,7 +1328,10 @@ void* InitDEEPS2D(void* lpvParam)
                         }
                         *f_stream << "OK\nSet bounds for \""<< NameContour << "\"..." << flush;
                         f_stream->flush();
-                        BC->SetBounds(BoundMaterialID);
+                        
+                        if(is_reset || !PreloadFlag)
+                           BC->SetBounds(BoundMaterialID);
+                        
                         *f_stream << "OK\n" << flush;
                         f_stream->flush();
                         delete BC;
@@ -1471,9 +1522,7 @@ void* InitDEEPS2D(void* lpvParam)
                 GlobalTime=Data->GetFloatVal((char*)"InitTime");
                 if(Data->GetDataError()==-1) Abort_OpenHyperFLOW2D();
 
-                if(p_g==0)
-                if(numRects)
-                  {
+                 if(!PreloadFlag && numRects) {
                    for(j=0;j<numRects;j++) {
 
                        TurbulenceCondType2D TM;
@@ -1505,6 +1554,8 @@ void* InitDEEPS2D(void* lpvParam)
                        int TurbMod=Data->GetIntVal(NameContour);
                        if ( Data->GetDataError()==-1 ) Abort_OpenHyperFLOW2D();
 
+                       chord = max(chord,X_0);
+
                        TM = TCT_No_Turbulence_2D;
                        if ( TurbMod == 0 )
                            TM = (TurbulenceCondType2D)(TM | TCT_No_Turbulence_2D);
@@ -1518,7 +1569,7 @@ void* InitDEEPS2D(void* lpvParam)
                            TM = (TurbulenceCondType2D)(TM | TCT_k_eps_Model_2D);
                        else if ( TurbMod == 5 )
                            TM = (TurbulenceCondType2D)(TM | TCT_Smagorinsky_Model_2D);
-                       if(FlowIndex < 1 || FlowIndex > Flow2DList->GetNumElements())
+                       if(FlowIndex < 1 || FlowIndex > (int)Flow2DList->GetNumElements())
                          {
                            *f_stream << "\nBad Flow index [" << FlowIndex << "]\n"<< flush;
                            f_stream->flush();
@@ -1549,8 +1600,7 @@ void* InitDEEPS2D(void* lpvParam)
             unsigned int numCircles=Data->GetIntVal((char*)"NumCircles");
             TurbulenceCondType2D TM;
             BoundCircle2D* SBC;
-            if ( p_g==0 )
-                if ( numCircles ) {
+               if ( !PreloadFlag && numCircles ) {
                     for ( j=0;j<numCircles;j++ ) {
                         sprintf(NameContour,"Circle%i",j+1);
                         *f_stream << "Add object \""<< NameContour << "\"..." << flush;
@@ -1579,6 +1629,8 @@ void* InitDEEPS2D(void* lpvParam)
                         int TurbMod=Data->GetIntVal(NameContour);
                         if ( Data->GetDataError()==-1 ) Abort_OpenHyperFLOW2D();
 
+                        chord = max(chord,sqrt((X_0-Xstart)*(X_0-Xstart) + (Y_0-Ystart*(Y_0-Ystart) )+1.e-60));
+
                         TM = TCT_No_Turbulence_2D;
                         if ( TurbMod == 0 )
                             TM = (TurbulenceCondType2D)(TM | TCT_No_Turbulence_2D);
@@ -1597,7 +1649,7 @@ void* InitDEEPS2D(void* lpvParam)
                         FlowIndex=Data->GetIntVal(NameContour);
                         if ( Data->GetDataError()==-1 ) Abort_OpenHyperFLOW2D();
 
-                        if ( FlowIndex < 1 || FlowIndex > Flow2DList->GetNumElements() ) {
+                        if ( FlowIndex < 1 || FlowIndex > (int)Flow2DList->GetNumElements() ) {
                             *f_stream << "\n";
                             *f_stream << "Bad Flow index [" << FlowIndex << "]\n"<< flush;
                             f_stream->flush();
@@ -1642,9 +1694,11 @@ void* InitDEEPS2D(void* lpvParam)
             FP            mm,pp,thick,scale,attack_angle;
             int           Airfoil_Type;
             InputData*    AirfoilInputData=NULL;
+            
+            mm = pp = thick = 0;
+            
             SolidBoundAirfoil2D* SBA;
-            if ( p_g==0 )
-                if ( numAirfoils ) {
+                if (!PreloadFlag && numAirfoils ) {
                     for ( j=0;j<numAirfoils;j++ ) {
                         sprintf(NameContour,"Airfoil%i",j+1);    
                         *f_stream << "Add object \""<< NameContour << "\"..." << flush;
@@ -1685,6 +1739,8 @@ void* InitDEEPS2D(void* lpvParam)
                         sprintf(NameContour,"Airfoil%i.scale",j+1);
                         scale=Data->GetFloatVal(NameContour);
                         if ( Data->GetDataError()==-1 ) Abort_OpenHyperFLOW2D();
+                        
+                        chord = max(chord,scale);
 
                         sprintf(NameContour,"Airfoil%i.attack_angle",j+1);    
                         attack_angle=Data->GetFloatVal(NameContour);
@@ -1712,7 +1768,7 @@ void* InitDEEPS2D(void* lpvParam)
                         else if ( TurbMod == 5 )
                             TM = (TurbulenceCondType2D)(TM | TCT_Smagorinsky_Model_2D);
 
-                        if ( FlowIndex < 1 || FlowIndex > Flow2DList->GetNumElements() ) {
+                        if ( FlowIndex < 1 || FlowIndex > (int)Flow2DList->GetNumElements() ) {
                             *f_stream << "\n";
                             *f_stream << "Bad Flow index [" << FlowIndex << "]\n"<< flush;
                             f_stream->flush();
@@ -1734,6 +1790,9 @@ void* InitDEEPS2D(void* lpvParam)
                             f_stream->flush();
                             Abort_OpenHyperFLOW2D();
                         }
+
+                        *f_stream  << "Airfoil Re = "  << Re_Airfoil(chord,Flow2DList->GetElement(Cx_Flow_index-1)) << endl;
+
                         sprintf(NameContour,"Airfoil%i",j+1);
                         if (Airfoil_Type == 0) { // Embedded NACA XXXX Airfoil
                            SBA = new SolidBoundAirfoil2D(NameContour,J,Xstart,Ystart,mm,pp,thick,dx,dy,(CondType2D)NT_WNS_2D,pTestFlow2D,Y,TM,scale,attack_angle,f_stream);
@@ -1793,7 +1852,7 @@ void* InitDEEPS2D(void* lpvParam)
                             snprintf(AreaName,256,"Area%i.Flow2D",i+1);
                             FlowIndex = Data->GetIntVal(AreaName);
 
-                            if ( FlowIndex < 1 || FlowIndex > Flow2DList->GetNumElements() ) {
+                            if ( FlowIndex < 1 || FlowIndex > (int)Flow2DList->GetNumElements() ) {
                                 *f_stream << "\n";
                                 *f_stream << "Bad Flow index [" << FlowIndex << "] \n"<< flush;
                                 f_stream->flush();
@@ -1804,7 +1863,7 @@ void* InitDEEPS2D(void* lpvParam)
                                 snprintf(AreaName,256,"Area%i.Flow",i+1);
                                 FlowIndex = Data->GetIntVal(AreaName);
                                 
-                                if ( FlowIndex < 1 || FlowIndex > Flow2DList->GetNumElements() ) {
+                                if ( FlowIndex < 1 || FlowIndex > (int)Flow2DList->GetNumElements() ) {
                                     *f_stream << "\n";
                                     *f_stream << "Bad Flow index [" << FlowIndex << "]\n"<< flush;
                                     f_stream->flush();
@@ -2092,6 +2151,11 @@ void* InitDEEPS2D(void* lpvParam)
                         SrcList->SetSources2D();
                         *f_stream << "OK" << endl;
                    }
+             }
+             
+             if(!PreloadFlag) {
+                *f_stream << "Seek nodes with non-reflected BC..." << endl;
+                *f_stream << "Found " << SetNonReflectedBC(J,nrbc_beta0,f_stream) << " nodes with non-reflected BC...OK" << endl;
              }
              
              if(!PreloadFlag) {
@@ -2415,82 +2479,88 @@ void PrintCond(ofstream* OutputData, FlowNode2D<FP,NUM_COMPONENTS>* fn) {
     //Const conditions
 
     if ( fn->isCond2D(CT_Rho_CONST_2D) )
-        *OutputData << "-CT_Rho_CONST_2D" << flush;
+        *OutputData << " CT_Rho_CONST_2D" << endl << flush;
     if ( fn->isCond2D(CT_U_CONST_2D) )
-        *OutputData << "-CT_U_CONST_2D" << flush;
+        *OutputData << " CT_U_CONST_2D"   << endl << flush;
     if ( fn->isCond2D(CT_V_CONST_2D) )
-        *OutputData << "-CT_V_CONST_2D" << flush;
+        *OutputData << " CT_V_CONST_2D"   << endl << flush;
     if ( fn->isCond2D(CT_T_CONST_2D) )
-        *OutputData << "-CT_T_CONST_2D" << flush;
+        *OutputData << " CT_T_CONST_2D"   << flush;
     if ( fn->isCond2D(CT_Y_CONST_2D) )
-        *OutputData << "-CT_Y_CONST_2D" << flush;
+        *OutputData << " CT_Y_CONST_2D"   << flush;
 
     // dF/dx = 0
     if ( fn->isCond2D(CT_dRhodx_NULL_2D) )
-        *OutputData << "-CT_dRhodx_NULL_2D" << flush;
+        *OutputData << " CT_dRhodx_NULL_2D"<< endl  << flush;
     if ( fn->isCond2D(CT_dUdx_NULL_2D) )
-        *OutputData << "-CT_dUdx_NULL_2D" << flush;
+        *OutputData << " CT_dUdx_NULL_2D" << endl << flush;
     if ( fn->isCond2D(CT_dVdx_NULL_2D) )
-        *OutputData << "-CT_dVdx_NULL_2D" << flush;
+        *OutputData << " CT_dVdx_NULL_2D" << endl << flush;
     if ( fn->isCond2D(CT_dTdx_NULL_2D) )
-        *OutputData << "-CT_dTdx_NULL_2D" << flush;
+        *OutputData << " CT_dTdx_NULL_2D" << endl << flush;
     if ( fn->isCond2D(CT_dYdx_NULL_2D) )
-        *OutputData << "-CT_dYdx_NULL_2D" << flush;
+        *OutputData << " CT_dYdx_NULL_2D" << endl << flush;
 
     // dF/dy = 0
 
     if ( fn->isCond2D(CT_dRhody_NULL_2D) )
-        *OutputData << "-CT_dRhody_NULL_2D"<< flush;
+        *OutputData << " CT_dRhody_NULL_2D"<< endl << flush;
     if ( fn->isCond2D(CT_dUdy_NULL_2D) )
-        *OutputData << "-CT_dUdy_NULL_2D" << flush;
+        *OutputData << " CT_dUdy_NULL_2D" << endl << flush;
     if ( fn->isCond2D(CT_dVdy_NULL_2D) )
-        *OutputData << "-CT_dVdy_NULL_2D" << flush;
+        *OutputData << " CT_dVdy_NULL_2D" << endl << flush;
     if ( fn->isCond2D(CT_dTdy_NULL_2D) )
-        *OutputData << "-CT_dTdy_NULL_2D" << flush;
+        *OutputData << " CT_dTdy_NULL_2D" << endl << flush;
     if ( fn->isCond2D(CT_dYdy_NULL_2D) )
-        *OutputData << "-CT_dYdy_NULL_2D" << flush;
+        *OutputData << " CT_dYdy_NULL_2D" << endl << flush;
 
     // d2F/dx2 =
     if ( fn->isCond2D(CT_d2Rhodx2_NULL_2D) )
-        *OutputData << "-CT_d2Rhodx2_NULL_2D" << flush;
+        *OutputData << " CT_d2Rhodx2_NULL_2D" << endl << flush;
     if ( fn->isCond2D(CT_d2Udx2_NULL_2D) )
-        *OutputData << "-CT_d2Udx2_NULL_2D" << flush;
+        *OutputData << " CT_d2Udx2_NULL_2D"   << endl << flush;
     if ( fn->isCond2D(CT_d2Vdx2_NULL_2D) )
-        *OutputData << "-CT_d2Vdx2_NULL_2D" << flush;
+        *OutputData << " CT_d2Vdx2_NULL_2D"   << endl << flush;
     if ( fn->isCond2D(CT_d2Tdx2_NULL_2D) )
-        *OutputData << "-CT_d2Tdx2_NULL_2D" << flush;
+        *OutputData << " CT_d2Tdx2_NULL_2D"   << endl << flush;
     if ( fn->isCond2D(CT_d2Ydx2_NULL_2D) )
-        *OutputData << "-CT_d2Ydx2_NULL_2D" << flush;
+        *OutputData << " CT_d2Ydx2_NULL_2D"   << endl << flush;
 
     // d2F/dy2 = 0
 
     if ( fn->isCond2D(CT_d2Rhody2_NULL_2D) )
-        *OutputData << "-CT_d2Rhody2_NULL_2D"<< flush;
+        *OutputData << " CT_d2Rhody2_NULL_2D" << endl << flush;
     if ( fn->isCond2D(CT_d2Udy2_NULL_2D) )
-        *OutputData << "-CT_d2Udy2_NULL_2D" << flush;
+        *OutputData << " CT_d2Udy2_NULL_2D"   << endl << flush;
     if ( fn->isCond2D(CT_d2Vdy2_NULL_2D) )
-        *OutputData << "-CT_d2Vdy2_NULL_2D" << flush;
+        *OutputData << " CT_d2Vdy2_NULL_2D"   << endl << flush;
     if ( fn->isCond2D(CT_d2Tdy2_NULL_2D) )
-        *OutputData << "-CT_d2Tdy2_NULL_2D" << flush;
+        *OutputData << " CT_d2Tdy2_NULL_2D"   << endl << flush;
     if ( fn->isCond2D(CT_d2Ydy2_NULL_2D) )
-        *OutputData << "-CT_d2Ydy2_NULL_2D" << flush;
+        *OutputData << " CT_d2Ydy2_NULL_2D"   << endl << flush;
 
     // Wall conditions:
     // - Slip
     if ( fn->isCond2D(CT_WALL_LAW_2D) )
-        *OutputData << "-CT_WALL_LAW_2D" << flush;
+        *OutputData << " CT_WALL_LAW_2D"      << endl << flush;
     // - Glide
     if ( fn->isCond2D(CT_WALL_NO_SLIP_2D) )
-        *OutputData << "-CT_WALL_NO_SLIP_2D"  << flush;
+        *OutputData << " CT_WALL_NO_SLIP_2D"  << endl << flush;
     // is solid body ?
     if ( fn->isCond2D(CT_SOLID_2D) )
-        *OutputData << "-CT_SOLID_2D" << flush;
+        *OutputData << " CT_SOLID_2D"         << endl << flush;
     // is node activate ?
     if ( fn->isCond2D(CT_NODE_IS_SET_2D) )
-        *OutputData << "-CT_NODE_IS_SET_2D" << flush;
+        *OutputData << " CT_NODE_IS_SET_2D"   << endl << flush;
     // boundary layer refinement
     if ( fn->isCond2D(CT_BL_REFINEMENT_2D) )
-        *OutputData << "-CT_BL_REFINEMENT_2D" << flush;
+        *OutputData << " CT_BL_REFINEMENT_2D" << endl << flush;
+    
+    // Special BC
+    // non-reflected BC
+    if ( fn->isCond2D(CT_NONREFLECTED_2D) )
+        *OutputData << " CT_NONREFLECTED_2D" << endl << flush;
+
 }
 
 

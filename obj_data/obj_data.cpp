@@ -1,8 +1,8 @@
 /*************************************************
 *   Object data loader (v.1.5.2)                 *
-*   Copyright (C)  1995-2015 by Serge A. Suchkov *
+*   Copyright (C)  1995-2016 by Serge A. Suchkov *
 *   Copyright policy: LGPL V3                    *
-*   http://openhyperflow2d.googlecode.com        *
+*   http://github.com/sergeas67/openhyperflow2d  *
 **************************************************/
 #include "obj_data/obj_data.hpp"
 

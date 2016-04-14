@@ -1,15 +1,20 @@
 /*******************************************************************************
 *   OpenHyperFLOW2D                                                            *
 *                                                                              *
-*   Version  1.0.2                                                             *
-*   Copyright (C)  1995-2015 by Serge A. Suchkov                               *
+*   Version  1.0.3                                                             *
+*   Copyright (C)  1995-2016 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
-*   http://openhyperflow2d.googlecode.com                                      *
+*   http://github.com/sergeas67/openhyperflow2d                                *
 *                                                                              *
-*   last update: 01/02/2015                                                    *
+*   last update: 14/04/2016                                                    *
 *******************************************************************************/
 
 #include "libOutCFD/out_cfd_param.hpp"
+
+FP Re_Airfoil(FP chord, Flow2D* Flow) {
+ return Flow->Wg()*chord*Flow->ROG()/Flow->mu;
+}
+
 
 FP Calc_I(FlowNode2D<FP,NUM_COMPONENTS>* node)
 {
@@ -286,9 +291,9 @@ FP CalcXForce2D(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* pJ,
                 // Pressure forces
 
                 if (i > 0 && pJ->GetValue(i-1,j).isCond2D(CT_SOLID_2D)) {                         // [solid]<-[gas] -force
-                    Fp += Sp*pJ->GetValue(i,j).p;
-                } else if ( i < (int)pJ->GetX()-1  && pJ->GetValue(i+1,j).isCond2D(CT_SOLID_2D)) { // [gas]->[solid] +force
                     Fp -= Sp*pJ->GetValue(i,j).p;
+                } else if ( i < (int)pJ->GetX()-1  && pJ->GetValue(i+1,j).isCond2D(CT_SOLID_2D)) { // [gas]->[solid] +force
+                    Fp += Sp*pJ->GetValue(i,j).p;
                 }
 
                 // Drag forces

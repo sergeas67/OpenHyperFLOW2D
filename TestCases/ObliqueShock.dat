@@ -19,6 +19,7 @@
 <data/is_p_asterisk_out=0>
 ; Recalc y+  on each iterations
 <data/isRecalcYplus=0>
+<data/isIgnoreUnsetNodes=0>
 
 ;--------------------------------------------------;
 ; is single GPU mode on ?                          ;
@@ -85,6 +86,9 @@
 
 ; Base blending factor
 <data/beta=0.9895>
+
+; Base blending factor for non-reflected BC
+<data/beta_NonReflectedBC=0.25>
 
 ; Base blending factor scenario
 <table=beta_Scenario/3>
@@ -575,6 +579,21 @@
 
 ; Numper of "Flow2D" objects
 <data/NumFlow2D=2>
+
+;--------------------------------------
+; Init Mode
+;--------------------------------------                 
+; 0 - U + V + static p, T
+; 1 - U + V + total p*, T*
+; 2 - Mach + Angle + static p, T
+; 3 - Mach + Angle + total p*, T*
+;--------------------------------------
+; Flow Component index:
+;--------------------------------------
+; 0 - fuel
+; 1 - oxygen
+; 2 - combustion products
+; 3 - air
 
 ;---- Flow2D 1 -------
 <data/Flow2D-1.CompIndex=3>

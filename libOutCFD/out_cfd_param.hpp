@@ -1,12 +1,12 @@
 /*******************************************************************************
 *   OpenHyperFLOW2D                                                            *
 *                                                                              *
-*   Version  1.0.2                                                             *
-*   Copyright (C)  1995-2015 by Serge A. Suchkov                               *
+*   Version  1.0.3                                                             *
+*   Copyright (C)  1995-2016 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
-*   http://openhyperflow2d.googlecode.com                                      *
+*   http://github.com/sergeas67/openhyperflow2d                                *
 *                                                                              *
-*   last update: 01/02/2015                                                    *
+*   last update: 14/04/2016                                                    *
 *******************************************************************************/
 #ifndef _out_cfd_param_hpp_
 #define _out_cfd_param_hpp_
@@ -34,6 +34,7 @@ FP dy;  // cut width
 FP T_asterisk(FlowNode2D<FP,NUM_COMPONENTS>* node );
 FP p_asterisk(FlowNode2D<FP,NUM_COMPONENTS>* node );
 FP Schliren(FlowNode2D<FP,NUM_COMPONENTS>* node );
+FP Re_Airfoil(FP chord, Flow2D* Flow);
 
 FP CalcaveragePressure2D(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* pJ,
                              FP x0, // initial point of probed area
