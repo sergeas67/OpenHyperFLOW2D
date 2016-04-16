@@ -10,7 +10,7 @@
 *                                                                              *
 *   Common function declarations file.                                         *
 *                                                                              *
-*  last update: 04/07/2016                                                     *
+*  last update: 07/04/2016                                                     *
 ********************************************************************************/
 #ifdef _MPI
 #include <mpi.h>

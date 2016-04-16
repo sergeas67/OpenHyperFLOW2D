@@ -9,7 +9,7 @@
 *   http://github.com/sergeas67/openhyperflow2d                                *
 *   deeps2d_core.cpp: OpenHyperFLOW2D solver core code....                     *
 *                                                                              *
-*  last update: 04/07/2016                                                     *
+*  last update: 07/04/2016                                                     *
 ********************************************************************************/
 #include "deeps2d_core.hpp"
 
@@ -4786,9 +4786,8 @@ inline int CalcChemicalReactions(FlowNode2D<FP,NUM_COMPONENTS>* CalcNode,
 
 
 void SetMinDistanceToWall2D(ComputationalMatrix2D* pJ2D,
-                            UArray< XY<int> >* WallNodes2D
-                            ,FP x0
-                            ) {
+                            UArray< XY<int> >* WallNodes2D, 
+                            FP x0 ) {
 
 FP  min_l_min = min((FlowNode2D<FP,NUM_COMPONENTS>::dx),
                     (FlowNode2D<FP,NUM_COMPONENTS>::dy));

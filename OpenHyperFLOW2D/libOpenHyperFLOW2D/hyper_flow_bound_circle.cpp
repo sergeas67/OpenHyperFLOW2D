@@ -6,7 +6,7 @@
 *   Copyright policy: LGPL V3                                                  *
 *   http://github.com/sergeas67/openhyperflow2d                                *
 *                                                                              *
-*   last update: 04/07/2016                                                    *
+*   last update: 07/04/2016                                                    *
 *******************************************************************************/
 #include "libExcept/except.hpp"
 #include "libOpenHyperFLOW2D/hyper_flow_bound_circle.hpp"

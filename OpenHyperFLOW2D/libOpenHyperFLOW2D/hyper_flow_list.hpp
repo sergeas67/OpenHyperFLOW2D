@@ -6,7 +6,7 @@
 *   Copyright policy: LGPL V3                                                  *
 *   http://github.com/sergeas67/openhyperflow2d                                *
 *                                                                              *
-*   last update: 04/07/2016                                                    *
+*   last update: 07/04/2016                                                    *
 *******************************************************************************/
 #ifndef _flow_list_hpp_
 #define _flow_list_hpp_
