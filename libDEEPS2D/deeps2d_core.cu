@@ -28,6 +28,7 @@ SourceList2D*  SrcList = NULL;
 int            isGasSource=0;
 int            isRecalcYplus;
 int            isHighOrder;
+int            isIgnoreUnsetNodes;
 int            TurbStartIter;
 int            TurbExtModel;
 int            err_i, err_j;
@@ -59,7 +60,7 @@ int     MonitorCondition; // 0 - equal
 unsigned int     AddSrcStartIter = 0;
 FP  beta;
 FP  beta0;
-FP  CFL;
+FP  CFL0;
 Table*  CFL_Scenario;
 Table*  beta_Scenario;
 #ifdef _OPEN_MP
@@ -425,7 +426,7 @@ inline FP DEEPS2D_Stage2(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*     pLJ,
                          FP  beta0, int b_FF, ChemicalReactionsModelData2D* pCRMD,
                          int iter, int last_iter, int TurbStartIter,
                          FP SigW, FP SigF, FP dx_1, FP dy_1, FP delta_bl,
-                         FP CFL0,FP beta_init,
+                         FP CFL,FP beta_init,
 #ifdef _RMS_
 #ifdef _MPI
                          Var_pack* DD_max, int rank,
@@ -650,7 +651,7 @@ inline FP DEEPS2D_Stage2(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*     pLJ,
                    return 0.0;
                }  else {
                    FP AAA          = sqrt(CurrentNode->k*CurrentNode->R*CurrentNode->Tg); 
-                   dt_min_local        = min(CFL,CFL0)*min(dx/(AAA+fabs(CurrentNode->U)),dy/(AAA+fabs(CurrentNode->V)));
+                   dt_min_local    = CFL*min(dx/(AAA+fabs(CurrentNode->U)),dy/(AAA+fabs(CurrentNode->V)));
                }
         }
       }
@@ -752,7 +753,7 @@ void DEEPS2D_Run(ofstream* f_stream,
                     FlowNodeCore2D<FP,NUM_COMPONENTS>*  cudaC;
                     dtmin = dt;
                     current_div =  dprop.multiProcessorCount*warp_size;
-                    int2float_scale  = (FP)(INT_MAX)/(1024*256*dt);
+                    int2float_scale  = (FP)(INT_MAX)/(512*256*dt);
 
              do {
 
@@ -794,15 +795,22 @@ void DEEPS2D_Run(ofstream* f_stream,
                        dtmin = 10*dt;
 #pragma unroll
                        for(int ii=0;ii<n_s;ii++) {  // CUDA version
+                       
 
                        int max_X = cudaDimArray->GetElement(ii).GetX();
                        int max_Y = cudaDimArray->GetElement(ii).GetY();
-
-                       if(cudaSetDevice(ii) != cudaSuccess ) {
-                          *f_stream << "\nError set CUDA device no: "<< ii << endl;
-                          Exit_OpenHyperFLOW2D(n_s);
+                       
+                       int i_gpu;
+                       if(isSingleGPU) {
+                           i_gpu = ActiveSingleGPU;
+                       } else {
+                           i_gpu = ii;
                        }
 
+                       if(cudaSetDevice(i_gpu) != cudaSuccess ) {
+                          *f_stream << "\nError set CUDA device no: "<< i_gpu << endl;
+                          Exit_OpenHyperFLOW2D(n_s);
+                       }
 #ifdef _DEVICE_MMAP_
                        dt_min_host = dt_min_host_Array->GetElement(ii);
                        *dt_min_host = dtest_int;
@@ -850,17 +858,24 @@ void DEEPS2D_Run(ofstream* f_stream,
                                                                                                       FlowNode2D<FP,NUM_COMPONENTS>::NumEq-ConvertTurbMod(TurbMod),
                                                                                                       ProblemType);
                        iX0 += max_X;
-                      }
+                   }
+                   
                    CUDA_BARRIER((char*)"cuda_DEEPS2D_Stage1");
                    iX0 = 0;
  #pragma unroll
                    for(int ii=0;ii<n_s;ii++) {  // CUDA version
 
-                       if(cudaSetDevice(ii) != cudaSuccess ) {
-                          *f_stream << "\nError set CUDA device no: "<< ii << endl;
-                          Exit_OpenHyperFLOW2D(n_s);
+                       int i_gpu;
+                       if(isSingleGPU) {
+                           i_gpu = ActiveSingleGPU;
+                       } else {
+                           i_gpu = ii;
                        }
 
+                       if(cudaSetDevice(i_gpu) != cudaSuccess ) {
+                          *f_stream << "\nError set CUDA device no: "<< i_gpu << endl;
+                          Exit_OpenHyperFLOW2D(n_s);
+                       }
                        int max_X = cudaDimArray->GetElement(ii).GetX();
                        int max_Y = cudaDimArray->GetElement(ii).GetY();
 
@@ -897,7 +912,7 @@ void DEEPS2D_Run(ofstream* f_stream,
                                                                                                        iX0 + max_X - r_Overlap,
                                                                                                        iX0 + l_Overlap,
                                                                                                        beta_Scenario->GetVal(iter+last_iter),beta0,
-                                                                                                       bFF, CFL_Scenario->GetVal(iter+last_iter),
+                                                                                                       bFF, min(CFL0,CFL_Scenario->GetVal(iter+last_iter)),
                                                                                                        nrbc_beta0,
                                                                                                        cudaCRM2D->GetElement(ii),
                                                                                                        noTurbCond,
@@ -923,19 +938,26 @@ void DEEPS2D_Run(ofstream* f_stream,
                         
                         iX0 += max_X;
                    }
+                   
+                   CUDA_BARRIER((char*)"cuda_DEEPS2D_Stage2");
 
-                  CUDA_BARRIER((char*)"cuda_DEEPS2D_Stage2");
 
                    for(int ii=0;ii<n_s;ii++) {
                        
                        int max_X;
                        int max_Y;
 
-                       if(cudaSetDevice(ii) != cudaSuccess ) {
-                          *f_stream << "\nError set CUDA device no: "<< ii << endl;
+                       int i_gpu;
+                       if(isSingleGPU) {
+                           i_gpu = ActiveSingleGPU;
+                       } else {
+                           i_gpu = ii;
+                       }
+
+                       if(cudaSetDevice(i_gpu) != cudaSuccess ) {
+                          *f_stream << "\nError set CUDA device no: "<< i_gpu << endl;
                           Exit_OpenHyperFLOW2D(n_s);
                        }
-                       
 #ifdef _DEVICE_MMAP_
                        dt_min_host = dt_min_host_Array->GetElement(ii);
                        unsigned int  int2float_var = *dt_min_host;
@@ -1066,10 +1088,17 @@ for (unsigned int i=0;i<GlobalSubDomain->GetNumElements();i++) {
       int SubStartIndex = GlobalSubDomain->GetElementPtr(i)->GetX();
       int SubMaxX = GlobalSubDomain->GetElementPtr(i)->GetY();
 
-      if(cudaSetDevice(i) != cudaSuccess ) {
-          *f_stream << "\nError set CUDA device no: "<< i << endl;
-          Exit_OpenHyperFLOW2D(n_s);
-       }
+      int i_gpu;
+      if(isSingleGPU) {
+          i_gpu = ActiveSingleGPU;
+      } else {
+          i_gpu = i;
+      }
+
+      if(cudaSetDevice(i_gpu) != cudaSuccess ) {
+         *f_stream << "\nError set CUDA device no: "<< i_gpu << endl;
+         Exit_OpenHyperFLOW2D(n_s);
+      }
 
       if(i == GlobalSubDomain->GetNumElements()-1)
         r_Overlap = 0;
@@ -1091,8 +1120,11 @@ for (unsigned int i=0;i<GlobalSubDomain->GetNumElements();i++) {
            TurbExtModel == TEM_k_eps_Chien)) {
 
            FP  x0 = SubStartIndex*FlowNode2D<FP,NUM_COMPONENTS>::dx;
-
-           *f_stream << "Parallel recalc y+ on CUDA device No  " << i  << endl;
+           if(isSingleGPU) {
+              *f_stream << "Parallel recalc y+ on CUDA device No  " << ActiveSingleGPU  << endl;
+           } else {
+              *f_stream << "Parallel recalc y+ on CUDA device No  " << i  << endl;
+           }
 
            cuda_Recalc_y_plus<<<num_cuda_blocks,num_cuda_threads, 0, cuda_streams[i]>>>(cudaSubDomainArray->GetElement(i),
                                                                                         TmpMaxX*MaxY,
@@ -1122,8 +1154,15 @@ for (unsigned int i=0;i<GlobalSubDomain->GetNumElements();i++) {
                  int SubStartIndex = GlobalSubDomain->GetElementPtr(i)->GetX();
                  int SubMaxX = GlobalSubDomain->GetElementPtr(i)->GetY();
 
-                 if(cudaSetDevice(i) != cudaSuccess ) {
-                    *f_stream << "\nError set CUDA device no: "<< i << endl;
+                 int i_gpu;
+                 if(isSingleGPU) {
+                     i_gpu = ActiveSingleGPU;
+                 } else {
+                     i_gpu = i;
+                 }
+
+                 if(cudaSetDevice(i_gpu) != cudaSuccess ) {
+                    *f_stream << "\nError set CUDA device no: "<< i_gpu << endl;
                     Exit_OpenHyperFLOW2D(n_s);
                  }
 
@@ -1679,7 +1718,7 @@ void DEEPS2D_Run(ofstream* f_stream
                                    bFF,&chemical_reactions,
                                    iter,last_iter,TurbStartIter,
                                    SigW,SigF,dx_1,dy_1,delta_bl,
-                                   CFL_Scenario->GetVal(iter+last_iter),
+                                   min(CFL0,CFL_Scenario->GetVal(iter+last_iter)),
                                    beta_Scenario->GetVal(iter+last_iter),
 #ifdef _RMS_        
 #ifdef _MPI

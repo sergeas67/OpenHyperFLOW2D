@@ -643,7 +643,7 @@ cuda_DEEPS2D_Stage2(FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
                     unsigned long r_limit,
                     unsigned long l_limit,
                     FP beta_init, FP  beta0, 
-                    int b_FF, FP CFL0, FP nrbc_beta0,
+                    int b_FF, FP CFL, FP nrbc_beta0,
                     ChemicalReactionsModelData2D* pCRMD,
                     int noTurbCond,
                     FP SigW, FP SigF, FP dx_1, FP dy_1, FP delta_bl,
@@ -777,6 +777,11 @@ cuda_DEEPS2D_Stage2(FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
                   }
               }
               
+              
+              if(CurrentNode->isCond2D(CT_NONREFLECTED_2D)) {
+                 beta_min = nrbc_beta0;
+              }
+              
               CurrentNode->beta[i2d_RhoV] = CurrentNode->beta[i2d_RhoU] = max(CurrentNode->beta[i2d_RhoU],CurrentNode->beta[i2d_RhoV]);  // for symmetry keeping
 
               if(sm == SM_NS) {
@@ -862,7 +867,7 @@ cuda_DEEPS2D_Stage2(FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
                   *dt_min_device = 0;  // Computational instability
               }  else {
                   FP AAA          = sqrt(CurrentNode->k*CurrentNode->R*CurrentNode->Tg); 
-                  FP dt_min_local = CFL0*min(1.0/(dx_1*(AAA+fabs(CurrentNode->U))),1.0/(dy_1*(AAA+fabs(CurrentNode->V))));
+                  FP dt_min_local = CFL*min(1.0/(dx_1*(AAA+fabs(CurrentNode->U))),1.0/(dy_1*(AAA+fabs(CurrentNode->V))));
 #if FP == double
 //#warning use double
                   atomicMin(dt_min_device,double2uint(dt_min_local*int2float_scale));

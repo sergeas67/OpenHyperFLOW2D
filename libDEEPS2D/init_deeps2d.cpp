@@ -37,6 +37,18 @@ void InitSharedData(InputData* _data,
             if ( _data->GetDataError()==-1 ) {
                 Abort_OpenHyperFLOW2D();
             }
+           
+            if(isSingleGPU) {
+                ActiveSingleGPU = _data->GetIntVal((char*)"ActiveSingleGPU");
+                if ( _data->GetDataError()==-1 ) {
+                    Abort_OpenHyperFLOW2D();
+                }
+            }
+            
+            isIgnoreUnsetNodes = _data->GetIntVal((char*)"isIgnoreUnsetNodes");
+            if ( _data->GetDataError()==-1 ) {
+                Abort_OpenHyperFLOW2D();
+            }
 
             isVerboseOutput = _data->GetIntVal((char*)"isVerboseOutput");
             if ( _data->GetDataError()==-1 ) {
@@ -133,7 +145,7 @@ void InitSharedData(InputData* _data,
             }
             */
 
-            CFL  = _data->GetFloatVal((char*)"CFL");               // Courant number
+            CFL0  = _data->GetFloatVal((char*)"CFL");               // Courant number
             if ( _data->GetDataError()==-1 ) {
                 Abort_OpenHyperFLOW2D();
             }
@@ -778,7 +790,7 @@ void* InitDEEPS2D(void* lpvParam)
 
             dt=1.;
             for (int i = 0;i<(int)FlowList->GetNumElements();i++ ) {
-                 FP CFL_min      = min(CFL,CFL_Scenario->GetVal(iter+last_iter));
+                 FP CFL_min      = min(CFL0,CFL_Scenario->GetVal(iter+last_iter));
                  dt = min(dt,CFL_min*dx*dy/(dy*(FlowList->GetElement(i)->Asound()*2.)+
                                             dx*FlowList->GetElement(i)->Asound()));
             }
@@ -1380,7 +1392,7 @@ void* InitDEEPS2D(void* lpvParam)
             dt = 1;
 
             for (int i = 0;i<(int)Flow2DList->GetNumElements();i++ ) {
-                FP CFL_min  = min(CFL,CFL_Scenario->GetVal(iter+last_iter));
+                FP CFL_min  = min(CFL0,CFL_Scenario->GetVal(iter+last_iter));
                 dt = min(dt,CFL_min*min(dx/(Flow2DList->GetElement(i)->Asound()+Flow2DList->GetElement(i)->Wg()),
                                         dy/(Flow2DList->GetElement(i)->Asound()+Flow2DList->GetElement(i)->Wg())));
             }
@@ -2063,7 +2075,7 @@ void* InitDEEPS2D(void* lpvParam)
                                     J->GetValue(i,j).NGY   = J->GetValue(i,j).idYd - J->GetValue(i,j).idYu + J->GetValue(i,j).idYd*J->GetValue(i,j).idYu;
                                 }
 
-                                if ( !J->GetValue(i,j).isCond2D(CT_NODE_IS_SET_2D) ) {
+                                if (!isIgnoreUnsetNodes &&  !J->GetValue(i,j).isCond2D(CT_NODE_IS_SET_2D) ) {
                                     *f_stream << "\n";
                                     *f_stream << "Node ("<< i_err << "," << j_err <<") has not CT_NODE_IS_SET flag." << flush;
                                     *f_stream << "\n";
@@ -2669,7 +2681,7 @@ void SaveRMSHeader(ofstream* OutputData) {
         else
           snprintf(YR,2,"Y");
 
-        snprintf(TechPlotTitle1,1024,"VARIABLES = X, %s, U, V, T, p, Rho, Y_fuel, Y_ox, Y_cp, Y_i, %s, Mach, l_min, y+"
+        snprintf(TechPlotTitle1,1024,"VARIABLES = X, %s, U, V, T, p, Rho, Y_fuel, Y_ox, Y_cp, Y_i, %s, Mach, Cp, y+"
                                      "\n",YR, RT); 
         snprintf(TechPlotTitle2,256,"ZONE T=\"Time: %g sec.\" I= %i J= %i F=POINT\n",GlobalTime, MaxX, MaxY);
 
@@ -2722,7 +2734,7 @@ void SaveRMSHeader(ofstream* OutputData) {
                 }
                 if(!J->GetValue(i,j).isCond2D(CT_SOLID_2D)) {
                     if( Mach > 1.e-30) 
-                      *OutputData << Mach  << "  " << J->GetValue(i,j).l_min << " " << J->GetValue(i,j).y_plus;  
+                      *OutputData << Mach  << "  " << Calc_Cp(&J->GetValue(i,j),Flow2DList->GetElement(Cx_Flow_index-1)) << " " << J->GetValue(i,j).y_plus;  
                     else
                       *OutputData << "  0  0  0";
                 } else {

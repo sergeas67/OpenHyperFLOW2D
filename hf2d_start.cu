@@ -59,7 +59,8 @@ cudaError_t cudaState;
 
 UArray< FP >*                                 WallNodesUw_2D = NULL;
 int                                           NumWallNodes;
-int                                           isSingleGPU = 1;
+int                                           isSingleGPU = 0;
+int                                           ActiveSingleGPU = 0;
 
 int main( int argc, char **argv )
 {
@@ -122,7 +123,7 @@ int main( int argc, char **argv )
          cudaGetDeviceProperties(&dprop, i);
          printf("\t   %d: %s\n", i, dprop.name);
          max_num_threads  = dprop.maxThreadsPerBlock;
-         printf("\t   Max threads per block: %d:\n", max_num_threads);
+         printf("\t   Max threads per block: %d\n", max_num_threads);
          max_gpu_memsize = dprop.totalGlobalMem;
          printf("\t   Max GPU memory size: %lu\n", max_gpu_memsize);
          printf("\t   Number of  multiprocessors: %d\n",dprop.multiProcessorCount);
@@ -143,7 +144,8 @@ int main( int argc, char **argv )
         if(num_gpus > 1) {
            printf("Using multi GPU mode.\n\n");
         } else {
-           printf("Using single GPU mode.\n\n");
+           printf("Using single GPU mode.\nActive GPU No:%i\n",ActiveSingleGPU);
+
         }
 
        //Create arrays  
@@ -169,81 +171,96 @@ int main( int argc, char **argv )
         cudaEvent_t  *cuda_events = (cudaEvent_t *) malloc(num_gpus * sizeof(cudaEvent_t));
 
         for (int i = 0; i < num_gpus; i++) {
+             
+            int i_gpu;
+            if(isSingleGPU) {
+                i_gpu = ActiveSingleGPU;
+            } else {
+                i_gpu = i;
+            }
 
-           if(cudaSetDevice(i) != cudaSuccess ) {
-              *o_stream << "\nError set CUDA device no: "<< i << endl;
-              Exit_OpenHyperFLOW2D(num_gpus);
-           }
+             if(cudaSetDevice(i_gpu) != cudaSuccess ) {
+                *o_stream << "\nError set CUDA device no: "<< i_gpu << endl;
+                Exit_OpenHyperFLOW2D(num_gpus);
+             }
+           
+             cudaState = cudaStreamCreate(&(cuda_streams[i]));
+             if(cudaState != cudaSuccess ) {
+                *o_stream << "\nError create stream no: "<< i << endl;
+                printf("%s\n", cudaGetErrorString( cudaGetLastError() ) );
+                Exit_OpenHyperFLOW2D(num_gpus);
+             }
 
-           cudaState = cudaStreamCreate(&(cuda_streams[i]));
-           if(cudaState != cudaSuccess ) {
-              *o_stream << "\nError create stream no: "<< i << endl;
-              printf("%s\n", cudaGetErrorString( cudaGetLastError() ) );
-              Exit_OpenHyperFLOW2D(num_gpus);
-           }
+             cudaState = cudaEventCreate(&(cuda_events[i]));
+             if(cudaState != cudaSuccess ) {
+                *o_stream << "\nError create event no: "<< i << endl;
+                printf("%s\n", cudaGetErrorString( cudaGetLastError() ) );
+                Exit_OpenHyperFLOW2D(num_gpus);
+             }
 
-           cudaState = cudaEventCreate(&(cuda_events[i]));
-           if(cudaState != cudaSuccess ) {
-              *o_stream << "\nError create event no: "<< i << endl;
-              printf("%s\n", cudaGetErrorString( cudaGetLastError() ) );
-              Exit_OpenHyperFLOW2D(num_gpus);
-           }
+             // Load components properties
+             LoadTable2GPU(chemical_reactions.Cp_OX,   TmpCRM2D.Cp_OX,   i_gpu);
+             LoadTable2GPU(chemical_reactions.Cp_Fuel, TmpCRM2D.Cp_Fuel, i_gpu);
+             LoadTable2GPU(chemical_reactions.Cp_cp,   TmpCRM2D.Cp_cp,   i_gpu);
+             LoadTable2GPU(chemical_reactions.Cp_air,  TmpCRM2D.Cp_air,  i_gpu);
 
-           // Load components properties
-           LoadTable2GPU(chemical_reactions.Cp_OX,   TmpCRM2D.Cp_OX,   i);
-           LoadTable2GPU(chemical_reactions.Cp_Fuel, TmpCRM2D.Cp_Fuel, i);
-           LoadTable2GPU(chemical_reactions.Cp_cp,   TmpCRM2D.Cp_cp,   i);
-           LoadTable2GPU(chemical_reactions.Cp_air,  TmpCRM2D.Cp_air,  i);
+             LoadTable2GPU(chemical_reactions.mu_air,  TmpCRM2D.mu_air,  i_gpu);
+             LoadTable2GPU(chemical_reactions.mu_cp,   TmpCRM2D.mu_cp,   i_gpu);
+             LoadTable2GPU(chemical_reactions.mu_Fuel, TmpCRM2D.mu_Fuel, i_gpu);
+             LoadTable2GPU(chemical_reactions.mu_OX,   TmpCRM2D.mu_OX,   i_gpu);
 
-           LoadTable2GPU(chemical_reactions.mu_air,  TmpCRM2D.mu_air,  i);
-           LoadTable2GPU(chemical_reactions.mu_cp,   TmpCRM2D.mu_cp,   i);
-           LoadTable2GPU(chemical_reactions.mu_Fuel, TmpCRM2D.mu_Fuel, i);
-           LoadTable2GPU(chemical_reactions.mu_OX,   TmpCRM2D.mu_OX,   i);
+             if(ProblemType == SM_NS) {
+                 LoadTable2GPU(chemical_reactions.lam_air, TmpCRM2D.lam_air, i_gpu);
+                 LoadTable2GPU(chemical_reactions.lam_cp,  TmpCRM2D.lam_cp,  i_gpu);
+                 LoadTable2GPU(chemical_reactions.lam_Fuel,TmpCRM2D.lam_Fuel,i_gpu);
+                 LoadTable2GPU(chemical_reactions.lam_OX,  TmpCRM2D.lam_OX,  i_gpu);
+             }
 
-           if(ProblemType == SM_NS) {
-               LoadTable2GPU(chemical_reactions.lam_air, TmpCRM2D.lam_air, i);
-               LoadTable2GPU(chemical_reactions.lam_cp,  TmpCRM2D.lam_cp,  i);
-               LoadTable2GPU(chemical_reactions.lam_Fuel,TmpCRM2D.lam_Fuel,i);
-               LoadTable2GPU(chemical_reactions.lam_OX,  TmpCRM2D.lam_OX,  i);
-           }
+             TmpCRM2D.H_air  = chemical_reactions.H_air;
+             TmpCRM2D.H_cp   = chemical_reactions.H_cp;
+             TmpCRM2D.H_Fuel = chemical_reactions.H_Fuel;
+             TmpCRM2D.H_OX   = chemical_reactions.H_OX;
 
-           TmpCRM2D.H_air  = chemical_reactions.H_air;
-           TmpCRM2D.H_cp   = chemical_reactions.H_cp;
-           TmpCRM2D.H_Fuel = chemical_reactions.H_Fuel;
-           TmpCRM2D.H_OX   = chemical_reactions.H_OX;
+             TmpCRM2D.R_air  = chemical_reactions.R_air;
+             TmpCRM2D.R_cp   = chemical_reactions.R_cp;
+             TmpCRM2D.R_Fuel = chemical_reactions.R_Fuel;
+             TmpCRM2D.R_OX   = chemical_reactions.R_OX;
 
-           TmpCRM2D.R_air  = chemical_reactions.R_air;
-           TmpCRM2D.R_cp   = chemical_reactions.R_cp;
-           TmpCRM2D.R_Fuel = chemical_reactions.R_Fuel;
-           TmpCRM2D.R_OX   = chemical_reactions.R_OX;
+             TmpCRM2D.K0     = chemical_reactions.K0;
+             TmpCRM2D.Tf     = chemical_reactions.Tf;
+             TmpCRM2D.gamma  = chemical_reactions.gamma;
 
-           TmpCRM2D.K0     = chemical_reactions.K0;
-           TmpCRM2D.Tf     = chemical_reactions.Tf;
-           TmpCRM2D.gamma  = chemical_reactions.gamma;
+             if(cudaMalloc( (void**)&cudaCRM2D, sizeof(ChemicalReactionsModelData2D) ) == cudaErrorMemoryAllocation) {
+                *o_stream << "\nError allocate GPU memory for CRM2D on device no:" << i_gpu << endl;
+                Exit_OpenHyperFLOW2D(num_gpus);
+             }
 
-           if(cudaMalloc( (void**)&cudaCRM2D, sizeof(ChemicalReactionsModelData2D) ) == cudaErrorMemoryAllocation) {
-              *o_stream << "\nError allocate GPU memory for CRM2D on device no:" << i << endl;
-              Exit_OpenHyperFLOW2D(num_gpus);
-           }
+             CopyHostToDevice(&TmpCRM2D,cudaCRM2D,sizeof(ChemicalReactionsModelData2D));
 
-           CopyHostToDevice(&TmpCRM2D,cudaCRM2D,sizeof(ChemicalReactionsModelData2D));
-
-           cudaCRM2DArray->AddElement(&cudaCRM2D);
+             cudaCRM2DArray->AddElement(&cudaCRM2D);
 
        }
 
-        for (int i_dev=0; i_dev < num_gpus;i_dev++) {
+        for(int i_dev=0; i_dev < num_gpus;i_dev++) {
+            
+            int i_gpu;
+            if(isSingleGPU) {
+                i_gpu = ActiveSingleGPU;
+            } else {
+                i_gpu = i_dev;
+            }
+            
+            if(cudaSetDevice(i_gpu) != cudaSuccess ) {
+               *o_stream << "\nError set CUDA device no: "<< i_gpu << endl;
+               Exit_OpenHyperFLOW2D(num_gpus);
+            }
 
 #ifdef _P2P_ACCESS_
             if((num_gpus>1)&&(i_dev+1 < num_gpus)) {
                 SetP2PAccess(i_dev,i_dev+1);
             }
 #endif // _P2P_ACCESS_
-
-            if(cudaSetDevice(i_dev) != cudaSuccess ) {
-               *o_stream << "\nError set CUDA device no: "<< i_dev << endl;
-               Exit_OpenHyperFLOW2D(num_gpus);
-            }
+            
 
             cudaState = cudaMalloc( (void**)&cudaHu, sizeof(FP)*(NUM_COMPONENTS+1) );
             if(cudaState == cudaErrorMemoryAllocation) {
@@ -297,9 +314,16 @@ int main( int argc, char **argv )
         gettimeofday(&mark2,NULL);
 
         for (int i_dev=0; i_dev < num_gpus;i_dev++) {
-
-            if(cudaSetDevice(i_dev) != cudaSuccess ) {
-               *o_stream << "\nError set CUDA device no: "<< i_dev << endl;
+            
+            int i_gpu;
+            if(isSingleGPU) {
+                i_gpu = ActiveSingleGPU;
+            } else {
+                i_gpu = i_dev;
+            }
+            
+            if(cudaSetDevice(i_gpu) != cudaSuccess ) {
+               *o_stream << "\nError set CUDA device no: "<< i_gpu << endl;
                Exit_OpenHyperFLOW2D(num_gpus);
             }
 
@@ -332,9 +356,16 @@ int main( int argc, char **argv )
         //Allocate GPU buffers
 
         for (unsigned int i=0;i<GlobalSubDomain->GetNumElements();i++) {
-
-            if(cudaSetDevice(i) != cudaSuccess ) {
-               *o_stream << "\nError set CUDA device no: "<< i << endl;
+            
+            int i_gpu;
+            if(isSingleGPU) {
+                i_gpu = ActiveSingleGPU;
+            } else {
+                i_gpu = i;
+            }
+            
+            if(cudaSetDevice(i_gpu) != cudaSuccess ) {
+               *o_stream << "\nError set CUDA device no: "<< i_gpu << endl;
                Exit_OpenHyperFLOW2D(num_gpus);
             }
 
@@ -375,12 +406,18 @@ int main( int argc, char **argv )
         for (unsigned int i=0;i<GlobalSubDomain->GetNumElements();i++) {
 
             XY<int> TmpDim;
-
-            if(cudaSetDevice(i) != cudaSuccess ) {
-               *o_stream << "\nError set CUDA device no: "<< i << endl;
+            
+            int i_gpu;
+            if(isSingleGPU) {
+                i_gpu = ActiveSingleGPU;
+            } else {
+                i_gpu = i;
+            }
+            
+            if(cudaSetDevice(i_gpu) != cudaSuccess ) {
+               *o_stream << "\nError set CUDA device no: "<< i_gpu << endl;
                Exit_OpenHyperFLOW2D(num_gpus);
             }
-
 
             if(i == GlobalSubDomain->GetNumElements()-1)
               r_Overlap = 0;
@@ -418,7 +455,7 @@ int main( int argc, char **argv )
 
                 cudaWallNodes = cudaWallNodesArray->GetElement(i);
 
-                *o_stream << "GPU no: " << i << endl; 
+                *o_stream << "GPU no: " << i_gpu << endl; 
                 *o_stream << "CUDA threads: " << num_cuda_threads << endl;
                 *o_stream << "CUDA thread blocks : " << num_cuda_blocks << endl;
 
@@ -444,7 +481,7 @@ int main( int argc, char **argv )
                      TurbExtModel == TEM_vanDriest ||
                      TurbExtModel == TEM_k_eps_Chien ) {
 
-                      *o_stream << "Run cuda_Recalc_y_plus kernel on CUDA device No " << i << flush;
+                      *o_stream << "Run cuda_Recalc_y_plus kernel on CUDA device No " << i_gpu << flush;
 
 
                       cuda_Recalc_y_plus<<<num_cuda_blocks,num_cuda_threads, 0, cuda_streams[i]>>>(cudaSubDomain,
@@ -463,7 +500,7 @@ int main( int argc, char **argv )
                      }
             }
 
-            *o_stream << "Run cuda_SetInitBoundaryLayer kernel..." << flush;
+            *o_stream << "Run cuda_SetInitBoundaryLayer kernel on CUDA device No " << i_gpu << "..." << flush;
 
 
             cuda_SetInitBoundaryLayer<<<num_cuda_blocks,num_cuda_threads, 0, cuda_streams[i]>>>(cudaSubDomain,
@@ -515,9 +552,16 @@ int main( int argc, char **argv )
                    cuda_events);
 
        for (int i = 0; i < num_gpus; i++)  {
+           
+           int i_gpu;
+           if(isSingleGPU) {
+               i_gpu = ActiveSingleGPU;
+           } else {
+               i_gpu = i;
+           }
 
-           if(cudaSetDevice(i) != cudaSuccess ) {
-              *o_stream << "\nError set CUDA device no: "<< i << endl;
+           if(cudaSetDevice(i_gpu) != cudaSuccess ) {
+              *o_stream << "\nError set CUDA device no: "<< i_gpu << endl;
               Exit_OpenHyperFLOW2D(num_gpus);
            }
 
@@ -539,15 +583,23 @@ int main( int argc, char **argv )
        free(cuda_streams);
        free(cuda_events);
 
-       for (int i_dev=0; i_dev < num_gpus;i_dev++) {
+       for (int i_dev=0; i_dev < num_gpus;i_dev++)  {
+           
+           int i_gpu;
+           if(isSingleGPU) {
+               i_gpu = ActiveSingleGPU;
+           } else {
+               i_gpu = i_dev;
+           }
 
-           if(cudaSetDevice(i_dev) != cudaSuccess ) {
-              *o_stream << "\nError set CUDA device no: "<< i_dev << endl;
+           if(cudaSetDevice(i_gpu) != cudaSuccess ) {
+              *o_stream << "\nError set CUDA device no: "<< i_gpu << endl;
               Exit_OpenHyperFLOW2D(num_gpus);
            }
+
 #ifdef _P2P_ACCESS_
            if((num_gpus>1)&&(i_dev+1 < num_gpus)){
-               DisableP2PAccess(i_dev,i_dev+1);
+              // DisableP2PAccess(i_dev,i_dev+1);
            }
 #endif // _P2P_ACCESS_
 
