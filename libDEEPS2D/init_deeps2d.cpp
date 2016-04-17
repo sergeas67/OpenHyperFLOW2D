@@ -2669,6 +2669,8 @@ void SaveRMSHeader(ofstream* OutputData) {
         char   TechPlotTitle1[1024]={0};
         char   TechPlotTitle2[256]={0};
         char   YR[2];
+        FlowNode2D<FP,NUM_COMPONENTS>* CurrentNode = NULL;
+        FP     Cp_wall = 0.0;
         FP Mach,A,W,Re,Re_t,dx_out,dy_out;
         char   RT[10];
         if(is_p_asterisk_out)
@@ -2681,7 +2683,7 @@ void SaveRMSHeader(ofstream* OutputData) {
         else
           snprintf(YR,2,"Y");
 
-        snprintf(TechPlotTitle1,1024,"VARIABLES = X, %s, U, V, T, p, Rho, Y_fuel, Y_ox, Y_cp, Y_i, %s, Mach, Cp, y+"
+        snprintf(TechPlotTitle1,1024,"VARIABLES = X, %s, U, V, T, p, Rho, Y_fuel, Y_ox, Y_cp, Y_i, %s, Mach, l_min, y+"
                                      "\n",YR, RT); 
         snprintf(TechPlotTitle2,256,"ZONE T=\"Time: %g sec.\" I= %i J= %i F=POINT\n",GlobalTime, MaxX, MaxY);
 
@@ -2698,9 +2700,9 @@ void SaveRMSHeader(ofstream* OutputData) {
         
         for ( j=0;j<(int)MaxY;j++ ) {
             for ( i=0;i<(int)MaxX;i++ ) {
-
                 *OutputData << i*dx_out*1.e3                    << "  "; // 1
                 *OutputData << dy_out*j*1.e3                    << "  "; // 2
+                CurrentNode = &J->GetValue(i,j);
                 Mach = Re = Re_t = 0;
                 if ( !J->GetValue(i,j).isCond2D(CT_SOLID_2D) ) {
                     *OutputData << J->GetValue(i,j).U           << "  "; // 3
@@ -2708,6 +2710,11 @@ void SaveRMSHeader(ofstream* OutputData) {
                     *OutputData << J->GetValue(i,j).Tg          << "  "; // 5
                     *OutputData << J->GetValue(i,j).p           << "  "; // 6
                     *OutputData << J->GetValue(i,j).S[0]        << "  "; // 7
+                    
+                    if(CurrentNode && 
+                       Flow2DList  &&
+                       Cx_Flow_index > 0)
+                    Cp_wall = Calc_Cp(CurrentNode,Flow2DList->GetElement(Cx_Flow_index-1));
                     
                     A = sqrt(J->GetValue(i,j).k*J->GetValue(i,j).R*J->GetValue(i,j).Tg+1.e-30);
                     W = sqrt(J->GetValue(i,j).U*J->GetValue(i,j).U+J->GetValue(i,j).V*J->GetValue(i,j).V+1.e-30);
@@ -2734,7 +2741,7 @@ void SaveRMSHeader(ofstream* OutputData) {
                 }
                 if(!J->GetValue(i,j).isCond2D(CT_SOLID_2D)) {
                     if( Mach > 1.e-30) 
-                      *OutputData << Mach  << "  " << Calc_Cp(&J->GetValue(i,j),Flow2DList->GetElement(Cx_Flow_index-1)) << " " << J->GetValue(i,j).y_plus;  
+                      *OutputData << Mach  << "  " << J->GetValue(i,j).l_min << " " << J->GetValue(i,j).y_plus;  
                     else
                       *OutputData << "  0  0  0";
                 } else {

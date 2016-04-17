@@ -383,7 +383,7 @@ FP CalcYForce2D(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* pJ,
 }
 
 FP   Calc_Cp(FlowNode2D<FP,NUM_COMPONENTS>* CurrentNode, Flow2D* pF) {
-    if (CurrentNode->isCond2D(CT_WALL_NO_SLIP_2D))
+    if (CurrentNode->isCond2D(CT_WALL_NO_SLIP_2D) && pF->Wg() > 0.0)
         return(CurrentNode->p - pF->Pg())/(0.5*pF->ROG()*pF->Wg()*pF->Wg());
     else
         return 0;

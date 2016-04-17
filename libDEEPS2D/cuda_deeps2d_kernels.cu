@@ -285,7 +285,9 @@ void CUDA_BARRIER(char* KernelName) {
 void CopyDeviceToDeviceP2P(void* src, int src_dev,
                            void* dst, int dst_dev,
                            size_t length, cudaStream_t 	cuda_stream) {
+    
     cudaError_t cudaState = cudaMemcpyPeerAsync(dst, dst_dev, src, src_dev, length, cuda_stream); 
+    
     if(cudaState != cudaSuccess) {
      printf("\nError P2P copy device to device...\n");
      printf("%s\n", cudaGetErrorString( cudaGetLastError() ) );
