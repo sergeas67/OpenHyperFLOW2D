@@ -249,11 +249,6 @@ int main( int argc, char **argv )
             } else {
                 i_gpu = i_dev;
             }
-            
-            if(cudaSetDevice(i_gpu) != cudaSuccess ) {
-               *o_stream << "\nError set CUDA device no: "<< i_gpu << endl;
-               Exit_OpenHyperFLOW2D(num_gpus);
-            }
 
 #ifdef _P2P_ACCESS_
             if((num_gpus>1)&&(i_dev+1 < num_gpus)) {
@@ -261,6 +256,10 @@ int main( int argc, char **argv )
             }
 #endif // _P2P_ACCESS_
             
+            if(cudaSetDevice(i_gpu) != cudaSuccess ) {
+               *o_stream << "\nError set CUDA device no: "<< i_gpu << endl;
+               Exit_OpenHyperFLOW2D(num_gpus);
+            }
 
             cudaState = cudaMalloc( (void**)&cudaHu, sizeof(FP)*(NUM_COMPONENTS+1) );
             if(cudaState == cudaErrorMemoryAllocation) {
