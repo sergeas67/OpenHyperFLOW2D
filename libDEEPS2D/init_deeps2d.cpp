@@ -2673,6 +2673,7 @@ void SaveRMSHeader(ofstream* OutputData) {
         FP     Cp_wall = 0.0;
         FP Mach,A,W,Re,Re_t,dx_out,dy_out;
         char   RT[10];
+        // Calc_Cp(&J->GetValue(i,j),Flow2DList->GetElement(Cx_Flow_index-1))
         if(is_p_asterisk_out)
           snprintf(RT,10,"p*");
         else
@@ -2741,7 +2742,7 @@ void SaveRMSHeader(ofstream* OutputData) {
                 }
                 if(!J->GetValue(i,j).isCond2D(CT_SOLID_2D)) {
                     if( Mach > 1.e-30) 
-                      *OutputData << Mach  << "  " << J->GetValue(i,j).l_min << " " << J->GetValue(i,j).y_plus;  
+                      *OutputData << Mach  << "  " << J->GetValue(i,j).l_min  << " " << J->GetValue(i,j).y_plus;  
                     else
                       *OutputData << "  0  0  0";
                 } else {

@@ -714,7 +714,9 @@ void DEEPS2D_Run(ofstream* f_stream,
     UMatrix2D<int>    iRMS(FlowNode2D<FP,NUM_COMPONENTS>::NumEq,cudaArraySubDomain->GetNumElements());
 #endif //_RMS_
     UMatrix2D<FP>     DD_max(FlowNode2D<FP,NUM_COMPONENTS>::NumEq,cudaDimArray->GetNumElements());
-
+#ifndef _P2P_ACCESS_
+    void* host_HalloBuff[8];
+#endif //_P2P_ACCESS_ 
     isScan = 0;
     dyy    = dx/(dx+dy);
     dxx    = dy/(dx+dy);
@@ -730,6 +732,17 @@ void DEEPS2D_Run(ofstream* f_stream,
     for(int ii=0;ii<(int)cudaArraySubDomain->GetNumElements();ii++) {
         dt_min[ii] = dtmin = dt;
         i_c[ii] = j_c[ii] = 0;
+#ifndef _P2P_ACCESS_
+        *f_stream << "\nAlloc " << pJ->GetColSize() << " bytes in host memory for Hallo Exchange Buffer...";
+        host_HalloBuff[ii]   =  malloc(pJ->GetColSize());
+        //host_HalloBuff[ii]   =  malloc(pC->GetColSize());
+        if(host_HalloBuff[ii]) {
+          *f_stream << "OK" << endl;
+        } else {
+          *f_stream << "ERROR!" << endl;
+          Exit_OpenHyperFLOW2D(n_s);
+        }
+#endif // _P2P_ACCESS_
      }
 #ifdef _RMS_    
     snprintf(RMSFileName,255,"RMS-%s",OutFileName);
@@ -754,8 +767,7 @@ void DEEPS2D_Run(ofstream* f_stream,
                     dtmin = dt;
                     current_div =  dprop.multiProcessorCount*warp_size;
                     int2float_scale  = (FP)(INT_MAX)/(512*256*dt);
-
-             do {
+            do {
 
                   gettimeofday(&mark2,NULL);
                   gettimeofday(&start,NULL);
@@ -765,7 +777,7 @@ void DEEPS2D_Run(ofstream* f_stream,
                   } else {
                    FlowNode2D<FP,NUM_COMPONENTS>::isSrcAdd = 0;
                   }
-
+                  
                   n_s = cudaDimArray->GetNumElements();
 
                   iter = 0;
@@ -789,7 +801,7 @@ void DEEPS2D_Run(ofstream* f_stream,
 #endif // _RMS_
 
                        unsigned int dtest_int = (unsigned int)(int2float_scale*10);
-                       //*f_stream << "dtest_int = " << dtest_int << endl;
+                       
                        int iX0=0;
 
                        dtmin = 10*dt;
@@ -861,6 +873,97 @@ void DEEPS2D_Run(ofstream* f_stream,
                    }
                    
                    CUDA_BARRIER((char*)"cuda_DEEPS2D_Stage1");
+ /*                  
+ #pragma unroll
+                   for(int ii=0;ii<n_s;ii++) {  // CUDA version
+
+                       int i_gpu;
+                       
+                       if(isSingleGPU) {
+                           i_gpu = ActiveSingleGPU;
+                       } else {
+                           i_gpu = ii;
+                       }
+
+                       if(cudaSetDevice(i_gpu) != cudaSuccess ) {
+                          *f_stream << "\nError set CUDA device no: "<< i_gpu << endl;
+                          Exit_OpenHyperFLOW2D(n_s);
+                       
+                       }
+// --- Halo exchange ---
+                       
+                       if(ii == n_s-1)
+                         r_Overlap = 0;
+                       else
+                         r_Overlap = 1;
+                       if(ii == 0)
+                         l_Overlap = 0;
+                       else
+                         l_Overlap = 1;
+
+                       if(r_Overlap > 0) {
+                       
+                           
+                       int max_X = cudaDimArray->GetElement(ii).GetX();
+                       int max_Y = cudaDimArray->GetElement(ii).GetY();
+
+                       cudaC = cudaCoreSubDomainArray->GetElement(ii);
+                       size_t  cuda_HalloSize = pC->GetColSize();
+
+                       void*  cuda_Src  = (void*)((ulong)cudaC+(max_X*max_Y*sizeof(FlowNodeCore2D<FP,NUM_COMPONENTS>) - 2*cuda_HalloSize));
+                       void*  cuda_Dst  = (void*)(cudaArrayCoreSubDomain->GetElement(ii+1));
+#ifdef _P2P_ACCESS_
+
+                       CopyDeviceToDeviceP2P(cuda_Src,
+                                             ii,
+                                             cuda_Dst,
+                                             ii+1,
+                                             cuda_HalloSize,
+                                             NULL,
+                                             cuda_streams[ii]);
+
+#else
+                       CopyDeviceToDeviceP2P(cuda_Src,
+                                             ii,
+                                             cuda_Dst,
+                                             ii+1,
+                                             cuda_HalloSize,
+                                             host_HalloBuff[ii],
+                                             cuda_streams[ii]);
+
+#endif // _P2P_ACCESS_
+                       cuda_Dst  = (void*)((ulong)cuda_Src + cuda_HalloSize);
+                       cuda_Src  = (void*)((ulong)cudaArrayCoreSubDomain->GetElement(ii+1)+cuda_HalloSize);
+
+                       if(cudaSetDevice(ii+1) != cudaSuccess ) {
+                          *f_stream << "\nError set CUDA device no: "<< ii << endl;
+                          Exit_OpenHyperFLOW2D(n_s);
+                       }
+#ifdef _P2P_ACCESS_
+
+                       CopyDeviceToDeviceP2P(cuda_Src,
+                                             ii+1,
+                                             cuda_Dst,
+                                             ii,
+                                             cuda_HalloSize,
+                                             NULL,
+                                             cuda_streams[ii+1]);
+#else
+                       CopyDeviceToDeviceP2P(cuda_Src,
+                                             ii+1,
+                                             cuda_Dst,
+                                             ii,
+                                             cuda_HalloSize,
+                                             host_HalloBuff[ii],
+                                             cuda_streams[ii+1]);
+                       }
+// --- Halo exchange ---
+                   }
+                   
+                   if(n_s > 1) {
+                      CUDA_BARRIER((char*)"Halo exchange");
+                  }
+*/
                    iX0 = 0;
  #pragma unroll
                    for(int ii=0;ii<n_s;ii++) {  // CUDA version
@@ -924,7 +1027,8 @@ void DEEPS2D_Run(ofstream* f_stream,
                                                                                                        dt_min_device, int2float_scale,
                                                                                                        (TurbulenceExtendedModel)TurbExtModel,
                                                                                                        ProblemType);
-                        if (MonitorPointsArray &&
+                        
+                      if (MonitorPointsArray &&
                             iter/NOutStep*NOutStep == iter ) {
                             for(int ii_monitor=0;ii_monitor<(int)MonitorPointsArray->GetNumElements();ii_monitor++) {
                                 if(ii == MonitorPointsArray->GetElement(ii_monitor).rank) {
@@ -940,14 +1044,11 @@ void DEEPS2D_Run(ofstream* f_stream,
                    }
                    
                    CUDA_BARRIER((char*)"cuda_DEEPS2D_Stage2");
-
-
-                   for(int ii=0;ii<n_s;ii++) {
-                       
-                       int max_X;
-                       int max_Y;
+ #pragma unroll
+                   for(int ii=0;ii<n_s;ii++) {  // CUDA version
 
                        int i_gpu;
+                       
                        if(isSingleGPU) {
                            i_gpu = ActiveSingleGPU;
                        } else {
@@ -957,22 +1058,10 @@ void DEEPS2D_Run(ofstream* f_stream,
                        if(cudaSetDevice(i_gpu) != cudaSuccess ) {
                           *f_stream << "\nError set CUDA device no: "<< i_gpu << endl;
                           Exit_OpenHyperFLOW2D(n_s);
+                       
                        }
-#ifdef _DEVICE_MMAP_
-                       dt_min_host = dt_min_host_Array->GetElement(ii);
-                       unsigned int  int2float_var = *dt_min_host;
-#else
-                       unsigned int  int2float_var;
-                       dt_min_device = dt_min_device_Array->GetElement(ii);
-                       CopyDeviceToHost(dt_min_device,&int2float_var,sizeof(unsigned int),cuda_streams[ii]);
-#endif //_DEVICE_MMAP_
-                       dtmin  =  min(dtmin,(FP)(int2float_var)/int2float_scale);
-
-                       if(dtmin == 0) {
-                          *f_stream << "\nERROR: Computational unstability  on iteration " << iter+last_iter<< endl;
-                          Abort_OpenHyperFLOW2D(n_s);
-                        }
-
+// --- Halo exchange ---
+                       
                        if(ii == n_s-1)
                          r_Overlap = 0;
                        else
@@ -981,46 +1070,86 @@ void DEEPS2D_Run(ofstream* f_stream,
                          l_Overlap = 0;
                        else
                          l_Overlap = 1;
+
+                       if(r_Overlap > 0) {
+                       
+                           
+                       int max_X = cudaDimArray->GetElement(ii).GetX();
+                       int max_Y = cudaDimArray->GetElement(ii).GetY();
+
+                       cudaJ = cudaSubDomainArray->GetElement(ii);
+                       size_t cuda_HalloSize = pJ->GetColSize();
+
+                       void*  cuda_Src  = (void*)((ulong)cudaJ+(max_X*max_Y*sizeof(FlowNode2D<FP,NUM_COMPONENTS>) - 2*cuda_HalloSize));
+                       void*  cuda_Dst  = (void*)(cudaArraySubDomain->GetElement(ii+1));
+#ifdef _P2P_ACCESS_
+
+                       CopyDeviceToDeviceP2P(cuda_Src,
+                                             ii,
+                                             cuda_Dst,
+                                             ii+1,
+                                             cuda_HalloSize,
+                                             NULL,
+                                             cuda_streams[ii]);
+
+#else
+                       CopyDeviceToDeviceP2P(cuda_Src,
+                                             ii,
+                                             cuda_Dst,
+                                             ii+1,
+                                             cuda_HalloSize,
+                                             host_HalloBuff[ii],
+                                             cuda_streams[ii]);
+
+#endif // _P2P_ACCESS_
+                       cuda_Dst  = (void*)((ulong)cuda_Src + cuda_HalloSize);
+                       cuda_Src  = (void*)((ulong)cudaArraySubDomain->GetElement(ii+1)+cuda_HalloSize);
+
+                       if(cudaSetDevice(ii+1) != cudaSuccess ) {
+                          *f_stream << "\nError set CUDA device no: "<< ii << endl;
+                          Exit_OpenHyperFLOW2D(n_s);
+                       }
+#ifdef _P2P_ACCESS_
+
+                       CopyDeviceToDeviceP2P(cuda_Src,
+                                             ii+1,
+                                             cuda_Dst,
+                                             ii,
+                                             cuda_HalloSize,
+                                             NULL,
+                                             cuda_streams[ii+1]);
+#else
+                       CopyDeviceToDeviceP2P(cuda_Src,
+                                             ii+1,
+                                             cuda_Dst,
+                                             ii,
+                                             cuda_HalloSize,
+                                             host_HalloBuff[ii],
+                                             cuda_streams[ii+1]);
+
+#endif // _P2P_ACCESS_
 // --- Halo exchange ---
-                        if(r_Overlap > 0) {
+                       }
 
-                            max_X = cudaDimArray->GetElement(ii).GetX();
-                            max_Y = cudaDimArray->GetElement(ii).GetY();
+#ifdef _DEVICE_MMAP_
+                      dt_min_host = dt_min_host_Array->GetElement(ii);
+                      unsigned int  int2float_var = *dt_min_host;
+#else
+                      unsigned int  int2float_var;
+                      dt_min_device = dt_min_device_Array->GetElement(ii);
+                      CopyDeviceToHost(dt_min_device,&int2float_var,sizeof(unsigned int),cuda_streams[ii]);
+#endif //_DEVICE_MMAP_
+                      dtmin  =  min(dtmin,(FP)(int2float_var)/int2float_scale);
 
-                            cudaJ = cudaSubDomainArray->GetElement(ii);
-                            size_t cuda_HalloSize = pJ->GetColSize();
-
-                            void*  cuda_Src  = (void*)((ulong)cudaJ+(max_X*max_Y*sizeof(FlowNode2D<FP,NUM_COMPONENTS>) - 2*cuda_HalloSize));
-                            void*  cuda_Dst  = (void*)(cudaArraySubDomain->GetElement(ii+1));
-
-                            CopyDeviceToDeviceP2P(cuda_Src,
-                                                  ii,
-                                                  cuda_Dst,
-                                                  ii+1,
-                                                  cuda_HalloSize,
-                                                  cuda_streams[ii]);
-
-                            cuda_Dst  = (void*)((ulong)cuda_Src + cuda_HalloSize);
-                            cuda_Src  = (void*)((ulong)cudaArraySubDomain->GetElement(ii+1)+cuda_HalloSize);
-
-                            if(cudaSetDevice(ii+1) != cudaSuccess ) {
-                               *f_stream << "\nError set CUDA device no: "<< ii << endl;
-                               Exit_OpenHyperFLOW2D(n_s);
-                            }
-
-                            CopyDeviceToDeviceP2P(cuda_Src,
-                                                  ii+1,
-                                                  cuda_Dst,
-                                                  ii,
-                                                  cuda_HalloSize,
-                                                  cuda_streams[ii+1]);
-                        }
-// --- Halo exchange ---
+                      if(dtmin == 0) {
+                         *f_stream << "\nERROR: Computational unstability on iteration " << iter+last_iter << " in domain " << ii <<  endl;
+                         Abort_OpenHyperFLOW2D(n_s);
+                       }
                    }
-
+                  
                    if(n_s > 1) {
-                       CUDA_BARRIER((char*)"Halo exchange");
-                   }
+                      CUDA_BARRIER((char*)"Halo/dt exchange");
+                  }
 /*
              if(!isAdiabaticWall)
                 CalcHeatOnWallSources(pJ,dx,dy,dt);
@@ -1080,9 +1209,6 @@ void DEEPS2D_Run(ofstream* f_stream,
   iter++;
 } while((int)iter < Nstep);
 
-
-
-       
 for (unsigned int i=0;i<GlobalSubDomain->GetNumElements();i++) {
 
       int SubStartIndex = GlobalSubDomain->GetElementPtr(i)->GetX();
@@ -1110,10 +1236,9 @@ for (unsigned int i=0;i<GlobalSubDomain->GetNumElements();i++) {
         l_Overlap = 1;
 
        TmpMaxX = (SubMaxX-SubStartIndex) - r_Overlap;
-       TmpMatrixPtr = (FlowNode2D<FP,NUM_COMPONENTS>*)((ulong)J->GetMatrixPtr()+(ulong)(sizeof(FlowNode2D<FP,NUM_COMPONENTS>)*(SubStartIndex)*MaxY));
+       TmpMatrixPtr = (FlowNode2D<FP,NUM_COMPONENTS>*)((ulong)J->GetMatrixPtr()+(ulong)(sizeof(FlowNode2D<FP,NUM_COMPONENTS>)*(SubStartIndex + r_Overlap)*MaxY)); // !!!
 
 #ifdef _PARALLEL_RECALC_Y_PLUS_
-
        if(ProblemType == SM_NS &&
           (TurbExtModel == TEM_Spalart_Allmaras ||
            TurbExtModel == TEM_vanDriest ||
@@ -1284,6 +1409,12 @@ if(MonitorNumber < 5) {
      MonitorCondition = 0;
 }
 }while( MonitorCondition );
+
+#ifndef _P2P_ACCESS_
+for(int ii=0;ii<(int)cudaArraySubDomain->GetNumElements();ii++)
+    free(host_HalloBuff[ii]);
+#endif // _P2P_ACCESS_
+
 //---   Save  results ---
 
 #ifdef _DEBUG_0

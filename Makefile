@@ -101,17 +101,20 @@ local:
 	echo -e "${MPIBIN}" > .mpi
 	echo -e "${MPILIB}" > .mpilib
 	./get_SIMD.sh > .simd
-test: ObliqueShock Wedge Step ShowResults
+test: ObliqueShock Wedge Step
 
 ObliqueShock:
 	bin/OpenHyperFLOW2D.sh TestCases/ObliqueShock
+	gnuplot TestCases/ObliqueShock_Res.dat
 Wedge:
 	bin/OpenHyperFLOW2D.sh TestCases/Wedge
+	gnuplot TestCases/Wedge_Res.dat
 Step:
 	bin/OpenHyperFLOW2D.sh TestCases/Step
+	gnuplot TestCases/Step_Res.dat
 Bubble2D:
 	bin/OpenHyperFLOW2D.sh TestCases/Bubble2D
-ShowResults:
+ShowAllResults:
 	gnuplot TestCases/T.dat
 	gnuplot TestCases/pressure.dat
 	gnuplot TestCases/Mach.dat

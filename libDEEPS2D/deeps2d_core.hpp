@@ -224,7 +224,7 @@ extern FP                                Rg;
 extern FP                                Pg;
 extern FP                                Wg;
 extern FP                                Ug,Vg;
-extern int                                   CompIndex;
+extern int                               CompIndex;
 
 extern FP                                Y_fuel[4];  /* fuel */
 extern FP                                Y_ox[4]  ;  /* OX */
@@ -266,7 +266,7 @@ extern UArray< unsigned int* >*          dt_min_device_Array;
 extern FP*                               cudaHu;  
 extern UArray< FP* >*                    cudaHuArray;  
 extern UArray< FlowNode2D<FP,NUM_COMPONENTS>* >*     cudaArraySubDomain;
-extern UArray< FlowNodeCore2D<FP,NUM_COMPONENTS>* >* cudaArrayCoreSubDomain ;
+extern UArray< FlowNodeCore2D<FP,NUM_COMPONENTS>* >* cudaArrayCoreSubDomain;
 extern UArray< XY<int> >*                            cudaDimArray;
 extern XY<int>*                                      cudaWallNodes;
 extern FlowNode2D<FP,NUM_COMPONENTS>*                cudaSubDomain;
@@ -282,7 +282,10 @@ extern cudaDeviceProp                        dprop;
 extern void                                  CopyDeviceToHost(void* src, void* dst, size_t length, cudaStream_t stream=0);
 extern void                                  CopyHostToDevice(void* src, void* dst, size_t length, cudaStream_t stream=0);
 extern void                                  CopyDeviceToDevice(void* src, void* dst, size_t length, cudaStream_t stream=0);
-extern void                                  CopyDeviceToDeviceP2P(void* src, int src_dev,void* dst, int dst_dev,size_t length, cudaStream_t stream=0);
+//extern void                                  CopyDeviceToDeviceP2P(void* src, int src_dev,void* dst, int dst_dev,size_t length, cudaStream_t stream=0);
+extern void                                  CopyDeviceToDeviceP2P(void*  src, int src_dev, void*  dst, int dst_dev, size_t length, void*  host_buff=0, cudaStream_t cuda_stream=0);
+extern void                                  SyncCopyHostToDevice(void* src, void* dst, size_t length);
+extern void                                  SyncCopyDeviceToHost(void* src, void* dst, size_t length);
 extern void                                  SetP2PAccess(int dev1, int dev2);
 extern void                                  DisableP2PAccess(int dev1, int dev2);
  

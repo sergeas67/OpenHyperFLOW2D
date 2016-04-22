@@ -233,40 +233,36 @@ void DisableP2PAccess(int dev1, int dev2) {
  cudaState = cudaDeviceCanAccessPeer(&canAccess,dev1,dev2);
 
  if(cudaState != cudaSuccess) {
-     printf("\nError set P2P access for devices %i<-->%i\n",dev1,dev2);
+     printf("\nError probe P2P access for devices %i-->%i\n",dev1,dev2);
      printf("%s\n", cudaGetErrorString( cudaGetLastError() ) );
-     Exit_OpenHyperFLOW2D(1);
  }
 
- if(canAccess) {
-     cudaSetDevice(dev1);
+ if(!canAccess) {
      cudaState = cudaDeviceDisablePeerAccess(dev2);
 
      if(cudaState != cudaSuccess) {
-         printf("\nError set P2P access for devices %i<-->%i\n",dev1,dev2);
+         printf("\nError unset P2P access for devices %i-->%i\n",dev1,dev2);
          printf("%s\n", cudaGetErrorString( cudaGetLastError() ) );
          Exit_OpenHyperFLOW2D(1);
      }
  }
 
- canAccess = 0;
+ canAccess = 1;
 
  cudaSetDevice(dev2);
 
  cudaState = cudaDeviceCanAccessPeer(&canAccess,dev2,dev1);
 
  if(cudaState != cudaSuccess) {
-    printf("\nError set P2P access for devices %i<-->%i\n",dev2,dev1);
+    printf("\nError probe P2P access for devices %i-->%i\n",dev2,dev1);
     printf("%s\n", cudaGetErrorString( cudaGetLastError() ) );
-    Exit_OpenHyperFLOW2D(1);
  }
 
- if(canAccess) {
-     cudaSetDevice(dev2);
+ if(!canAccess) {
      cudaState = cudaDeviceDisablePeerAccess(dev1);
 
      if(cudaState != cudaSuccess) {
-         printf("\nError set P2P access for devices %i<-->%i\n",dev2,dev1);
+         printf("\nError unset P2P access for devices %i-->%i\n",dev2,dev1);
          printf("%s\n", cudaGetErrorString( cudaGetLastError() ) );
          Exit_OpenHyperFLOW2D(1);
      }
@@ -282,11 +278,20 @@ void CUDA_BARRIER(char* KernelName) {
     }
 }
 
-void CopyDeviceToDeviceP2P(void* src, int src_dev,
-                           void* dst, int dst_dev,
-                           size_t length, cudaStream_t 	cuda_stream) {
-    
-    cudaError_t cudaState = cudaMemcpyPeerAsync(dst, dst_dev, src, src_dev, length, cuda_stream); 
+void CopyDeviceToDeviceP2P(void*  src, int src_dev,
+                           void*  dst, int dst_dev,
+                           size_t length, 
+                           void*  host_buff,
+                           cudaStream_t cuda_stream) {
+cudaError_t cudaState;
+#ifdef _P2P_ACCESS_
+    cudaState = cudaMemcpyPeerAsync(dst, dst_dev, src, src_dev, length, cuda_stream); 
+#else
+    cudaState = cudaSetDevice(src_dev);
+    CopyDeviceToHost(src,host_buff,length,cuda_stream);
+    cudaState = cudaSetDevice(dst_dev);
+    CopyHostToDevice(host_buff,dst,length,cuda_stream);
+#endif // _P2P_ACCESS_
     
     if(cudaState != cudaSuccess) {
      printf("\nError P2P copy device to device...\n");
@@ -315,8 +320,26 @@ void CopyHostToDevice(void* src, void* dst, size_t length, cudaStream_t stream) 
     }
 }
 
+void SyncCopyHostToDevice(void* src, void* dst, size_t length) {
+    cudaError_t cudaState = cudaMemcpy(dst, src, length,cudaMemcpyHostToDevice);
+    if(cudaState != cudaSuccess) {
+     printf("\nError copy host to device...\n");
+     printf("%s\n", cudaGetErrorString( cudaGetLastError() ) );
+       Exit_OpenHyperFLOW2D(1);
+    }
+}
+
 void CopyDeviceToHost(void* src, void* dst, size_t length, cudaStream_t stream) {
     cudaError_t cudaState = cudaMemcpyAsync(dst, src, length,cudaMemcpyDeviceToHost, stream);
+    if(cudaState != cudaSuccess) {
+     printf("\nError copy device to host...\n");
+     printf("%s\n", cudaGetErrorString( cudaGetLastError() ) );
+       Exit_OpenHyperFLOW2D(1);
+    }
+}
+
+void SyncCopyDeviceToHost(void* src, void* dst, size_t length) {
+    cudaError_t cudaState = cudaMemcpy(dst, src, length,cudaMemcpyDeviceToHost);
     if(cudaState != cudaSuccess) {
      printf("\nError copy device to host...\n");
      printf("%s\n", cudaGetErrorString( cudaGetLastError() ) );
@@ -676,9 +699,7 @@ cuda_DEEPS2D_Stage2(FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
           CurrentNode->CT != (ulong)(NT_FC_2D) ) { 
 
               FP  beta_min;
-
-              beta_min = min(beta0,beta_init);
-
+              
               FlowNodeCore2D< FP,NUM_COMPONENTS >* NextNode=&pLC[index];
 
               int  n1 = CurrentNode->idXl; 
@@ -718,8 +739,6 @@ cuda_DEEPS2D_Stage2(FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
                         FP Tmp;
 
                         if(k == i2d_RhoU && k == i2d_RhoV ) {
-                            //Tmp = sqrt(CurrentNode->S[i2d_RhoU]*CurrentNode->S[i2d_RhoU]+
-                            //           CurrentNode->S[i2d_RhoV]*CurrentNode->S[i2d_RhoV]+1.e-30);  // Flux
                             Tmp = max(fabs(CurrentNode->S[i2d_RhoU]),fabs(CurrentNode->S[i2d_RhoV]));// max Flux
                         } else {
                             Tmp = CurrentNode->S[k];
@@ -732,6 +751,8 @@ cuda_DEEPS2D_Stage2(FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
                         
                         if(CurrentNode->isCond2D(CT_NONREFLECTED_2D)) {
                            beta_min = nrbc_beta0;
+                        } else {
+                           beta_min = min(beta0,beta_init); 
                         }
                         
                         if( b_FF == BFF_L) {
@@ -777,11 +798,6 @@ cuda_DEEPS2D_Stage2(FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
                       if ( !CurrentNode->isTurbulenceCond2D((TurbulenceCondType2D)c_flag) )
                             CurrentNode->S[k]   =  NextNode->S[k];
                   }
-              }
-              
-              
-              if(CurrentNode->isCond2D(CT_NONREFLECTED_2D)) {
-                 beta_min = nrbc_beta0;
               }
               
               CurrentNode->beta[i2d_RhoV] = CurrentNode->beta[i2d_RhoU] = max(CurrentNode->beta[i2d_RhoU],CurrentNode->beta[i2d_RhoV]);  // for symmetry keeping
@@ -878,6 +894,10 @@ cuda_DEEPS2D_Stage2(FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
                   atomicMin(dt_min_device,float2uint(dt_min_local*int2float_scale));
 #endif
               }
+         } else if (CurrentNode->ix >= l_limit && 
+                    CurrentNode->ix <  r_limit &&
+                    CurrentNode->CT == (ulong)(NT_FC_2D)) {
+                    CurrentNode->FillNode2D(1,0,SigW,SigF,TurbExtModel,delta_bl,1.0/dx_1,1.0/dy_1,_Hu,_isSrcAdd,sm,_FT);
          }
       }
    }

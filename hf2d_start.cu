@@ -87,7 +87,7 @@ int main( int argc, char **argv )
         if (argc < 2) {
             printf("OpenHyperFLOW2D/DEEPS/FP%u solver v %'.2f ",(unsigned int)(sizeof(FP)*8),ver);
             printf(" (parallel CUDA version)");
-            printf("\nCopyright (C) 1995-2016 by Serge A. Suchkov\nCopyright policy: LGPL V3\nUsage: %s [{input_data_file}]\n",argv[0]);
+            printf("\nCopyright (C) 1995-2016 by Serge A. Suchkov\nCopyright policy: LGPL V3\n\nUsage: %s [{input_data_file}]\n",argv[0]);
             printf("\n\t* Density-based 2D-Navier-Stokes solver for ");
 #ifdef _UNIFORM_MESH_
             printf("uniform cartesian mesh");
@@ -96,6 +96,20 @@ int main( int argc, char **argv )
 #endif //_UNIFORM_MESH_
 
             printf("\n\n\tFlowNode2D size = %d bytes\n\n",sizeof(FlowNode2D<FP,NUM_COMPONENTS>));
+#ifdef  _P2P_ACCESS_
+            printf("\tDirect P2P MultiGPU exchange\n\n");
+#else
+            printf("\tMultiGPU exchange from host memory\n\n");
+#endif  //_P2P_ACCESS_
+
+#ifdef  _DEVICE_MMAP_
+            printf("\tMMap device to host for global time step (dt)\n\n");
+#endif  //_DEVICE_MMAP_
+
+#ifdef  _PARALLEL_RECALC_Y_PLUS_
+            printf("\tParallel recalc y+\n\n");
+#endif  //_PARALLEL_RECALC_Y_PLUS_
+
             Exit_OpenHyperFLOW2D();
         } else {
             sprintf(inFile,"%s",argv[1]);
@@ -430,7 +444,7 @@ int main( int argc, char **argv )
             SubStartIndex = GlobalSubDomain->GetElementPtr(i)->GetX();
             SubMaxX = GlobalSubDomain->GetElementPtr(i)->GetY();
 
-            TmpMaxX = (SubMaxX-SubStartIndex) - r_Overlap;
+            TmpMaxX = (SubMaxX-SubStartIndex) - r_Overlap; 
             TmpMatrixPtr = (FlowNode2D<FP,NUM_COMPONENTS>*)((ulong)J->GetMatrixPtr()+(ulong)(sizeof(FlowNode2D<FP,NUM_COMPONENTS>)*(SubStartIndex)*MaxY));
 
             int num_cuda_threads = warp_size;

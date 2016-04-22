@@ -18,10 +18,12 @@
 ; is p* out ?
 <data/is_p_asterisk_out=0>
 <data/isIgnoreUnsetNodes=0>
+
 ;--------------------------------------------------;
-; is single GPU mode on ?                          ;
+; Single GPU mode                                  ;
 ;--------------------------------------------------;
 <data/isSingleGPU=0>
+<daya/ActiveSingleGPU=0>
 
 ;--------------------------------------------------;
 ; General parameters                               ;
