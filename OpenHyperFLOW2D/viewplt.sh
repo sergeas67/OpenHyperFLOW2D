@@ -148,12 +148,14 @@ set style data lines
 set cntrparam levels auto 40
 set grid
 set title "All Residuals RMS"
+set yrange [1.e-8:]
 $LOGSCALE
 set logscale y 10
 show title
 $SET_OUTPUT
 $PLOT_ALL
 $PAUSE
+#pause -1
 CMD_ALL
 
 gnuplot  RMS_All.gplt

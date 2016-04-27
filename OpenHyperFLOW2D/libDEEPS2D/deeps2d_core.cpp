@@ -1251,18 +1251,18 @@ void DEEPS2D_Run(ofstream* f_stream
                                     if( CurrentNode->Tg < 0. ) {
                                         *f_stream << "\nTg=" << CurrentNode->Tg << " K. p=" << CurrentNode->p <<" Pa dt=" << dt << " sec.\n" << flush;
 #ifdef _MPI
-                                        *f_stream << "\nERROR: Computational unstability in UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >(" << (int)(x0/FlowNode2D<FP,NUM_COMPONENTS>::dx) + i <<","<< j << ") \nBC {\n";
+                                        *f_stream << "\nERROR: Computational unstability in UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >(" << (int)(x0/FlowNode2D<FP,NUM_COMPONENTS>::dx) + i <<","<< j << ") \nNode Conditions {\n";
                                          PrintCond(f_stream,CurrentNode);
-                                        *f_stream  <<"\n} on iteration " << iter+last_iter<< "...\n";
+                                        *f_stream  <<"} on iteration " << iter+last_iter<< "...\n";
 #else
   #ifdef _OPENMP
-                                        *f_stream << "\nERROR: Computational unstability in local (num_thread="<< omp_get_thread_num() << ") UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >(" << i <<","<< j <<") \nBC {\n";
+                                        *f_stream << "\nERROR: Computational unstability in local (num_thread="<< omp_get_thread_num() << ") UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >(" << i <<","<< j <<") \nNode Conditions {\n";
                                         PrintCond(f_stream,CurrentNode);
-                                        *f_stream  <<"\n} on iteration " << iter+last_iter<< "...\n";
+                                        *f_stream  <<"} on iteration " << iter+last_iter<< "...\n";
   #else
-                                        *f_stream << "\nERROR: Computational unstability in UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >(" << i <<","<< j <<") \nBC {\n";
+                                        *f_stream << "\nERROR: Computational unstability in UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >(" << i <<","<< j <<") \nNode Conditions {\n";
                                         PrintCond(f_stream,CurrentNode);
-                                        *f_stream  <<"\n} on iteration " << iter+last_iter<< "...\n";
+                                        *f_stream  <<"} on iteration " << iter+last_iter<< "...\n";
   #endif // _OPENMP
 #endif // _MPI
 
@@ -1332,6 +1332,8 @@ void DEEPS2D_Run(ofstream* f_stream
 #endif // _MPI
                                             CalcChemicalReactions(CurrentNode,CRM_ZELDOVICH, (void*)(&chemical_reactions));
                                     }
+                       } else if (CurrentNode->isCond2D(NT_FC_2D)) {
+                         CurrentNode->FillNode2D(1,0,SigW,SigF,(TurbulenceExtendedModel)TurbExtModel,delta_bl,ProblemType);
                        }
                   }
              }

@@ -18,11 +18,13 @@
 ; is p* out ?
 <data/is_p_asterisk_out=0>
 <data/isIgnoreUnsetNodes=0>
+
 ;--------------------------------------------------;
-; is single GPU mode on ?                          ;
+; Single GPU mode                                  ;
 ;--------------------------------------------------;
 <data/isSingleGPU=0>
-
+<daya/ActiveSingleGPU=0>
+<data/ThreadBlockSize=0>
 ;--------------------------------------------------;
 ; General parameters                               ;
 ;--------------------------------------------------;
@@ -61,7 +63,7 @@
 ; 4 - Rho*E residual
 ; 5 - Time
 <data/MonitorIndex=5>
-<data/ExitMonitorValue=0.25>
+<data/ExitMonitorValue=0.0005>
 
 <data/NumMonitorPoints=0>
 
@@ -96,7 +98,7 @@
 <endtable>
 
 ; Maximum number of steps
-<data/Nmax=10000>
+<data/Nmax=15000>
 ; Every NOutStep-th step is displayed
 <data/NOutStep=100>
 <data/NSaveStep=1>
@@ -120,7 +122,7 @@
 ; 3 - One equation models
 ; 4 - Two equations models
 ; 5 - Smagorinsky
-<data/TurbulenceModel=3>
+<data/TurbulenceModel=4>
 <data/isTurbulenceReset=1>
 <data/ZeroEqFactor=0>
 ; turbulence  Pr_t near wall
@@ -128,7 +130,7 @@
 ; turbulence Pr_t in flow
 <data/SigF=1.0>
 ; Boundary layer initial thickness, m
-<data/delta_bl=0.1>
+<data/delta_bl=0.00001>
 <data/TurbStartIter=1>
 ; Turbulence models (extended)
 ; 0 - zero equation Prandtl model
@@ -141,7 +143,8 @@
 ; 7 - Launder and Sharma, with Yap-correction k-eps model
 ; 8 - RNG k-eps model
 ; 10 - Spalart-Allmares model
-<data/TurbExtModel=10>
+; 16 - Smagorinsky SGS model 
+<data/TurbExtModel=4>
 
 ;--------------------------------------------------
 ; Solid body temperature Ts0, K
@@ -509,11 +512,11 @@
 ; Material ID
 <data/Contour1.MaterialID=0>
 
-<data/Contour1.Bound1.Cond=NT_FARFIELD_2D>
-<data/Contour1.Bound2.Cond=NT_D0X_2D | CT_NONREFLECTED_2D>
-<data/Contour1.Bound3.Cond=NT_WNS_2D>
-<data/Contour1.Bound4.Cond=NT_D0Y_2D, CT_V_CONST_2D>
-<data/Contour1.Bound5.Cond=NT_FARFIELD_2D>
+<data/Contour1.Bound1.Cond=NT_FARFIELD_2D, TCT_k_CONST_2D, TCT_eps_CONST_2D>
+<data/Contour1.Bound2.Cond=NT_D0X_2D, TCT_dkdx_NULL_2D, TCT_depsdx_NULL_2D,  CT_NONREFLECTED_2D>
+<data/Contour1.Bound3.Cond=NT_WNS_2D, TCT_eps_Cmk2kXn_WALL_2D>
+<data/Contour1.Bound4.Cond=NT_D0Y_2D, TCT_dkdy_NULL_2D, TCT_depsdy_NULL_2D, CT_V_CONST_2D>
+<data/Contour1.Bound5.Cond=NT_FARFIELD_2D, TCT_k_CONST_2D, TCT_eps_CONST_2D>
 
 <data/Contour1.Bound1.Flow2D=1>
 <data/Contour1.Bound2.Flow2D=1>
@@ -522,11 +525,11 @@
 <data/Contour1.Bound5.Flow2D=1>
 
 ; Turbulence model of bound
-<data/Contour1.Bound1.TurbulenceModel=0>
-<data/Contour1.Bound2.TurbulenceModel=0>
-<data/Contour1.Bound3.TurbulenceModel=0>
-<data/Contour1.Bound4.TurbulenceModel=0>
-<data/Contour1.Bound5.TurbulenceModel=0>
+<data/Contour1.Bound1.TurbulenceModel=4>
+<data/Contour1.Bound2.TurbulenceModel=4>
+<data/Contour1.Bound3.TurbulenceModel=4>
+<data/Contour1.Bound4.TurbulenceModel=4>
+<data/Contour1.Bound5.TurbulenceModel=4>
 
 ; Reset bounds flag state
 <data/Contour1.Bound1.isReset=0>
@@ -553,7 +556,7 @@
 <data/Area1.Flow2D=1>
 
 ; Turbulence model in area
-<data/Area1.TurbulenceModel=0>
+<data/Area1.TurbulenceModel=4>
 
 ; Material ID
 <data/Area1.MaterialID=0>

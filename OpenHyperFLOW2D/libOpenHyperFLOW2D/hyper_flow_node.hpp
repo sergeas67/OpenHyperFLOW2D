@@ -424,8 +424,11 @@ inline void FlowNode2D<T,a>::FillNode2D(int is_mu_t,
         
         _mu = _lam = G = 0.;
         
-        if(is_init)
-           FlowNodeTurbulence2D<T,a>::mu_t = FlowNodeTurbulence2D<T,a>::lam_t = 0.;
+        if(is_init  && FlowNodeTurbulence2D<T,a>::TurbType > 0) { 
+            FlowNodeTurbulence2D<T,a>::mu_t = 5.0*mu;
+        } else if(is_init) {
+            FlowNodeTurbulence2D<T,a>::mu_t = FlowNodeTurbulence2D<T,a>::lam_t = 0.;
+        }
 
         if(FlowNodeTurbulence2D<T,a>::TurbType > 0)
            TurbModRANS2D(is_mu_t,is_init,tem,delta);

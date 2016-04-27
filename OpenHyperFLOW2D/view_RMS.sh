@@ -12,4 +12,4 @@ while true
 do
 gnuplot RMS_All.gplt
 done
-fi 
+fi
