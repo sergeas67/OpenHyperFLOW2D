@@ -1,0 +1,39 @@
+set view 0, 0, 1
+set nosurface
+#set contour
+set data style lines
+set grid
+set pm3d
+
+set title "MACH number"
+show title
+set terminal x11 1
+splot 'Wedge.plt' u 1:2:13  t 'Mach'
+
+
+#set title "U-velocity"
+#show title
+#set terminal x11 2
+#splot 'Wedge.plt' u 1:2:3  t 'U-velocity'
+
+#set title "V-velocity"
+#show title
+#set terminal x11 3
+#splot 'Wedge.plt' u 1:2:4  t 'V-velocity'
+
+#set title "Temperature"
+#show title
+#set terminal x11 4
+#splot 'Wedge.plt' u 1:2:5  t 'T'
+
+#set title "Density"
+#show title
+#set terminal x11 5
+#splot 'Wedge.plt' u 1:2:7  t 'Rho'
+
+#set title "Prssure"
+#show title
+#set terminal x11 6
+#splot 'Wedge.plt' u 1:2:6  t 'p'
+
+pause -1
