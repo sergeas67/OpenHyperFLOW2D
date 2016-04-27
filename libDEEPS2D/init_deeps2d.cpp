@@ -33,6 +33,11 @@ void InitSharedData(InputData* _data,
             GasSwapData         = NULL;
             TurbMod             = 0;
             
+            ThreadBlockSize = _data->GetIntVal((char*)"ThreadBlockSize");
+            if ( _data->GetDataError()==-1 ) {
+                Abort_OpenHyperFLOW2D();
+            }
+
             isSingleGPU = _data->GetIntVal((char*)"isSingleGPU");
             if ( _data->GetDataError()==-1 ) {
                 Abort_OpenHyperFLOW2D();

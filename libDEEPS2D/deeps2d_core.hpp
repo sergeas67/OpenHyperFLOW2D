@@ -153,6 +153,7 @@ extern int                               isRecalcYplus;
 extern int                               isVerboseOutput;
 extern int                               isSingleGPU;
 extern int                               ActiveSingleGPU;
+extern int                               ThreadBlockSize;
 extern int                               isIgnoreUnsetNodes;
 extern unsigned int                      iter;
 extern SourceList2D*                     SrcList;

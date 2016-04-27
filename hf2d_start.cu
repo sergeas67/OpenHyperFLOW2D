@@ -61,7 +61,7 @@ UArray< FP >*                                 WallNodesUw_2D = NULL;
 int                                           NumWallNodes;
 int                                           isSingleGPU = 0;
 int                                           ActiveSingleGPU = 0;
-
+int                                           ThreadBlockSize = 0; // Default = 0 ... doing calibration
 int main( int argc, char **argv )
 {
     const  FP                      ver=_VER;

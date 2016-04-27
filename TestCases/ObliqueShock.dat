@@ -24,8 +24,8 @@
 ; Single GPU mode                                  ;
 ;--------------------------------------------------;
 <data/isSingleGPU=0>
-<daya/ActiveSingleGPU=0>
-
+<data/ActiveSingleGPU=0>
+<data/ThreadBlockSize=0>
 ;--------------------------------------------------;
 ; General parameters                               ;
 ;--------------------------------------------------;

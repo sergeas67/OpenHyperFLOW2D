@@ -674,9 +674,9 @@ cuda_DEEPS2D_Stage2(FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
                     FP SigW, FP SigF, FP dx_1, FP dy_1, FP delta_bl,
                     FlowType _FT, int Num_Eq,
 #ifdef _RMS_
-                    FP*  RMS, 
+                    FP*      RMS, 
                     int*     iRMS,
-                    FP   DD_max,
+                    FP       DD_max,
                     int*     i_c,
                     int*     j_c,
 #endif // _RMS_
@@ -876,9 +876,9 @@ cuda_DEEPS2D_Stage2(FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
               cuda_CalcChemicalReactions(CurrentNode,CRM_ZELDOVICH, (void*)(pCRMD),sm);
 
               if(noTurbCond) {
-                 CurrentNode->FillNode2D(0,1,SigW,SigF,TurbExtModel,delta_bl,1.0/dx_1,1.0/dy_1,_Hu,_isSrcAdd,sm,_FT);
-              } else {
                  CurrentNode->FillNode2D(1,0,SigW,SigF,TurbExtModel,delta_bl,1.0/dx_1,1.0/dy_1,_Hu,_isSrcAdd,sm,_FT);
+              } else {
+                 CurrentNode->FillNode2D(0,1,SigW,SigF,TurbExtModel,delta_bl,1.0/dx_1,1.0/dy_1,_Hu,_isSrcAdd,sm,_FT);
               }
 
               if( CurrentNode->Tg < 0. ) {
@@ -888,10 +888,10 @@ cuda_DEEPS2D_Stage2(FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
                   FP dt_min_local = CFL*min(1.0/(dx_1*(AAA+fabs(CurrentNode->U))),1.0/(dy_1*(AAA+fabs(CurrentNode->V))));
 #if FP == double
 //#warning use double
-                  atomicMin(dt_min_device,double2uint(dt_min_local*int2float_scale));
+                  atomicMin(dt_min_device,double2uint(int2float_scale*dt_min_local));
 #else
 //#warning use float                  
-                  atomicMin(dt_min_device,float2uint(dt_min_local*int2float_scale));
+                  atomicMin(dt_min_device,float2uint(int2float_scale*dt_min_local));
 #endif
               }
          } else if (CurrentNode->ix >= l_limit && 

@@ -6,7 +6,7 @@ CUDA_DEBUG  =
 #PICFLAGS   = -fPIC
 #STATIC= -static
 
-CUDA_ALIGN  = 8
+CUDA_ALIGN  = 16
 
 #CXXOPTIONS =
 #COPTIONS   =

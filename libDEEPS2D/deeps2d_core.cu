@@ -19,11 +19,12 @@
 #include <sys/file.h>
 
 int NumContour;
-int start_iter = 5;
+int start_iter  = 5;
 int n_s;
 int num_threads = 1;
 int num_blocks  = 1;
 
+unsigned int   int2float_var;
 SourceList2D*  SrcList = NULL;
 int            isGasSource=0;
 int            isRecalcYplus;
@@ -202,18 +203,22 @@ int CalibrateThreadBlockSize(int  cur_block_size,
                              FP&  opt_round_trip,
                              FP   round_trip) {
    
-    if(opt_round_trip == 0.0) {
-        opt_block_size[0] = opt_block_size[1] =  cur_block_size;
-        opt_round_trip    =  round_trip;
-   } else if (opt_round_trip > round_trip) {
-        opt_block_size[0] = cur_block_size;
-        opt_block_size[1] = cur_block_size/2;
-        opt_round_trip    = round_trip;
-   } else {
-        opt_block_size[1] = cur_block_size/2; 
-   }
+   if(ThreadBlockSize == 0) {
+       if(opt_round_trip == 0.0) {
+            opt_block_size[0] = opt_block_size[1] =  cur_block_size;
+            opt_round_trip    =  round_trip;
+       } else if (opt_round_trip > round_trip) {
+            opt_block_size[0] = cur_block_size;
+            opt_block_size[1] = cur_block_size/2;
+            opt_round_trip    = round_trip;
+       } else {
+            opt_block_size[1] = cur_block_size/2; 
+       }
 
-     return opt_block_size[1];
+         return opt_block_size[1];
+   } else {
+         return ThreadBlockSize;
+   }
 };
 
 inline void  DEEPS2D_Stage1(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*     pLJ,
@@ -713,7 +718,7 @@ void DEEPS2D_Run(ofstream* f_stream,
     UMatrix2D<FP>     RMS(FlowNode2D<FP,NUM_COMPONENTS>::NumEq,cudaArraySubDomain->GetNumElements());
     UMatrix2D<int>    iRMS(FlowNode2D<FP,NUM_COMPONENTS>::NumEq,cudaArraySubDomain->GetNumElements());
 #endif //_RMS_
-    UMatrix2D<FP>     DD_max(FlowNode2D<FP,NUM_COMPONENTS>::NumEq,cudaDimArray->GetNumElements());
+    UMatrix2D<FP>  DD_max(FlowNode2D<FP,NUM_COMPONENTS>::NumEq,cudaDimArray->GetNumElements());
 #ifndef _P2P_ACCESS_
     void* host_HalloBuff[8];
 #endif //_P2P_ACCESS_ 
@@ -766,7 +771,6 @@ void DEEPS2D_Run(ofstream* f_stream,
                     FlowNodeCore2D<FP,NUM_COMPONENTS>*  cudaC;
                     dtmin = dt;
                     current_div =  dprop.multiProcessorCount*warp_size;
-                    int2float_scale  = (FP)(INT_MAX)/(512*256*dt);
             do {
 
                   gettimeofday(&mark2,NULL);
@@ -799,9 +803,12 @@ void DEEPS2D_Run(ofstream* f_stream,
                            DD[k]      = 0.;
                        }
 #endif // _RMS_
-
-                       unsigned int dtest_int = (unsigned int)(int2float_scale*10);
+                       //unsigned int dtest_int = (INT_MAX) >> sizeof(unsigned int)*4;
+                       //int2float_scale  = dtest_int/(dt*10);
                        
+                       int2float_scale  = (FP)((INT_MAX) >> sizeof(unsigned int)*4)/dt;
+                       unsigned int dtest_int = (unsigned int)(int2float_scale*10);
+
                        int iX0=0;
 
                        dtmin = 10*dt;
@@ -833,7 +840,12 @@ void DEEPS2D_Run(ofstream* f_stream,
                        cudaJ = cudaSubDomainArray->GetElement(ii);
                        cudaC = cudaCoreSubDomainArray->GetElement(ii);
 
-                       num_cuda_threads =  dprop.multiProcessorCount*warp_size/max(1,current_div);
+                       if (ThreadBlockSize == 0) {
+                           num_cuda_threads =  dprop.multiProcessorCount*warp_size/max(1,current_div);
+                       } else {
+                           num_cuda_threads = ThreadBlockSize;
+                       }
+                       
                        num_cuda_blocks  = (max_X*max_Y)/num_cuda_threads;
 
                        if(num_cuda_blocks*num_cuda_threads != max_X*max_Y)
@@ -873,97 +885,6 @@ void DEEPS2D_Run(ofstream* f_stream,
                    }
                    
                    CUDA_BARRIER((char*)"cuda_DEEPS2D_Stage1");
- /*                  
- #pragma unroll
-                   for(int ii=0;ii<n_s;ii++) {  // CUDA version
-
-                       int i_gpu;
-                       
-                       if(isSingleGPU) {
-                           i_gpu = ActiveSingleGPU;
-                       } else {
-                           i_gpu = ii;
-                       }
-
-                       if(cudaSetDevice(i_gpu) != cudaSuccess ) {
-                          *f_stream << "\nError set CUDA device no: "<< i_gpu << endl;
-                          Exit_OpenHyperFLOW2D(n_s);
-                       
-                       }
-// --- Halo exchange ---
-                       
-                       if(ii == n_s-1)
-                         r_Overlap = 0;
-                       else
-                         r_Overlap = 1;
-                       if(ii == 0)
-                         l_Overlap = 0;
-                       else
-                         l_Overlap = 1;
-
-                       if(r_Overlap > 0) {
-                       
-                           
-                       int max_X = cudaDimArray->GetElement(ii).GetX();
-                       int max_Y = cudaDimArray->GetElement(ii).GetY();
-
-                       cudaC = cudaCoreSubDomainArray->GetElement(ii);
-                       size_t  cuda_HalloSize = pC->GetColSize();
-
-                       void*  cuda_Src  = (void*)((ulong)cudaC+(max_X*max_Y*sizeof(FlowNodeCore2D<FP,NUM_COMPONENTS>) - 2*cuda_HalloSize));
-                       void*  cuda_Dst  = (void*)(cudaArrayCoreSubDomain->GetElement(ii+1));
-#ifdef _P2P_ACCESS_
-
-                       CopyDeviceToDeviceP2P(cuda_Src,
-                                             ii,
-                                             cuda_Dst,
-                                             ii+1,
-                                             cuda_HalloSize,
-                                             NULL,
-                                             cuda_streams[ii]);
-
-#else
-                       CopyDeviceToDeviceP2P(cuda_Src,
-                                             ii,
-                                             cuda_Dst,
-                                             ii+1,
-                                             cuda_HalloSize,
-                                             host_HalloBuff[ii],
-                                             cuda_streams[ii]);
-
-#endif // _P2P_ACCESS_
-                       cuda_Dst  = (void*)((ulong)cuda_Src + cuda_HalloSize);
-                       cuda_Src  = (void*)((ulong)cudaArrayCoreSubDomain->GetElement(ii+1)+cuda_HalloSize);
-
-                       if(cudaSetDevice(ii+1) != cudaSuccess ) {
-                          *f_stream << "\nError set CUDA device no: "<< ii << endl;
-                          Exit_OpenHyperFLOW2D(n_s);
-                       }
-#ifdef _P2P_ACCESS_
-
-                       CopyDeviceToDeviceP2P(cuda_Src,
-                                             ii+1,
-                                             cuda_Dst,
-                                             ii,
-                                             cuda_HalloSize,
-                                             NULL,
-                                             cuda_streams[ii+1]);
-#else
-                       CopyDeviceToDeviceP2P(cuda_Src,
-                                             ii+1,
-                                             cuda_Dst,
-                                             ii,
-                                             cuda_HalloSize,
-                                             host_HalloBuff[ii],
-                                             cuda_streams[ii+1]);
-                       }
-// --- Halo exchange ---
-                   }
-                   
-                   if(n_s > 1) {
-                      CUDA_BARRIER((char*)"Halo exchange");
-                  }
-*/
                    iX0 = 0;
  #pragma unroll
                    for(int ii=0;ii<n_s;ii++) {  // CUDA version
@@ -984,8 +905,12 @@ void DEEPS2D_Run(ofstream* f_stream,
 
                        cudaJ = cudaSubDomainArray->GetElement(ii);
                        cudaC = cudaCoreSubDomainArray->GetElement(ii);
-
-                       num_cuda_threads = min(max_num_threads,dprop.multiProcessorCount*warp_size/max(1,current_div));
+                       if (ThreadBlockSize == 0) {
+                           num_cuda_threads = min(max_num_threads,dprop.multiProcessorCount*warp_size/max(1,current_div));
+                       } else {
+                           num_cuda_threads = min(max_num_threads,ThreadBlockSize);
+                       }
+                       
                        num_cuda_blocks  = (max_X*max_Y)/num_cuda_threads;
 
                        if(num_cuda_blocks*num_cuda_threads != max_X*max_Y)
@@ -1135,12 +1060,12 @@ void DEEPS2D_Run(ofstream* f_stream,
                       dt_min_host = dt_min_host_Array->GetElement(ii);
                       unsigned int  int2float_var = *dt_min_host;
 #else
-                      unsigned int  int2float_var;
+                      
                       dt_min_device = dt_min_device_Array->GetElement(ii);
                       CopyDeviceToHost(dt_min_device,&int2float_var,sizeof(unsigned int),cuda_streams[ii]);
 #endif //_DEVICE_MMAP_
                       dtmin  =  min(dtmin,(FP)(int2float_var)/int2float_scale);
-
+                      
                       if(dtmin == 0) {
                          *f_stream << "\nERROR: Computational unstability on iteration " << iter+last_iter << " in domain " << ii <<  endl;
                          Abort_OpenHyperFLOW2D(n_s);
@@ -1170,19 +1095,22 @@ void DEEPS2D_Run(ofstream* f_stream,
              else
                  VCOMP = 0.;
              
-             if(iter+last_iter > 2 && iter+last_iter < NOutStep*12) {
+             if(iter+last_iter > 2 && iter+last_iter < NOutStep*8) {
                  
-                 current_div = max(1,CalibrateThreadBlockSize(current_div,
-                                                              opt_thread_block_size,
-                                                              opt_round_trip,
-                                                              d_time));
+                 if (ThreadBlockSize == 0) {
+                     current_div = max(1,CalibrateThreadBlockSize(current_div,
+                                                                  opt_thread_block_size,
+                                                                  opt_round_trip,
+                                                                  d_time));
 
-                 *f_stream << "Calibrate: blocks=" <<  num_cuda_blocks << " threads="  << num_cuda_threads << " round_trip=" << d_time << endl;
+                     *f_stream << "Calibrate: blocks=" <<  num_cuda_blocks << " threads="  << num_cuda_threads << " round_trip=" << d_time << endl;
+                 
+                 } 
              }
              
-             if(iter+last_iter > NOutStep*12)
+             if(iter+last_iter >= NOutStep*8 && ThreadBlockSize == 0)
                 current_div = opt_thread_block_size[0];
-              
+             
              memcpy(&mark2,&mark1,sizeof(mark1));
 #ifdef _RMS_
              SaveRMS(pRMS_OutFile,last_iter+iter, sum_RMS);
@@ -1200,7 +1128,7 @@ void DEEPS2D_Run(ofstream* f_stream,
              *f_stream << "Step No " << iter+last_iter << " maxRMS["<< k_max_RMS << "]="<< (FP)(max_RMS*100.) \
                         <<  " % step_time=" << (FP)d_time << " sec (" << (FP)VCOMP <<" step/sec) dt="<< dt <<"\n" << flush;
 #else
-             *f_stream << "Step No " << iter+last_iter <<  "/" << Nstep <<" step_time=" << (FP)d_time << " sec (" << (FP)VCOMP <<" step/sec) dt="<< dt << endl;
+             *f_stream << "Step No " << iter+last_iter <<  "/" << Nstep <<" step_time=" << (FP)d_time << " sec (" << (FP)VCOMP <<" step/sec) dt="<< dt << " (cuda_threads_per_block="<< num_cuda_threads << ")" <<endl;
 #endif // _RMS_
              if(MonitorPointsArray && MonitorPointsArray->GetNumElements() > 0) {
                 SaveMonitors(pMonitors_OutFile,GlobalTime+CurrentTimePart,MonitorPointsArray);
