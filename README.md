@@ -24,11 +24,11 @@ Parallel (C++/MPI/OpenMP/CUDA) research-educational CFD code for simulation 2D (
 </tr>
 <tr>
 <td>
-<img src='http://raw.githubusercontent.com/sergeas67/OpenHyperFLOW2D/wiki/3Cyl2d-Mach-opt.gif' width='400' height=300 />
+<img src='https://raw.githubusercontent.com/sergeas67/OpenHyperFLOW2D/wiki/3Cyl2d-Mach-opt.gif' width='400' height=300 />
 <br>Simulation hypersonic flow around three cylinders (2D-flat)
 </td>
 <td>
-<img src='http://raw.githubusercontent.com/sergeas67/OpenHyperFLOW2D/wiki/IDesignCFD-Mach.gif' width='400' height=300 />
+<img src='https://raw.githubusercontent.com/sergeas67/OpenHyperFLOW2D/wiki/IDesignCFD-Mach.gif' width='400' height=300 />
 <br>Simulation of propagation supersonic flow in the duct with narrowing (2D-flat) 
 </td>
 </tr>
