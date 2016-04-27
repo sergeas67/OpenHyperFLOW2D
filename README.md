@@ -38,7 +38,7 @@ Parallel (C++/MPI/OpenMP/CUDA) research-educational CFD code for simulation 2D (
 <br>Simulation transonic unsteady flow around NASASC-0714 airfoil (2D-flat)
 </td>
 <td>
-<img src='https://raw.githubusercontent.com/sergeas67/OpenHyperFLOW2D/wiki/SCRAMJET-Mach.png' width='400' height=300 />
+<img src='https://raw.githubusercontent.com/sergeas67/OpenHyperFLOW2D/wiki/SCRAMJET-Mach.png'  height=300 />
 <br>Simulation of hypothetical axisymmetric SCRAMJET on hydrogen at Mach=8 (2D-axisymmetric) 
 </td>
 </tr>
