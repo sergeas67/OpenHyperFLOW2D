@@ -103,15 +103,12 @@ test: ObliqueShock Wedge Step
 ObliqueShock:
 	bin/OpenHyperFLOW2D.sh TestCases/ObliqueShock
 	gnuplot TestCases/ObliqueShock_Res.dat
-	./view_RMS.sh RMS-ObliqueShock.plt
 Wedge:
 	bin/OpenHyperFLOW2D.sh TestCases/Wedge
 	gnuplot TestCases/Wedge_Res.dat
-	./view_RMS.sh RMS-Wedge.plt
 Step:
 	bin/OpenHyperFLOW2D.sh TestCases/Step
 	gnuplot TestCases/Step_Res.dat
-	./view_RMS.sh RMS-Step.plt
 Bubble2D:
 	bin/OpenHyperFLOW2D.sh TestCases/Bubble2D ${NUM_NODES}
 #

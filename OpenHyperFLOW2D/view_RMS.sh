@@ -8,8 +8,8 @@ else
 rm -f RMS_All.gplt
 ./viewplt.sh $1
 
-while true
-do
-gnuplot RMS_All.gplt
-done
+#while true
+#do
+#gnuplot RMS_All.gplt
+#done
 fi
