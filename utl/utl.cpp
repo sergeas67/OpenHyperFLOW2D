@@ -8,15 +8,15 @@
 *****************************************************************/
 #include "utl/umatrix2d.hpp"
 
-ssize_t  _XY(ssize_t  x,
-             ssize_t  y,
-             ssize_t  atf_N) {
+ssize_t  _XY(register ssize_t  x,
+             register ssize_t  y,
+             register ssize_t  atf_N) {
  return (ssize_t)x*(ssize_t)atf_N + (ssize_t)y;
 }
 
-ssize_t  _YX(ssize_t  x,
-             ssize_t  y,
-             ssize_t  atf_N) {
+ssize_t  _YX(register ssize_t  x,
+             register ssize_t  y,
+             register ssize_t  atf_N) {
  return (ssize_t)y*(ssize_t)atf_N + (ssize_t)x;
 }
 

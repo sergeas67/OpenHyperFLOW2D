@@ -28,17 +28,22 @@ enum MatrixState {
     MXS_ERR_PAGE         // page error
 };
 
-ssize_t  _XY(ssize_t x,ssize_t y, ssize_t atf_N);
-ssize_t  _YX(ssize_t x,ssize_t y, ssize_t atf_N);
+extern ssize_t  _XY(register ssize_t  x,
+                    register ssize_t  y,
+                    register ssize_t  atf_N);
+extern ssize_t  _YX(register ssize_t  x,
+                    register ssize_t  y,
+                    register ssize_t  atf_N);
+
 // Store date format
 enum MatrixStorageOrder2D {
     MSO_XY=4000,
     MSO_YX,
 };
 
-typedef ssize_t (*access_type_func_2d)(ssize_t x,
-                                      ssize_t y,
-                                      ssize_t n);
+typedef ssize_t (*access_type_func_2d)(register ssize_t x,
+                                       register ssize_t y,
+                                       register ssize_t n);
 template<class T>
 class XY
 {
@@ -89,9 +94,9 @@ public:
     MatrixType    GetMatrixType()    {return mt;}
     T*            GetMatrixPtr()     {return Ptr;}
     void          SetMatrixPtr(T* x) {Ptr=x;}
-    T& operator   () (unsigned int,unsigned int);
+    T& operator   () (register unsigned int,register unsigned int);
     UMatrix2D<T>&   operator  = (UMatrix2D<T>&);
-    T&            GetValue(unsigned int,unsigned int);
+    T&            GetValue(register unsigned int,register unsigned int);
     ssize_t       GetMatrixSize()    {return nX*nY*sizeof(T);}
 
     ssize_t  GetRowSize() {
@@ -204,7 +209,7 @@ UMatrix2D<T>::~UMatrix2D()
 }
 
 template <class T>
-T& UMatrix2D<T>::operator () (unsigned int x,unsigned int y)
+T& UMatrix2D<T>::operator () (register unsigned int x,register unsigned int y)
 {
 #ifdef _SAFE_ACCESS_
     CheckLocker cl(GetLocker());
@@ -222,7 +227,7 @@ T& UMatrix2D<T>::operator () (unsigned int x,unsigned int y)
 }
 
 template <class T>
-T& UMatrix2D<T>::GetValue(unsigned int x,unsigned int y)
+T& UMatrix2D<T>::GetValue(register unsigned int x,register unsigned int y)
 {
 #ifdef _SAFE_ACCESS_
     CheckLocker cl(GetLocker());
