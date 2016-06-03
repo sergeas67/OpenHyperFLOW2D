@@ -1,10 +1,12 @@
 /*******************************************************************************
 *   OpenHyperFLOW2D                                                            *
 *                                                                              *
-*   Version  1.0.3                                                             *
+*   Version  2.0.1                                                             *
 *   Copyright (C)  1995-2016 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
 *   http://github.com/sergeas67/openhyperflow2d                                *
+*                                                                              *
+*   BoundContour2D object implementation                                       *
 *                                                                              *
 *   last update: 14/04/2016                                                    *
 *******************************************************************************/
@@ -25,7 +27,7 @@ BoundContour2D::BoundContour2D(char* Name,
 }
 
 // Clear bound contour
-void BoundContour2D::ClearBoundContour() {
+void BoundContour2D::CleanBoundContour() {
     for (int i=0;i<GetNumBounds();i++) {
         delete GetBound(i);
     }
@@ -33,7 +35,7 @@ void BoundContour2D::ClearBoundContour() {
 }
 // Bound Contour destructor
 BoundContour2D::~BoundContour2D() {
-    ClearBoundContour();
+    CleanBoundContour();
 }
 
 // Add bound in bound contour

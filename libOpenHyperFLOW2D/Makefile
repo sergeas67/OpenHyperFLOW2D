@@ -1,4 +1,4 @@
-# OpenOpenHyperFLOW2D project (Version  1.0.3)
+# OpenOpenHyperFLOW2D project (Version  2.0.1)
 # Written by  Serge A. Suchkov (sergeas67@gmail.com)
 # http://github.com/sergeas67/openhyperflow2d
 
@@ -31,7 +31,8 @@ SOURCES_2D  = hyper_flow_bound.cpp \
 	      hyper_flow_area.cpp \
 	      hyper_flow_field.cpp \
 	      hyper_flow_list.cpp \
-	      hyper_flow_source.cpp
+	      hyper_flow_source.cpp \
+	      hyper_flow_shape2d.cpp
 OBJECTS_2D  = hyper_flow_bound.o \
 	      hyper_flow_bound_contour.o \
 	      hyper_flow_solid_bound_rect.o \
@@ -40,7 +41,8 @@ OBJECTS_2D  = hyper_flow_bound.o \
 	      hyper_flow_area.o \
 	      hyper_flow_field.o \
 	      hyper_flow_list.o \
-	      hyper_flow_source.o
+	      hyper_flow_source.o \
+	      hyper_flow_shape2d.o
 INCLUDES_2D = hyper_flow2d.hpp \
 	      hyper_flow_node.hpp \
 	      hyper_flow_bound.hpp \
@@ -51,7 +53,8 @@ INCLUDES_2D = hyper_flow2d.hpp \
 	      hyper_flow_area.hpp \
 	      hyper_flow_field.hpp \
 	      hyper_flow_list.hpp \
-	      hyper_flow_source.hpp
+	      hyper_flow_source.hpp \
+	      hyper_flow_shape2d.hpp
 all: $(TARGET)
 	ln -sf `pwd`/*.a ../lib
 	rm -f *.o

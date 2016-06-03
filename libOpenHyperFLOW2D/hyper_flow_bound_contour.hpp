@@ -1,10 +1,12 @@
 /*******************************************************************************
 *   OpenHyperFLOW2D                                                            *
 *                                                                              *
-*   Version  1.0.3                                                             *
+*   Version  2.0.1                                                             *
 *   Copyright (C)  1995-2016 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
 *   http://github.com/sergeas67/openhyperflow2d                                *
+*                                                                              *
+*   BoundContour2D object defenition                                           *
 *                                                                              *
 *   last update: 14/04/2016                                                    *
 *******************************************************************************/
@@ -62,7 +64,7 @@ public:
                    ulong        bt,
                    Flow*        pInFlow=0,
                    Flow2D*      pInFlow2D=0,
-                   FP*      y1=0,
+                   FP*          y1=0,
                    ulong        btt=TCT_No_Turbulence_2D);
     
     int CloseContour2D(char*    name,
@@ -102,7 +104,7 @@ public:
     Bound2D* GetBound(int nb);
     int    IsContourClosed();
     int    IsContourActivate();
-    void   ClearBoundContour();
+    void   CleanBoundContour();
     int    RotateBoundContour2D(FP x0, 
                                 FP y0, 
                                 FP angle);
@@ -110,7 +112,6 @@ public:
 
 };
 
-// <------------- 2D --------------->           
 #endif // _hyper_flow_bound_contour_hpp_
 
 
