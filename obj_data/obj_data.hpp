@@ -102,7 +102,7 @@ class  XY_Table
  unsigned int GetNumNodes();
 };
 
-extern  FP GetVal(XY_Table*,FP);
+extern  FP GetVal(register XY_Table*,register FP);
 
 class Data
 {
