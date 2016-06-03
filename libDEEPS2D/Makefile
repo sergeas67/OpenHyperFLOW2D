@@ -1,5 +1,5 @@
 # DEEPS2D
-#   Version  1.0.3                                                             
+#   Version  2.0.1                                                             
 #   Copyright (C)  1995-2016 by Serge A. Suchkov                               
 #   Copyright policy: LGPL V3                                                  
 #   http://github.com/sergeas67/openhyperflow2d
@@ -26,8 +26,8 @@ CFLAGS    +=  -D_STREAM_COMPAT  \
            -DNUM_COMPONENTS=3 -D_UNIFORM_MESH_ $(MODELS) $(FP_OPTS)
 
 TARGET_LIBS_DEEPS2D    = libDEEPS2D.a
-SOURCES_LIBS_DEEPS2D   = deeps2d_core.cu init_deeps2d.cpp cuda_deeps2d_kernels.cu
-OBJECTS_LIBS_DEEPS2D   = deeps2d_core.o init_deeps2d.o  cuda_deeps2d_kernels.o
+SOURCES_LIBS_DEEPS2D   = deeps2d_core_gpu.cu init_deeps2d.cpp cuda_deeps2d_kernels.cu
+OBJECTS_LIBS_DEEPS2D   = deeps2d_core_gpu.o init_deeps2d.o  cuda_deeps2d_kernels.o
 INCLUDES               =
 INCPATH                = -I ../
 

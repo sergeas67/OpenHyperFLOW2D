@@ -3,7 +3,7 @@
 *                                                                              *
 *   Transient, Density based Effective Explicit Parallel Hybrid Solver         *
 *   TDEEPHS (CUDA+MPI)                                                         *
-*   Version  1.0.3                                                             *
+*   Version  2.0.1                                                             *
 *   Copyright (C)  1995-2016 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
 *   http://github.com/sergeas67/openhyperflow2d                                *
@@ -70,16 +70,16 @@
 #endif //ComputationalMatrix2D
 
 enum BlendingFactorFunction {
-     BFF_L,   // LINEAR locally adopted blending factor function (LLABF)
-     BFF_LR,  // LINEAR locally adopted blending factor function with relaxation (LLABFR)
-     BFF_S,   // SQUARE locally adopted blending factor function (SLABFR)
-     BFF_SR,  // SQUARE locally adopted blending factor function with relaxation (SLABFR)
-     BFF_SQR, // SQRT() locally adopted blending factor function (SRLABF)
-     BFF_SQRR,// SQRT() locally adopted blending factor function with relaxation (SRLABFR)
-     BFF_MACH,// Mach number depended locally adapted blending factor function (MLABF)
-     BFF_LG,  // Local gradient  adopted blending factor function (LGABF)
-     BFF_MIXED, // BFF_SQR + BFF_LG
-     BFF_HYBRID, // BFF_SQR + BFF_MACH + BFF_LG
+     BFF_L,            // LINEAR locally adopted blending factor function (LLABF)
+     BFF_LR,           // LINEAR locally adopted blending factor function with relaxation (LLABFR)
+     BFF_S,            // SQUARE locally adopted blending factor function (SLABFR)
+     BFF_SR,           // SQUARE locally adopted blending factor function with relaxation (SLABFR)
+     BFF_SQR,          // SQRT() locally adopted blending factor function (SRLABF)
+     BFF_SQRR,         // SQRT() locally adopted blending factor function with relaxation (SRLABFR)
+     BFF_MACH,         // Mach number depended locally adapted blending factor function (MLABF)
+     BFF_LG,           // Local gradient  adopted blending factor function (LGABF)
+     BFF_MIXED,        // BFF_SQR + BFF_LG
+     BFF_HYBRID,       // BFF_SQR + BFF_MACH + BFF_LG
      BFF_SQR_PRESSURE, // BFF_SQR + pressure check
      BFF_SR_LIMITED,
 };
@@ -105,10 +105,10 @@ enum data_tag {
 
 #ifdef _MPI_
 struct DD_pack {
-          FP         DD;   // max residual
-          FP         RMS;  // sum residual
+          FP         DD;       // max residual
+          FP         RMS;      // sum residual
           unsigned long  iRMS; // num involved nodes
-          unsigned int   i,j;  // x,y -coordinates
+          unsigned int   i,j;  // x,y coordinates (nodes)
 };
 #endif // _MPI_
 
@@ -116,7 +116,7 @@ struct MonitorPoint {
        XY<FP>  MonitorXY;
        FP      p;
        FP      T;
-       int         rank;
+       int     rank;
 };
 
 extern int    fd_g;
@@ -152,6 +152,7 @@ extern int                               PrintFLAG;
 extern int                               isRecalcYplus;
 extern int                               isVerboseOutput;
 extern int                               isSingleGPU;
+extern int                               isLocalTimeStep;
 extern int                               ActiveSingleGPU;
 extern int                               ThreadBlockSize;
 extern int                               isIgnoreUnsetNodes;
@@ -275,6 +276,9 @@ extern FlowNodeCore2D<FP,NUM_COMPONENTS>*            cudaCoreSubDomain;
 extern int                                           warp_size;
 extern int                                           max_num_threads;
 extern int                                           num_gpus;  // number of CUDA GPUs
+extern char                                          MonitorsFileName[255];
+extern ofstream*                                     pMonitors_OutFile; // Output Monitors stream
+extern int                                           isCalibrate;
 
 // External functions
 
@@ -375,31 +379,31 @@ extern void DEEPS2D_Run(ofstream* f_stream,
                         cudaEvent_t*                                   cuda_events);
 
 extern __global__  void  
-cuda_DEEPS2D_Stage1(FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
-                    FlowNodeCore2D<FP,NUM_COMPONENTS>* pLC,
-                    unsigned long int index_limit,
-                    int MAX_X, int MAX_Y, 
+cuda_DEEPS2D_Stage1(register FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
+                    register FlowNodeCore2D<FP,NUM_COMPONENTS>* pLC,
+                    register unsigned long int index_limit,
                     unsigned long r_limit,
                     unsigned long l_limit,
-                    FP dxx, FP dyy,
-                    FP dtdx, FP dtdy,
-                    FP _dt,
-                    int _FT, int Num_Eq, SolverMode pt);
+                    register FP dxx, register FP dyy,
+                    register FP dtdx, register FP dtdy,
+                    register FP _dt,
+                    register int _FT, register int Num_Eq, 
+                    register SolverMode pt, register int isLocalTimeStep=0);
 
 extern __global__  void 
-cuda_DEEPS2D_Stage2(FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
-                    FlowNodeCore2D<FP,NUM_COMPONENTS>* pLC,
-                    unsigned long int index_limit,
-                    int MAX_X, int MAX_Y,
-                    unsigned long r_limit,
-                    unsigned long l_limit,
-                    FP beta_init, FP  beta0, 
-                    int b_FF, FP CFL0,
-                    FP nrbc_beta0,
-                    ChemicalReactionsModelData2D* pCRMD,
-                    int noTurbCond,
-                    FP SigW, FP SigF, FP dx_1, FP dy_1, FP delta_bl,
-                    FlowType _FT, int Num_Eq,
+cuda_DEEPS2D_Stage2(register FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
+                    register FlowNodeCore2D<FP,NUM_COMPONENTS>* pLC,
+                    register unsigned long int index_limit,
+                    register unsigned long r_limit,
+                    register unsigned long l_limit,
+                    register FP beta_init, register FP  beta0, 
+                    register int b_FF, register FP CFL0,
+                    register FP nrbc_beta0,
+                    register ChemicalReactionsModelData2D* pCRMD,
+                    register int noTurbCond,
+                    register FP SigW, register FP SigF, 
+                    register FP dx_1, register FP dy_1, register FP delta_bl,
+                    register FlowType _FT, register int Num_Eq,
 #ifdef _RMS_             
                     FP*  RMS, 
                     int*     iRMS,
@@ -407,11 +411,11 @@ cuda_DEEPS2D_Stage2(FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
                     int*     i_c,
                     int*     j_c,
 #endif // _RMS_
-                    FP* _Hu,
-                    int _isSrcAdd,
-                    unsigned int* dt_global, FP int2float_scale,
-                    TurbulenceExtendedModel TurbExtModel, 
-                    SolverMode pt);
+                    register FP* _Hu,
+                    register int _isSrcAdd,
+                    register unsigned int* dt_global, register FP int2float_scale,
+                    register TurbulenceExtendedModel TurbExtModel, 
+                    register SolverMode pt, register int isLocalTimeStep=0);
 
 extern __global__ void 
 cuda_SetInitBoundaryLayer(FlowNode2D<FP,NUM_COMPONENTS>* pJ2D,
@@ -449,4 +453,19 @@ cuda_Recalc_y_plus(FlowNode2D<FP,NUM_COMPONENTS>* pJ2D,
                    int max_y);
 
 extern void CUDA_BARRIER(char* KernelName);
+
+extern __global__  void 
+cuda_CalcHeatOnWallSources(FlowNode2D<FP,NUM_COMPONENTS>*     pJ,
+                           unsigned long int index_limit,
+                           int MAX_X, int MAX_Y,
+                           unsigned long r_limit,
+                           unsigned long l_limit,
+                           FP dx,FP dy,FP dt, int isLocalTimeStep = 0);
+
+extern __host__
+int start_OpenHyperFLOW2D_GPU( int argc, char **argv );
+#else
+extern 
+int start_OpenHyperFLOW2D_GPU( int argc, char **argv );
+
 #endif // _CUDA_

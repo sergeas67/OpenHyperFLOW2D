@@ -3,7 +3,7 @@
 *                                                                              *
 *   Transient, Density based Effective Explicit Parallel Hybrid Solver         *
 *   TDEEPHS (CUDA+MPI)                                                         *
-*   Version  1.0.3                                                             *
+*   Version  2.0.1                                                             *
 *   Copyright (C)  1995-2016 by Serge A. Suchkov                               *
 *   Copyright policy: LGPL V3                                                  *
 *   http://github.com/sergeas67/openhyperflow2d                                *
@@ -18,6 +18,215 @@
 #include <sys/time.h>
 #include <sys/timeb.h>
 #include <sys/file.h>
+int NumContour;
+int isCalibrate;
+int start_iter  = 5;
+int num_threads = 1;
+int num_blocks  = 1;
+
+SourceList2D*  SrcList = NULL;
+int            isGasSource=0;
+int            isRecalcYplus;
+int            isLocalTimeStep;
+int            isHighOrder;
+int            isIgnoreUnsetNodes;
+int            TurbStartIter;
+int            TurbExtModel;
+int            err_i, err_j;
+int            turb_mod_name_index = 0;
+FP             Ts0,A,W,Mach,nrbc_beta0;
+
+unsigned int*  dt_min_host;
+unsigned int*  dt_min_device;
+
+UArray< unsigned int* >* dt_min_host_Array;
+UArray< unsigned int* >* dt_min_device_Array;
+
+UArray< XY<int> >* GlobalSubDomain;
+UArray< XY<int> >* WallNodes;
+
+UArray<UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*>*     SubDomainArray;
+UArray<UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >*>* CoreSubDomainArray;
+UArray<XCut>*                                            XCutArray;
+
+FP  makeZero;
+
+int     Nstep;
+FP      ExitMonitorValue;
+int     MonitorNumber;
+int     MonitorCondition; // 0 - equal
+                          // 1 - less than
+                          // 2 - great than
+
+unsigned int     AddSrcStartIter = 0;
+FP  beta;
+FP  beta0;
+FP  CFL0;
+Table*  CFL_Scenario;
+Table*  beta_Scenario;
+#ifdef _OPEN_MP
+FP  DD_max_var;
+#endif // OPEN_MP
+
+//------------------------------------------
+// Cx,Cy,Cd,Cv,Cp,St
+//------------------------------------------
+int     is_Cx_calc,is_Cd_calc;
+FP      p_ambient;
+FP      x0_body,y0_body,dx_body,dy_body;
+FP      x0_nozzle,y0_nozzle,dy_nozzle;
+
+int     Cx_Flow_index;
+int     Cd_Flow_index;
+int     Cp_Flow_index;
+int     SigmaFi_Flow_index;
+int     y_max,y_min;
+//------------------------------------------
+int     NOutStep;
+int     isFirstStart=0;
+int     ScaleFLAG=1;
+int     isAdiabaticWall;
+int     isOutHeatFluxX;
+int     isOutHeatFluxY;
+int     is_p_asterisk_out;
+
+ChemicalReactionsModelData2D chemical_reactions;
+BlendingFactorFunction       bFF;
+
+FP* Y=NULL;
+FP  Cp=0.;
+FP  lam=0.;
+FP  mu=0.;
+FP  Tg=0.;
+FP  Rg=0.;
+FP  Pg=0.;
+FP  Wg=0.;
+FP  Ug,Vg;
+int     CompIndex;
+
+FP Y_fuel[4]={1.,0.,0.,0.};  /* fuel */
+FP Y_ox[4]  ={0.,1.,0.,0.};  /* OX */
+FP Y_cp[4]  ={0.,0.,1.,0.};  /* cp */
+FP Y_air[4] ={0.,0.,0.,1.};  /* air */
+FP Y_mix[4] ={0.,0.,0.,0.};  /* mixture */
+#ifdef _RMS_
+const  char*                                 RMS_Name[11] = {"Rho","Rho*U","Rho*V","Rho*E","Rho*Yfu","Rho*Yox","Rho*Ycp","Rho*k","Rho*eps","Rho*omega","nu_t"};
+char                                         RMSFileName[255];
+ofstream*                                    pRMS_OutFile;      // Output RMS stream
+#endif //_RMS_
+
+char                                         MonitorsFileName[255];
+ofstream*                                    pMonitors_OutFile; // Output Monitors stream
+
+int                                          useSwapFile=0;
+char                                         OldSwapFileName[255];
+void*                                        OldSwapData;
+u_long                                       OldFileSizeGas;
+int                                          Old_fd;
+int                                          isScan;
+int                                          isPiston;
+
+int                                          MemLen;
+int                                          isRun=0;
+int                                          isDraw=0;
+int                                          isSnapshot=0;
+
+char*                                        ProjectName;
+char                                         GasSwapFileName[255];
+char                                         ErrFileName[255];
+char                                         OutFileName[255];
+char                                         TecPlotFileName[255];
+int                                          fd_g;
+void*                                        GasSwapData;
+int                                          TurbMod    = 0;
+int                                          EndFLAG    = 1;
+int                                          PrintFLAG;
+ofstream*                                    pInputData;        // Output data stream
+ofstream*                                    pHeatFlux_OutFile; // Output HeatFlux stream
+unsigned int                                 iter = 0;          // iteration number
+unsigned int                                 last_iter=0;       // Global iteration number
+int                                          isStop=0;          // Stop flag
+InputData*                                   Data=NULL;         // Object data loader
+UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*  J=NULL;        // Main computation area
+UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >*  C=NULL;    // Main computation area
+UArray<Flow*>*                               FlowList=NULL;     // List of 'Flow' objects
+UArray<Flow2D*>*                             Flow2DList=NULL;   // List of 'Flow2D' objects
+UArray<Bound2D*>                             SingleBoundsList;  // Single Bounds List;
+
+FP                                           dt;                // time step
+FP*                                          RoUx=NULL;
+FP*                                          RoVy=NULL;
+FP                                           GlobalTime=0.;
+FP                                           CurrentTimePart=0;
+
+ofstream*                                    pOutputData;     // output data stream (file)
+
+int                                          I,NSaveStep;
+unsigned int                                 MaxX=0;          // X dimension of computation area
+unsigned int                                 MaxY=0;          // Y dimension of computation area
+
+FP                                           dxdy,dx2,dy2;
+FP                                           SigW,SigF,delta_bl;
+
+unsigned long                                FileSizeGas      = 0;
+int                                          isVerboseOutput       = 0;
+int                                          isTurbulenceReset     = 0;
+
+int SetNonReflectedBC(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* OutputMatrix2D,
+                      FP beta_nrbc,
+                      ofstream* f_stream) {
+    int nr_nodes = 0;
+// Clean walls nodes
+#ifdef _OPEN_MP
+#pragma omp parallel for \
+        reduction(+:nr_nodes)
+#endif //_OPEN_MP
+
+    for ( unsigned int ii=0;ii<OutputMatrix2D->GetX();ii++ ) {
+        for ( unsigned  int jj=0;jj<OutputMatrix2D->GetY();jj++ ) {
+                if ( OutputMatrix2D->GetValue(ii,jj).isCond2D(NT_FARFIELD_2D) ) {
+                    nr_nodes++;
+                    if ( ii > 0 &&
+                         OutputMatrix2D->GetValue(ii-1,jj).isCond2D(CT_NODE_IS_SET_2D) &&
+                         !OutputMatrix2D->GetValue(ii-1,jj).isCond2D(CT_WALL_NO_SLIP_2D) &&
+                         !OutputMatrix2D->GetValue(ii-1,jj).isCond2D(CT_SOLID_2D) &&
+                         !OutputMatrix2D->GetValue(ii-1,jj).isCond2D(NT_FC_2D) ) {
+
+                        OutputMatrix2D->GetValue(ii-1,jj).SetCond2D(CT_NONREFLECTED_2D);
+                        nr_nodes++;
+                    }
+                    if ( ii < OutputMatrix2D->GetX() - 1 &&
+                         OutputMatrix2D->GetValue(ii+1,jj).isCond2D(CT_NODE_IS_SET_2D) &&
+                         !OutputMatrix2D->GetValue(ii+1,jj).isCond2D(CT_WALL_NO_SLIP_2D) &&
+                         !OutputMatrix2D->GetValue(ii+1,jj).isCond2D(CT_SOLID_2D) &&
+                         !OutputMatrix2D->GetValue(ii+1,jj).isCond2D(NT_FC_2D) ) {
+
+                        OutputMatrix2D->GetValue(ii+1,jj).SetCond2D(CT_NONREFLECTED_2D);
+                        nr_nodes++;
+                    }
+                    if ( jj > 0 &&
+                         OutputMatrix2D->GetValue(ii,jj-1).isCond2D(CT_NODE_IS_SET_2D) &&
+                         !OutputMatrix2D->GetValue(ii,jj-1).isCond2D(CT_WALL_NO_SLIP_2D) &&
+                         !OutputMatrix2D->GetValue(ii,jj-1).isCond2D(CT_SOLID_2D) &&
+                         !OutputMatrix2D->GetValue(ii,jj-1).isCond2D(NT_FC_2D) ) {
+
+                        OutputMatrix2D->GetValue(ii,jj-1).SetCond2D(CT_NONREFLECTED_2D);
+                        nr_nodes++;
+                    }
+                    if ( jj < OutputMatrix2D->GetY() - 1 &&
+                         OutputMatrix2D->GetValue(ii,jj+1).isCond2D(CT_NODE_IS_SET_2D) &&
+                         !OutputMatrix2D->GetValue(ii,jj+1).isCond2D(CT_WALL_NO_SLIP_2D) &&
+                         !OutputMatrix2D->GetValue(ii,jj+1).isCond2D(CT_SOLID_2D) &&
+                         !OutputMatrix2D->GetValue(ii,jj+1).isCond2D(NT_FC_2D) ) {
+
+                        OutputMatrix2D->GetValue(ii,jj+1).SetCond2D(CT_NONREFLECTED_2D);
+                        nr_nodes++;
+                    }
+                }
+            }
+        }
+    return nr_nodes;
+}
 
 
 /*  Init -DEEPS2D- solver */
@@ -159,6 +368,9 @@ void InitSharedData(InputData* _data,
             if ( _data->GetDataError()==-1 ) {
                 Abort_OpenHyperFLOW2D();
             }
+
+            isLocalTimeStep = _data->GetIntVal((char*)"isLocalTimeStep");
+            if ( _data->GetDataError()==-1 ) Abort_OpenHyperFLOW2D();
 
             NSaveStep = _data->GetIntVal((char*)"NSaveStep");
             if ( _data->GetDataError()==-1 ) Abort_OpenHyperFLOW2D();
@@ -2148,10 +2360,10 @@ void* InitDEEPS2D(void* lpvParam)
             __end_except;
 #endif  // _DEBUG_0
 
-            if(GlobalTime > 0.)
-               J->GetValue(0,0).time = GlobalTime;
-            else
-               GlobalTime=J->GetValue(0,0).time;
+            //if(GlobalTime > 0.)
+            //   J->GetValue(0,0).time = GlobalTime;
+            //else
+            //   GlobalTime=J->GetValue(0,0).time;
 
             *f_stream << "\nInitial dt=" << dt << "sec." << endl;
 //------> place here <------*
@@ -2354,7 +2566,7 @@ void SetInitBoundaryLayer(ComputationalMatrix2D* pJ, FP delta) {
            for (int j=0;j<(int)pJ->GetY();j++ ) {
                   if (pJ->GetValue(i,j).isCond2D(CT_NODE_IS_SET_2D) &&
                       !pJ->GetValue(i,j).isCond2D(CT_SOLID_2D) &&
-                       pJ->GetValue(i,j).time == 0. &&
+                       //pJ->GetValue(i,j).time == 0. &&
                        delta > 0) {
                        if(pJ->GetValue(i,j).l_min <= delta)
                           pJ->GetValue(i,j).S[i2d_RhoU] = pJ->GetValue(i,j).S[i2d_RhoU] * pJ->GetValue(i,j).l_min/delta;
@@ -2689,7 +2901,7 @@ void SaveRMSHeader(ofstream* OutputData) {
         else
           snprintf(YR,2,"Y");
 
-        snprintf(TechPlotTitle1,1024,"VARIABLES = X, %s, U, V, T, p, Rho, Y_fuel, Y_ox, Y_cp, Y_i, %s, Mach, l_min, y+"
+        snprintf(TechPlotTitle1,1024,"VARIABLES = X, %s, U, V, T, p, Rho, Y_fuel, Y_ox, Y_cp, Y_i, %s, Mach, l_min, dt_local"
                                      "\n",YR, RT); 
         snprintf(TechPlotTitle2,256,"ZONE T=\"Time: %g sec.\" I= %i J= %i F=POINT\n",GlobalTime, MaxX, MaxY);
 
@@ -2747,7 +2959,7 @@ void SaveRMSHeader(ofstream* OutputData) {
                 }
                 if(!J->GetValue(i,j).isCond2D(CT_SOLID_2D)) {
                     if( Mach > 1.e-30) 
-                      *OutputData << Mach  << "  " << J->GetValue(i,j).l_min  << " " << J->GetValue(i,j).y_plus;  
+                      *OutputData << Mach  << "  " << J->GetValue(i,j).l_min  << " " << J->GetValue(i,j).dt_local;  
                     else
                       *OutputData << "  0  0  0";
                 } else {
