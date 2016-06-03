@@ -115,12 +115,9 @@ Step:
 Bubble2D:
 	bin/OpenHyperFLOW2D.sh TestCases/Bubble2D
 ShowAllResults:
-	gnuplot TestCases/T.dat
-	gnuplot TestCases/pressure.dat
-	gnuplot TestCases/Mach.dat
-	gnuplot TestCases/Rho.dat
-	gnuplot TestCases/U.dat
-	gnuplot TestCases/V.dat
+	gnuplot TestCases/ObliqueShock_Res.dat
+	gnuplot TestCases/Wedge_Res.dat
+	gnuplot TestCases/Step_Res.dat
 #
 $(TARGET_2D): local  Utl libexcept libflow objData libhyperflow libdeeps2d liboutcfd $(OBJECTS_2D)
 	$(NVCC) $(STATIC) $(OBJECTS_2D) $(CUDA_OPTIONS) $(CFLAGS) $(LLIBS_2D) -o $(TARGET_2D)
