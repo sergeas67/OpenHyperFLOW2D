@@ -803,9 +803,6 @@ void DEEPS2D_Run(ofstream* f_stream,
                            DD[k]      = 0.;
                        }
 #endif // _RMS_
-                       //unsigned int dtest_int = (INT_MAX) >> sizeof(unsigned int)*4;
-                       //int2float_scale  = dtest_int/(dt*10);
-                       
                        int2float_scale  = (FP)((INT_MAX) >> sizeof(unsigned int)*4)/dt;
                        unsigned int dtest_int = (unsigned int)(int2float_scale*10);
 
@@ -883,7 +880,7 @@ void DEEPS2D_Run(ofstream* f_stream,
                                                                                                       ProblemType);
                        iX0 += max_X;
                    }
-                   
+
                    CUDA_BARRIER((char*)"cuda_DEEPS2D_Stage1");
                    iX0 = 0;
  #pragma unroll
@@ -1018,6 +1015,7 @@ void DEEPS2D_Run(ofstream* f_stream,
                                              cuda_streams[ii]);
 
 #else
+                       
                        CopyDeviceToDeviceP2P(cuda_Src,
                                              ii,
                                              cuda_Dst,
@@ -1044,6 +1042,7 @@ void DEEPS2D_Run(ofstream* f_stream,
                                              NULL,
                                              cuda_streams[ii+1]);
 #else
+                       
                        CopyDeviceToDeviceP2P(cuda_Src,
                                              ii+1,
                                              cuda_Dst,
