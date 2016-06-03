@@ -28,8 +28,8 @@ ARCH=`arch`
 VERSION     = $(CURRENT_VER)
 #-`basename $(CC)`-$(ARCH)-$(CPU)$(PARALLEL_SUFFIX)
 
-CFLAGS    =  -D_UNIFORM_MESH_ -D_REMOVE_SWAPFILE_ -D_VER=${CURRENT_VER} \
-             -D_TECPLOT_ -D_GNUPLOT_ -D_WRITE_LARGE_FILE_ -D_STREAM_COMPAT $(MODELS) $(FP_OPTS)
+CFLAGS    =  -D_UNIFORM_MESH_ -D_REMOVE_SWAPFILE_ -D_VER=${CURRENT_VER} -D_TECPLOT_ -D_GNUPLOT_ -D_WRITE_LARGE_FILE_ -D_STREAM_COMPAT $(MODELS) $(FP_OPTS)
+
 #-DSRC_ADD
 LIBCFLAGS =
 
@@ -41,12 +41,12 @@ CLFLAGS   +=
 
 # Libs
 #
-LLIBS_2D     += $(STATIC) -L ./lib -lDEEPS2D -lexcept -lobj_data -lutl2d  -lhf2d -lflow2d -lOutCFD
+LLIBS_2D     += $(STATIC) -L ./lib -lDEEPS2D -lexcept -lobj_data -lutl2d  -lhf2d -lflow2d -lOutCFD -L $(CUDA_LIBPATH) -lcudart
 	
 TARGET_BASE  = OpenHyperFLOW2D-CUDA
 TARGET_2D    = $(TARGET_BASE)-$(VERSION)
-SOURCES_2D   = hf2d_start.cu
-OBJECTS_2D   = hf2d_start.o
+SOURCES_2D   = hf2d_start_gpu.cu hf2d_start.cpp
+OBJECTS_2D   = hf2d_start_gpu.o hf2d_start.o
 HF2D_START   = $(OBJECTS_2D)
 DATAFILE     =
 SOURCE       = $(SOURCE_2D)
@@ -115,12 +115,15 @@ Step:
 Bubble2D:
 	bin/OpenHyperFLOW2D.sh TestCases/Bubble2D
 ShowAllResults:
-	gnuplot TestCases/ObliqueShock_Res.dat
-	gnuplot TestCases/Wedge_Res.dat
-	gnuplot TestCases/Step_Res.dat
-#
+	gnuplot TestCases/T.dat
+	gnuplot TestCases/pressure.dat
+	gnuplot TestCases/Mach.dat
+	gnuplot TestCases/Rho.dat
+	gnuplot TestCases/U.dat
+	gnuplot TestCases/V.dat
+#$(NVCC)
 $(TARGET_2D): local  Utl libexcept libflow objData libhyperflow libdeeps2d liboutcfd $(OBJECTS_2D)
-	$(NVCC) $(STATIC) $(OBJECTS_2D) $(CUDA_OPTIONS) $(CFLAGS) $(LLIBS_2D) -o $(TARGET_2D)
+	$(CXXC) $(STATIC) $(OBJECTS_2D) $(CFLAGS) $(LLIBS_2D) -o $(TARGET_2D)
 	cp $(TARGET_2D) bin/$(TARGET_2D)
 #
 clean:
