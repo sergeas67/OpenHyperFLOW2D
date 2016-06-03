@@ -56,6 +56,9 @@
 ;--------------------------------------------------
 ; RMS calc algo
 <data/isAlternateRMS=1>
+
+<data/isLocalTimeStep=0>
+
 ;
 ; Monitor:
 ; 0 - max residual
@@ -64,8 +67,8 @@
 ; 3 - Rho*V residual
 ; 4 - Rho*E residual
 ; 5 - Time
-<data/MonitorIndex=5>
-<data/ExitMonitorValue=0.01>
+<data/MonitorIndex=0>
+<data/ExitMonitorValue=0.1>
 
 <data/NumMonitorPoints=0>
 
@@ -98,7 +101,7 @@
 <endtable>
 
 ; Maximum number of steps
-<data/Nmax=12000>
+<data/Nmax=15000>
 ; Every NOutStep-th step is displayed
 <data/NOutStep=100>
 <data/NSaveStep=1>
