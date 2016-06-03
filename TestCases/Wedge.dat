@@ -10,14 +10,32 @@
 <data/ErrorFile=-err.plt>
 ; Swap file for gas area (need for reuse precalculate gas area state data)
 <data/GasSwapFile=.hf2d>
+
+;--------------------------------------------------;
+; Is using adiabatic wall (else isothermal)        ;
+;--------------------------------------------------;
 <data/isAdiabaticWall=0>
+;--------------------------------------------------
 ; Out heat flux on walls along x direction
-<data/isOutHeatFluxX=0>
+<data/isOutHeatFluxX=1>
+<data/Cp_Flow_Index=1>
+<data/y_max=300>
+<data/y_min=0>
+;--------------------------------------------------
 ; Out heat flux on walls along y direction
 <data/isOutHeatFluxY=0>
-; is p* out ?
+<data/x_max=425>
+<data/x_min=0>
+;--------------------------------------------------
+; Solid body temperature Ts0, K
+;--------------------------------------------------
+<data/Ts0=300.>
+
+;--------------------------------------------------
+; Output modes
+;--------------------------------------------------;
+; is p* out (else?)
 <data/is_p_asterisk_out=0>
-<data/isIgnoreUnsetNodes=0>
 
 ;--------------------------------------------------;
 ; Single GPU mode                                  ;
@@ -25,6 +43,7 @@
 <data/isSingleGPU=0>
 <daya/ActiveSingleGPU=0>
 <data/ThreadBlockSize=0>
+
 ;--------------------------------------------------;
 ; General parameters                               ;
 ;--------------------------------------------------;
@@ -49,12 +68,15 @@
 ; [dy] coordinate step, m
 <data/dy=0.001>
 
+<data/isIgnoreUnsetNodes=0>
+
 ;--------------------------------------------------
 ; Computation parameters
 ;--------------------------------------------------
 ; RMS calc algo
 <data/isAlternateRMS=1>
-;
+<data/isLocalTimeStep=0>
+
 ; Monitor:
 ; 0 - max residual
 ; 1 - Rho residual
@@ -63,7 +85,7 @@
 ; 4 - Rho*E residual
 ; 5 - Time
 <data/MonitorIndex=5>
-<data/ExitMonitorValue=0.0005>
+<data/ExitMonitorValue=0.0001>
 
 <data/NumMonitorPoints=0>
 
@@ -78,7 +100,7 @@
 
 ; CFL scenario
 <table=CFL_Scenario/4>
-0       0.05
+0       0.10
 1000    0.10
 20000   0.10
 200000  0.10
@@ -145,11 +167,6 @@
 ; 10 - Spalart-Allmares model
 ; 16 - Smagorinsky SGS model 
 <data/TurbExtModel=4>
-
-;--------------------------------------------------
-; Solid body temperature Ts0, K
-;--------------------------------------------------
-<data/Ts0=300.>
 
 ;--------------------------------------------------
 ; Thermodynamic properties of components
