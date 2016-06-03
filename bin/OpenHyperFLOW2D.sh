@@ -8,6 +8,8 @@ echo "Usage: $0 {project name}"
 exit
 fi
 
-optirun --no-xorg  ${HYPERFLOW2D} ${ProjectName}.dat
+#optirun --no-xorg  
+
+${HYPERFLOW2D} ${ProjectName}.dat
 
 #1>  ${ProjectName}.out  2> ${ProjectName}.err
