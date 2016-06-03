@@ -55,7 +55,8 @@
 ;------------------------------------------------------------------;
 ; RMS calc algo
 <data/isAlternateRMS=1>
-;
+<data/isLocalTimeStep=0>
+
 ; Monitor:
 ; 0 - max residual
 ; 1 - Rho residual
