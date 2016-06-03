@@ -12,7 +12,7 @@ NHOSTS=1
 fi
 
 declare -i CORESPERHOST=`cat /proc/cpuinfo | grep processor | wc -l`
-declare -i NCORES=${NHOSTS}*${CORESPERHOST}/2
+declare -i NCORES=${NHOSTS}*${CORESPERHOST}
 
 #echo ${NCORES}
 

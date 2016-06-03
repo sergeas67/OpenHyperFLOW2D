@@ -859,9 +859,8 @@ void DEEPS2D_Run(ofstream* f_stream
                           CurrentNode = &(pJ->GetValue(i,j)); 
 
                           if ( CurrentNode->isCond2D(CT_NODE_IS_SET_2D) &&
-                                 !CurrentNode->isCond2D(CT_SOLID_2D)
-                              && !CurrentNode->isCond2D(NT_FC_2D)
-                              ) {
+                              !CurrentNode->isCond2D(CT_SOLID_2D)  &&
+                              !CurrentNode->isCond2D(NT_FC_2D)) {
 
                                 NextNode    = &(pC->GetValue(i,j)); 
 
@@ -3111,8 +3110,6 @@ void* InitDEEPS2D(void* lpvParam)
                 if ( Data->GetDataError()==-1 ) {
                     Abort_OpenHyperFLOW2D();
                 }
-
-                //TmpFlow2D = new Flow2D(lam,mu,Cp,Tg,Pg,Rg,Ug,Vg);
 
                 snprintf(FlowStr,256,"Flow2D-%i.Mode",i+1); 
                 int FlowMode = Data->GetIntVal(FlowStr);
