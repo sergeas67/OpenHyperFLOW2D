@@ -97,6 +97,8 @@ void DEEPS2D_Run(ofstream* f_stream,
                  cudaEvent_t  *cuda_events) {
 
    // local variables
+    char Eff_warp_size[64];
+    char Time_step[64];
     FlowNode2D<FP,NUM_COMPONENTS>* TmpMatrixPtr;
     //FlowNodeCore2D<FP,NUM_COMPONENTS>* TmpCoreMatrixPtr;
     //int    SubMaxX, SubStartIndex; 
@@ -652,11 +654,23 @@ void DEEPS2D_Run(ofstream* f_stream,
              else
              *f_stream << "Step No " << iter+last_iter << " maxRMS["<< k_max_RMS << "]="<< (FP)(max_RMS*100.) \
                         <<  " % step_time=" << (FP)d_time << " sec (" << (FP)VCOMP <<" step/sec) dt="<< dt <<"\n" << flush;
-#else
-             *f_stream << "Step No " << iter+last_iter <<  "/" << Nstep <<" step_time=" << (FP)(NOutStep*d_time) << " sec (" << (FP)VCOMP <<" step/sec) dt="<< dt
-                       << "(" << min(max_num_threads,dprop.multiProcessorCount*warp_size/max(1,current_div_stage1))<< "/" 
-                              << min(max_num_threads,dprop.multiProcessorCount*warp_size/max(1,current_div_stage2))<< "/" 
-                              << min(max_num_threads,dprop.multiProcessorCount*warp_size/max(1,current_div_heat))  <<")"<<endl;
+#else                     
+             if(!isAdiabaticWall) {
+                 snprintf(Eff_warp_size,64,"(%u/%u/%u)",
+                          min(max_num_threads,dprop.multiProcessorCount*warp_size/max(1,current_div_stage1)),
+                          min(max_num_threads,dprop.multiProcessorCount*warp_size/max(1,current_div_stage2)),
+                          min(max_num_threads,dprop.multiProcessorCount*warp_size/max(1,current_div_heat)));
+             } else {
+                 snprintf(Eff_warp_size,64,"(%u/%u)",
+                          min(max_num_threads,dprop.multiProcessorCount*warp_size/max(1,current_div_stage1)),
+                          min(max_num_threads,dprop.multiProcessorCount*warp_size/max(1,current_div_stage2)));
+             }
+             if (!isLocalTimeStep) {
+                 snprintf(Time_step,64,"dt=%g ",dt);
+             } else {
+                 snprintf(Time_step,64," ");
+             }
+             *f_stream << "Step No " << iter+last_iter <<  "/" << Nstep <<" step_time=" << (FP)(NOutStep*d_time) << " sec (" << (FP)VCOMP <<" step/sec) "<< Time_step << Eff_warp_size <<endl;
 #endif // _RMS_
              if(MonitorPointsArray && MonitorPointsArray->GetNumElements() > 0) {
                 SaveMonitors(pMonitors_OutFile,GlobalTime+CurrentTimePart,MonitorPointsArray);
