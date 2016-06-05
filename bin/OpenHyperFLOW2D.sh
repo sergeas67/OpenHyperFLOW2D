@@ -1,5 +1,5 @@
 #!/bin/bash
-HYPERFLOW2D=bin/OpenHyperFLOW2D-CUDA-1.03
+HYPERFLOW2D=bin/OpenHyperFLOW2D-CUDA-2.01
 ProjectName=$1
 if [ "$1" == "" ]
 then
