@@ -20,3 +20,7 @@ MODELS += -D_P2P_ACCESS_
 
 # Use additional barrier sync
 MODELS += -D_BARRIER_
+
+# Explicit copy data from global memory to L1 cache (manual prefetch)
+#MODELS += -D_L1_COPY_
+ 
