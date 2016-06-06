@@ -148,12 +148,12 @@ class FlowNode2D: public  FlowNodeCore2D<T,a>,
                   public  FlowNodeTurbulence2D<T,a> {
 
 public:
-    static const int NumEq;        // Number of equations in system (6 + num components - 1)
-    static FlowType  FT;           // Flow type (flat or axisymmetric)
-    static T         Hu[a+1];      // Hu[a]  Specific heat of formation
-    static int       isSrcAdd;     // is additional Src[] present ?
+     static  const int NumEq;        // Number of equations in system (6 + num components - 1)
+     static  FlowType  FT;           // Flow type (flat or axisymmetric)
+     static  T         Hu[a+1];      // Hu[a]  Specific heat of formation
+     static  int       isSrcAdd;     // is additional Src[] present ?
 #ifdef    _UNIFORM_MESH_
-    static
+     static 
 #endif // _UNIFORM_MESH_
     T                dx,dy;       // dx, dy(dr)
     T                x,y;         // x, y(r)
@@ -323,7 +323,9 @@ template <class T, int a>
 FlowNode2D<T,a>::FlowNode2D(FlowType ft) {
     memset(this,0,sizeof(FlowNode2D<T,a>));
     Y[a]  = 1.;
+#ifndef _CUDA_
     FT    = ft;
+#endif // _CUDA_
     BGX   = 1.;
     BGY   = 1.;
     NGX   = 1;
