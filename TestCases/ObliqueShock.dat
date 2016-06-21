@@ -58,7 +58,6 @@
 <data/isAlternateRMS=1>
 
 <data/isLocalTimeStep=0>
-
 ;
 ; Monitor:
 ; 0 - max residual
@@ -101,9 +100,9 @@
 <endtable>
 
 ; Maximum number of steps
-<data/Nmax=15000>
+<data/Nmax=10000>
 ; Every NOutStep-th step is displayed
-<data/NOutStep=100>
+<data/NOutStep=1>
 <data/NSaveStep=1>
 <data/isVerboseOutput=1>
 ; Initial time
