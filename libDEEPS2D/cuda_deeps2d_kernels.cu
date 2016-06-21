@@ -545,14 +545,12 @@ cuda_DEEPS2D_Stage1(register FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
               // Scan equation system ... k - number of equation
 #pragma unroll
               for (int k=0;k<Num_Eq;k++ ) {
-                  register FP beta = CurrentNode->beta[k];  
-                  register FP _beta = 1. - beta;             
-                  
-                  register int c_flag = 0;
-                  register int dx_flag, dx2_flag;
-
+                  register int c_flag, dx_flag, dx2_flag;
                   register int dy_flag, dy2_flag;
                   register FP  dXX,dYY;
+                  
+                  register FP beta = CurrentNode->beta[k];  
+                  register FP _beta = 1. - beta;             
 
                 // Precomputed variables for current node ...
                     c_flag  = dx_flag = dy_flag = dx2_flag = dy2_flag = 0;
