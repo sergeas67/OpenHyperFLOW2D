@@ -1120,21 +1120,21 @@ void DEEPS2D_Run(ofstream* f_stream
                                           CurrentNode->beta[k] = min((beta_min+CurrentNode->beta[k])*0.5,(beta_min*beta_min)/(beta_min+sqrt_RES)); 
                                         }
 #ifdef _MPI
-                                            DD_max[rank].DD[k].DD      = max(DD_max[rank].DD[k].DD,DD_local[k]);
-                                            
-                                            if (isAlternateRMS) {
-                                                DD_max[rank].DD[k].RMS    += absDD*absDD;
-                                            } else {
-                                                DD_max[rank].DD[k].RMS    += DD_local[k]*DD_local[k];
-                                            }
-                                            
-                                            DD_max[rank].DD[k].sumDiv += Tmp*Tmp;
-                                            DD_max[rank].DD[k].iRMS++;
+                                        DD_max[rank].DD[k].DD      = max(DD_max[rank].DD[k].DD,DD_local[k]);
+                                        
+                                        if (isAlternateRMS) {
+                                            DD_max[rank].DD[k].RMS    += absDD*absDD;
+                                        } else {
+                                            DD_max[rank].DD[k].RMS    += DD_local[k]*DD_local[k];
+                                        }
+                                        
+                                        DD_max[rank].DD[k].sumDiv += Tmp*Tmp;
+                                        DD_max[rank].DD[k].iRMS++;
 
-                                              if (DD_max[rank].DD[k].DD==DD_local[k] ) {
-                                                  DD_max[rank].DD[k].i = i;
-                                                  DD_max[rank].DD[k].j = j;
-                                              }
+                                          if (DD_max[rank].DD[k].DD==DD_local[k] ) {
+                                              DD_max[rank].DD[k].i = i;
+                                              DD_max[rank].DD[k].j = j;
+                                          }
 
 #else
                                         
