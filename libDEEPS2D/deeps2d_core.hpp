@@ -118,6 +118,15 @@ struct MonitorPoint {
        FP      T;
        int     rank;
 };
+#ifdef _RMS_
+struct  RMS_pack {
+    unsigned long long int sum_iRMS[6+NUM_COMPONENTS];
+    float                  RMS[6+NUM_COMPONENTS];
+    float                  sumDiv[6+NUM_COMPONENTS];
+    //float                  DD_max[6+NUM_COMPONENTS];
+    //unsigned int           iDD_max[6+NUM_COMPONENTS];
+};
+#endif // _RMS_
 
 extern int    fd_g;
 extern int    fd_s;
@@ -184,7 +193,7 @@ extern int                               isOutHeatFluxY;
 extern int                               is_p_asterisk_out;
 extern int                               Nstep;
 extern FP                                ExitMonitorValue;
-extern int                               MonitorNumber;
+extern int                               MonitorIndex;
 extern int                               MonitorCondition;
 extern unsigned int                      AddSrcStartIter;
 extern FP                                beta;
@@ -235,8 +244,10 @@ extern FP                                Y_air[4] ;  /* air */
 extern FP                                Y_mix[4] ;  /* mixture */
                                               
 #ifdef _RMS_
+extern int                               isAlternateRMS;
 extern char                              RMSFileName[255];
 extern ofstream*                         pRMS_OutFile;    // Output RMS stream
+extern const  char*                      RMS_Name[11];
 #endif //_RMS_
 extern int                               useSwapFile;
 extern char                              OldSwapFileName[255];
@@ -300,7 +311,7 @@ extern void*                                 InitDEEPS2D(void*);
 extern void                                  SaveData2D(ofstream* OutputData, int);
 extern ofstream*                             OpenData(char* outputDataFile);
 extern void                                  SaveRMSHeader(ofstream* OutputData);
-extern void                                  SaveRMS(ofstream* OutputData,unsigned int n, FP* outRMS);
+extern void                                  SaveRMS(ofstream* OutputData,unsigned int n, float* outRMS);
 extern void                                  SaveMonitorsHeader(ofstream* MonitorsFile,
                                                                 UArray< MonitorPoint >* MonitorPtArray);
 extern void                                  SaveMonitors(ofstream* OutputData, 
@@ -403,13 +414,12 @@ cuda_DEEPS2D_Stage2(register FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
                     register int noTurbCond,
                     register FP SigW, register FP SigF, 
                     register FP dx_1, register FP dy_1, register FP delta_bl,
+                    register FP dx, register FP dy,
                     register FlowType _FT, register int Num_Eq,
 #ifdef _RMS_             
-                    FP*  RMS, 
-                    int*     iRMS,
-                    FP   DD_max,
-                    int*     i_c,
-                    int*     j_c,
+                    register int isAlternateRMS,
+                    register RMS_pack* RMS_PACK,
+                    register FP int2float_RMS_scale,    
 #endif // _RMS_
                     register FP* _Hu,
                     register int _isSrcAdd,

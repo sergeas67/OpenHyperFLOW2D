@@ -29,6 +29,9 @@ int            isGasSource=0;
 int            isRecalcYplus;
 int            isLocalTimeStep;
 int            isHighOrder;
+#ifdef   _RMS_
+int            isAlternateRMS;
+#endif //_RMS_ 
 int            isIgnoreUnsetNodes;
 int            TurbStartIter;
 int            TurbExtModel;
@@ -53,7 +56,7 @@ FP  makeZero;
 
 int     Nstep;
 FP      ExitMonitorValue;
-int     MonitorNumber;
+int     MonitorIndex;
 int     MonitorCondition; // 0 - equal
                           // 1 - less than
                           // 2 - great than
@@ -371,6 +374,10 @@ void InitSharedData(InputData* _data,
 
             isLocalTimeStep = _data->GetIntVal((char*)"isLocalTimeStep");
             if ( _data->GetDataError()==-1 ) Abort_OpenHyperFLOW2D();
+#ifdef   _RMS_
+            isAlternateRMS = _data->GetIntVal((char*)"isAlternateRMS");
+            if ( _data->GetDataError()==-1 ) Abort_OpenHyperFLOW2D();
+#endif //_RMS_ 
 
             NSaveStep = _data->GetIntVal((char*)"NSaveStep");
             if ( _data->GetDataError()==-1 ) Abort_OpenHyperFLOW2D();
@@ -385,14 +392,14 @@ void InitSharedData(InputData* _data,
             if(NOutStep >= Nstep)
                Nstep = NOutStep + 1;
 
-            MonitorNumber = _data->GetIntVal((char*)"MonitorIndex");
+            MonitorIndex = _data->GetIntVal((char*)"MonitorIndex");
             if ( _data->GetDataError()==-1 ) {
                 Abort_OpenHyperFLOW2D();
             }
 
-            if(MonitorNumber > 5 ||
-               MonitorNumber < 0) {
-               MonitorNumber = 0;
+            if(MonitorIndex > 5 ||
+               MonitorIndex < 0) {
+               MonitorIndex = 0;
             }
 
             ExitMonitorValue  = _data->GetFloatVal((char*)"ExitMonitorValue");   // Monitor value for exit
@@ -2566,7 +2573,6 @@ void SetInitBoundaryLayer(ComputationalMatrix2D* pJ, FP delta) {
            for (int j=0;j<(int)pJ->GetY();j++ ) {
                   if (pJ->GetValue(i,j).isCond2D(CT_NODE_IS_SET_2D) &&
                       !pJ->GetValue(i,j).isCond2D(CT_SOLID_2D) &&
-                       //pJ->GetValue(i,j).time == 0. &&
                        delta > 0) {
                        if(pJ->GetValue(i,j).l_min <= delta)
                           pJ->GetValue(i,j).S[i2d_RhoU] = pJ->GetValue(i,j).S[i2d_RhoU] * pJ->GetValue(i,j).l_min/delta;
@@ -2867,7 +2873,7 @@ void SaveRMSHeader(ofstream* OutputData) {
         *OutputData <<  TechPlotTitle << endl;
     }
 
-    void SaveRMS(ofstream* OutputData,unsigned int n, FP* outRMS) {
+    void SaveRMS(ofstream* OutputData,unsigned int n, float* outRMS) {
          *OutputData <<  n  << " ";
          for(int i=0;i<FlowNode2D<FP,NUM_COMPONENTS>::NumEq;i++) {
              *OutputData <<  outRMS[i]  << " ";

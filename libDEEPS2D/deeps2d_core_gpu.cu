@@ -137,21 +137,14 @@ void DEEPS2D_Run(ofstream* f_stream,
     timeval  start, stop, mark1, mark2, start1, end;
     FP       int2float_scale;
 #ifdef _RMS_
-    FP       max_RMS;
-    int      k_max_RMS;
-#endif //_RMS_
-    FP*       dt_min;
-    int*      i_c;
-    int*      j_c;
-    FP        dtmin=1.0;
-    //FP      DD[FlowNode2D<FP,NUM_COMPONENTS>::NumEq];
-#ifdef _RMS_
-    FP                sum_RMS[FlowNode2D<FP,NUM_COMPONENTS>::NumEq];
-    unsigned long     sum_iRMS[FlowNode2D<FP,NUM_COMPONENTS>::NumEq];
-    UMatrix2D<FP>     RMS(FlowNode2D<FP,NUM_COMPONENTS>::NumEq,cudaArraySubDomain->GetNumElements());
-    UMatrix2D<int>    iRMS(FlowNode2D<FP,NUM_COMPONENTS>::NumEq,cudaArraySubDomain->GetNumElements());
-#endif //_RMS_
-    UMatrix2D<FP>  DD_max(FlowNode2D<FP,NUM_COMPONENTS>::NumEq,cudaDimArray->GetNumElements());
+    FP       int2float_RMS_scale;
+#endif // _RMS_
+    FP*      dt_min;
+    int*     i_c;
+    int*     j_c;
+    FP       dtmin=1.0;
+    //FP     DD[FlowNode2D<FP,NUM_COMPONENTS>::NumEq];
+
 #ifndef _P2P_ACCESS_
     void* host_HalloBuff[8];
 #endif //_P2P_ACCESS_ 
@@ -180,6 +173,47 @@ void DEEPS2D_Run(ofstream* f_stream,
 #endif // _P2P_ACCESS_
      }
 #ifdef _RMS_    
+    FP                    max_RMS;   
+    int                   k_max_RMS; 
+    cudaError_t           cudaState;
+    
+    UArray<RMS_pack*>     device_RMS_Array;
+    UArray<RMS_pack*>     host_RMS_Array;
+    
+    RMS_pack*             cuda_RMS_pack;
+    RMS_pack*             host_RMS_pack;
+    RMS_pack              zero_RMS_pack;
+    RMS_pack              tmp_RMS_pack;
+    
+    memset(&zero_RMS_pack,0,sizeof(RMS_pack));
+    n_s = cudaDimArray->GetNumElements();
+
+    for(int ii=0;ii<n_s;ii++) {    
+        
+        int igpu;
+        if(isSingleGPU) {
+            igpu = ActiveSingleGPU;
+        } else {
+            igpu = ii;
+        }
+
+        if(cudaSetDevice(igpu) != cudaSuccess ) {
+           *f_stream << "\nError set CUDA device no: "<< igpu << endl;
+           Exit_OpenHyperFLOW2D(n_s);
+        }
+    
+        cudaState = cudaMalloc((void**)&cuda_RMS_pack, sizeof(RMS_pack));
+        if (cudaState == cudaErrorMemoryAllocation) {
+            *f_stream << "\nError allocate GPU memory for sum_RMS[] "<<  endl;
+            Exit_OpenHyperFLOW2D(n_s);
+        }
+        
+        host_RMS_pack   =  new RMS_pack();  
+        
+        device_RMS_Array.AddElement(&cuda_RMS_pack);
+        host_RMS_Array.AddElement(&host_RMS_pack);
+    }
+
     snprintf(RMSFileName,255,"RMS-%s",OutFileName);
     CutFile(RMSFileName);
     pRMS_OutFile = OpenData(RMSFileName);
@@ -222,21 +256,13 @@ void DEEPS2D_Run(ofstream* f_stream,
                            gettimeofday(&start1,NULL);
                       }
 #ifdef _RMS_
-                       max_RMS = 0.5 * ExitMonitorValue;
+                       max_RMS   = 0;
                        k_max_RMS = -1;
-#endif // _RMS_
-#ifdef _RMS_
-                       for (int k=0;k<(int)FlowNode2D<FP,NUM_COMPONENTS>::NumEq;k++ ) {
-
-                           for(int ii=0;ii<n_s;ii++) {
-                               sum_RMS[k]  = RMS(k,ii)  = 0.;    // Clean sum residual
-                               sum_iRMS[k] = iRMS(k,ii) = 0;     // num involved nodes
-                           }
-                           DD[k]      = 0.;
-                       }
+                       
+                       int2float_RMS_scale = (FP)((INT_MAX) >> sizeof(unsigned int)*4)/dt;
 #endif // _RMS_
                        if (isLocalTimeStep) {
-                           int2float_scale  = 1;;
+                           int2float_scale  = 1;
                        } else {
                            int2float_scale  = (FP)((INT_MAX) >> sizeof(unsigned int)*4)/dt;
                        }
@@ -252,7 +278,6 @@ void DEEPS2D_Run(ofstream* f_stream,
                        }
 #pragma unroll
                        for(int ii=0;ii<n_s;ii++) {  // CUDA version
-                       
 
                        int max_X = cudaDimArray->GetElement(ii).GetX();
                        int max_Y = cudaDimArray->GetElement(ii).GetY();
@@ -275,6 +300,7 @@ void DEEPS2D_Run(ofstream* f_stream,
                        dt_min_device = dt_min_device_Array->GetElement(ii);
                        CopyHostToDevice(&dtest_int,dt_min_device,sizeof(unsigned int));
 #endif //_DEVICE_MMAP_
+                       
                        cudaJ = cudaSubDomainArray->GetElement(ii);
                        cudaC = cudaCoreSubDomainArray->GetElement(ii);
 
@@ -298,17 +324,17 @@ void DEEPS2D_Run(ofstream* f_stream,
                          l_Overlap = 0;
                        else
                          l_Overlap = 1;
-
-                       for (int k=0;k<(int)FlowNode2D<FP,NUM_COMPONENTS>::NumEq;k++ ) {
-                          DD_max(k,ii) =  0.;
-                         }
-
+                       
                        dx_1 = 1.0/dx;
                        dy_1 = 1.0/dy;
 
                        dtdx = dt/dx;
                        dtdy = dt/dy;
 
+#ifdef _RMS_
+                       CopyHostToDevice(&zero_RMS_pack,device_RMS_Array.GetElement(ii),sizeof(RMS_pack),cuda_streams[ii]);
+                       memset(&tmp_RMS_pack,0,sizeof(RMS_pack));
+#endif // _RMS_
                        cuda_DEEPS2D_Stage1<<<num_cuda_blocks,num_cuda_threads, 0, cuda_streams[ii]>>>(cudaJ,cudaC,
                                                                                                       max_X*max_Y,
                                                                                                       iX0 + max_X - r_Overlap,
@@ -387,9 +413,14 @@ void DEEPS2D_Run(ofstream* f_stream,
                                                                                                        nrbc_beta0,
                                                                                                        cudaCRM2D->GetElement(ii),
                                                                                                        noTurbCond,
-                                                                                                       SigW,SigF,dx_1,dy_1,delta_bl,
+                                                                                                       SigW,SigF,dx_1,dy_1,delta_bl,dx,dy,
                                                                                                        FlowNode2D<FP,NUM_COMPONENTS>::FT,
                                                                                                        FlowNode2D<FP,NUM_COMPONENTS>::NumEq-ConvertTurbMod(TurbMod),
+#ifdef _RMS_
+                                                                                                       isAlternateRMS,
+                                                                                                       device_RMS_Array.GetElement(ii),
+                                                                                                       int2float_RMS_scale,    
+#endif //_RMS_
                                                                                                        cudaHu,
                                                                                                        FlowNode2D<FP,NUM_COMPONENTS>::isSrcAdd,
                                                                                                        dt_min_device, int2float_scale,
@@ -435,6 +466,10 @@ void DEEPS2D_Run(ofstream* f_stream,
                           Exit_OpenHyperFLOW2D(n_s);
                        
                        }
+
+#ifdef _RMS_           
+                       CopyDeviceToHost(device_RMS_Array.GetElement(ii),host_RMS_Array.GetElement(ii),sizeof(RMS_pack),cuda_streams[ii]);
+#endif //_RMS_
 // --- Halo exchange ---
                        
                        if(ii == n_s-1)
@@ -523,6 +558,16 @@ void DEEPS2D_Run(ofstream* f_stream,
                          *f_stream << "\nERROR: Computational unstability on iteration " << iter+last_iter << " in domain " << ii <<  endl;
                          Abort_OpenHyperFLOW2D(n_s);
                        }
+#ifdef _RMS_           
+#pragma unroll
+                       for (int n=0; n < FlowNode2D<FP,NUM_COMPONENTS>::NumEq; n++) {
+                           //tmp_RMS_pack.DD_max[n]    = max(tmp_RMS_pack.DD_max[n],host_RMS_Array.GetElement(ii)->iDD_max[n]/int2float_RMS_scale);
+                           //tmp_RMS_pack.sum_RMS[n]  += host_RMS_Array.GetElement(ii)->sum_RMS[n];
+                           tmp_RMS_pack.RMS[n]      += host_RMS_Array.GetElement(ii)->RMS[n];
+                           tmp_RMS_pack.sum_iRMS[n] += host_RMS_Array.GetElement(ii)->sum_iRMS[n];
+                           tmp_RMS_pack.sumDiv[n]   += host_RMS_Array.GetElement(ii)->sumDiv[n];
+                       }
+#endif //_RMS_
                    }
 #ifdef _BARRIER_                  
                    if(n_s > 1) {
@@ -639,22 +684,7 @@ void DEEPS2D_Run(ofstream* f_stream,
                  VCOMP = (FP)(1.0/d_time);
              else
                  VCOMP = 0.;
-#ifdef _RMS_
-             SaveRMS(pRMS_OutFile,last_iter+iter, sum_RMS);
 
-             if(k_max_RMS == i2d_nu_t)
-                k_max_RMS +=turb_mod_name_index;
-
-             if(k_max_RMS != -1 && (MonitorNumber == 0 || MonitorNumber == 5))
-             *f_stream << "Step No " << iter+last_iter << " maxRMS["<< RMS_Name[k_max_RMS] << "]="<< (FP)(max_RMS*100.) \
-                        <<  " % step_time=" << (FP)d_time << " sec (" << (FP)VCOMP <<" step/sec) dt="<< dt <<"\n" << flush;
-             else if(MonitorNumber > 0 &&  MonitorNumber < 5 )
-                 *f_stream << "Step No " << iter+last_iter << " maxRMS["<< RMS_Name[MonitorNumber-1] << "]="<< (FP)(max_RMS*100.) \
-                  <<  " % step_time=" << (FP)d_time << " sec (" << (FP)VCOMP <<" step/sec) dt="<< dt <<"\n" << flush;
-             else
-             *f_stream << "Step No " << iter+last_iter << " maxRMS["<< k_max_RMS << "]="<< (FP)(max_RMS*100.) \
-                        <<  " % step_time=" << (FP)d_time << " sec (" << (FP)VCOMP <<" step/sec) dt="<< dt <<"\n" << flush;
-#else                     
              if(!isAdiabaticWall) {
                  snprintf(Eff_warp_size,64,"(%u/%u/%u)",
                           min(max_num_threads,dprop.multiProcessorCount*warp_size/max(1,current_div_stage1)),
@@ -670,6 +700,47 @@ void DEEPS2D_Run(ofstream* f_stream,
              } else {
                  snprintf(Time_step,64," ");
              }
+
+
+#ifdef _RMS_
+             for (int k=0;k<(int)(FlowNode2D<FP,NUM_COMPONENTS>::NumEq);k++ ) {
+                 
+                 if (isAlternateRMS) {
+                     if(tmp_RMS_pack.RMS[k] > 0.0 && tmp_RMS_pack.sumDiv[k] > 0) { 
+                        tmp_RMS_pack.RMS[k] = sqrt(tmp_RMS_pack.RMS[k]/tmp_RMS_pack.sumDiv[k]);
+                     }
+                 } else {
+                     if(tmp_RMS_pack.sum_iRMS[k] > 0) {
+                        tmp_RMS_pack.RMS[k] = sqrt(tmp_RMS_pack.RMS[k]/tmp_RMS_pack.sum_iRMS[k]);
+                     }
+                 }
+
+                 if(MonitorIndex == 0 || MonitorIndex > 4) {
+                    max_RMS = max(tmp_RMS_pack.RMS[k],max_RMS);
+                    if(max_RMS == tmp_RMS_pack.RMS[k])
+                       k_max_RMS = k;
+                 } else {
+                    max_RMS = max(tmp_RMS_pack.RMS[MonitorIndex-1],max_RMS);
+                    if(max_RMS == tmp_RMS_pack.RMS[MonitorIndex-1])
+                       k_max_RMS = k;
+                 }
+             }
+             
+             SaveRMS(pRMS_OutFile,last_iter+iter, tmp_RMS_pack.RMS);
+
+             if(k_max_RMS == i2d_nu_t)
+                k_max_RMS +=turb_mod_name_index;
+
+             if(k_max_RMS != -1 && (MonitorIndex == 0 || MonitorIndex == 5))
+             *f_stream << "Step No " << iter+last_iter <<  "/" << Nstep << " maxRMS["<< RMS_Name[k_max_RMS] << "]="<< (FP)(max_RMS*100.) \
+                        <<  " % step_time=" << (FP)(NOutStep*d_time) << " sec (" << (FP)VCOMP <<" step/sec) "<< Time_step << Eff_warp_size <<endl;
+             else if(MonitorIndex > 0 &&  MonitorIndex < 5 )
+                 *f_stream << "Step No " << iter+last_iter <<  "/" << Nstep <<  " maxRMS["<< RMS_Name[MonitorIndex-1] << "]="<< (FP)(max_RMS*100.) \
+                  <<  " % step_time=" << (FP)(NOutStep*d_time) << " sec (" << (FP)VCOMP <<" step/sec) " << Time_step << Eff_warp_size <<endl;
+             else
+             *f_stream << "Step No " << iter+last_iter <<  "/" << Nstep << " maxRMS["<< k_max_RMS << "]="<< (FP)(max_RMS*100.) \
+                        <<  " % step_time=" << (FP)(NOutStep*d_time)<< " sec (" << (FP)VCOMP <<" step/sec) "<< Time_step << Eff_warp_size <<endl;
+#else                     
              *f_stream << "Step No " << iter+last_iter <<  "/" << Nstep <<" step_time=" << (FP)(NOutStep*d_time) << " sec (" << (FP)VCOMP <<" step/sec) "<< Time_step << Eff_warp_size <<endl;
 #endif // _RMS_
              if(MonitorPointsArray && MonitorPointsArray->GetNumElements() > 0) {
@@ -882,7 +953,7 @@ for (unsigned int i=0;i<GlobalSubDomain->GetNumElements();i++) {
                         *f_stream << "OK" << endl;
                      }
 
-if(MonitorNumber < 5) {
+if(MonitorIndex < 5) {
 #ifdef _RMS_
     if( max_RMS > ExitMonitorValue )
      MonitorCondition = 1;

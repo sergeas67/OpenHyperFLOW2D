@@ -87,7 +87,7 @@
 <endtable>
 
 ; Base blending factor
-<data/beta=0.9895>
+<data/beta=0.98975>
 
 ; Base blending factor for non-reflected BC
 <data/beta_NonReflectedBC=0.25>
@@ -102,7 +102,7 @@
 ; Maximum number of steps
 <data/Nmax=10000>
 ; Every NOutStep-th step is displayed
-<data/NOutStep=1>
+<data/NOutStep=100>
 <data/NSaveStep=1>
 <data/isVerboseOutput=1>
 ; Initial time

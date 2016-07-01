@@ -687,13 +687,12 @@ cuda_DEEPS2D_Stage2(register FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
                     register int noTurbCond,
                     register FP SigW, register FP SigF, 
                     register FP dx_1, register FP dy_1, register FP delta_bl,
+                    register FP dx, register FP dy,
                     register FlowType _FT, register int Num_Eq,
-#ifdef _RMS_
-                    FP*      RMS, 
-                    int*     iRMS,
-                    FP       DD_max,
-                    int*     i_c,
-                    int*     j_c,
+#ifdef _RMS_             
+                    register int isAlternateRMS,
+                    register RMS_pack* RMS_PACK,
+                    register FP int2float_RMS_scale,    
 #endif // _RMS_
                     register FP* _Hu,
                     register int _isSrcAdd,
@@ -752,6 +751,9 @@ cuda_DEEPS2D_Stage2(register FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
                                     
                   if ( !CurrentNode->isCond2D((CondType2D)c_flag) && 
                         CurrentNode->S[k] != 0. ) {
+                        
+                        register FP sqrt_RES;
+                        register FP absDD;
                         register FP DD_local;
                         register FP Tmp;
 
@@ -760,11 +762,15 @@ cuda_DEEPS2D_Stage2(register FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
                         } else {
                             Tmp = CurrentNode->S[k];
                         }
+                        
+                        absDD = NextNode->S[k]-CurrentNode->S[k];
 
-                        if(fabs(Tmp) > 1.e-15)
-                           DD_local = fabs((NextNode->S[k]-CurrentNode->S[k])/Tmp);
-                        else
-                           DD_local = 0.0;
+                        if(fabs(Tmp) > 1.e-15) {
+                            DD_local = fabs(absDD/Tmp);
+                            sqrt_RES = sqrt(DD_local);
+                        } else {
+                            DD_local = 1.0;
+                        }
                         
                         if(CurrentNode->isCond2D(CT_NONREFLECTED_2D)) {
                            beta_min = nrbc_beta0;
@@ -786,23 +792,22 @@ cuda_DEEPS2D_Stage2(register FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
                            CurrentNode->beta[k] = min((beta_min+CurrentNode->beta[k])*0.5,(beta_min*beta_min)/(beta_min+DD_local*DD_local));
                          } else if( b_FF == BFF_SQR) {
                          //SQRT() locally adopted blending factor function (SQRLABF)
-                           CurrentNode->beta[k] = min(beta_min,(beta_min*beta_min)/(beta_min+sqrt(DD_local)));
+                           CurrentNode->beta[k] = min(beta_min,(beta_min*beta_min)/(beta_min+sqrt_RES));
                          } else if( b_FF == BFF_SQRR) {
                          //SQRT() locally adopted blending factor function with relaxation (SQRLABFFR)
-                           CurrentNode->beta[k] = min((beta_min+CurrentNode->beta[k])*0.5,(beta_min*beta_min)/(beta_min+sqrt(DD_local))); 
+                           CurrentNode->beta[k] = min((beta_min+CurrentNode->beta[k])*0.5,(beta_min*beta_min)/(beta_min+sqrt_RES)); 
                          } else {
                            // Default->SQRLABF */
-                           CurrentNode->beta[k] = min(beta_min,(beta_min*beta_min)/(beta_min+sqrt(DD_local)));
+                           CurrentNode->beta[k] = min(beta_min,(beta_min*beta_min)/(beta_min+sqrt_RES));
                          }
 #ifdef _RMS_
-                         RMS[k+ii*Num_Eq] += DD_local;
-                         iRMS[k+ii*Num_Eq]++;
-                         DD_max[k+ii*Num_Eq] = max(DD_max[k+ii*Num_Eq],DD_local);
-
-                         if ( DD_max[k+ii*Num_Eq] == DD_local ) {
-                              i_c[ii] = i;
-                              j_c[ii] = j;
-                         }
+                         if (isAlternateRMS) {
+                              atomicAdd(&RMS_PACK->sumDiv[k],(float)(Tmp*Tmp));
+                              atomicAdd(&RMS_PACK->RMS[k],(float)(absDD*absDD));
+                          } else {
+                              atomicAdd(&RMS_PACK->RMS[k],(float)(DD_local*DD_local));
+                              atomicAdd(&RMS_PACK->sum_iRMS[k],(unsigned long long int)(1L));
+                          }
 #endif // RMS
                   }
                   
@@ -893,7 +898,7 @@ cuda_DEEPS2D_Stage2(register FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
 
               cuda_CalcChemicalReactions(CurrentNode,CRM_ZELDOVICH, (void*)(pCRMD),sm);
                 
-              CurrentNode->FillNode2D(sm,noTurbCond,SigW,SigF,TurbExtModel,delta_bl,1.0/dx_1,1.0/dy_1,_Hu,_isSrcAdd,sm,_FT);
+              CurrentNode->FillNode2D(sm,noTurbCond,SigW,SigF,TurbExtModel,delta_bl,dx,dy,_Hu,_isSrcAdd,sm,_FT);
 
               if( CurrentNode->Tg < 0. || isnan(CurrentNode->Tg) ) {
                   *dt_min_device = 0;  // Computational instability
@@ -906,10 +911,10 @@ cuda_DEEPS2D_Stage2(register FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
                   } else {
 #if FP == double
 #warning use FP64
-                  atomicMin(dt_min_device,double2uint(int2float_scale*dt_min_local));
+                    atomicMin(dt_min_device,double2uint(int2float_scale*dt_min_local));
 #else
 #warning use FP32                  
-                  atomicMin(dt_min_device,float2uint(int2float_scale*dt_min_local));
+                    atomicMin(dt_min_device,float2uint(int2float_scale*dt_min_local));
 #endif
                   }
               }
@@ -917,7 +922,7 @@ cuda_DEEPS2D_Stage2(register FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
                     CurrentNode->ix >= l_limit &&
                     CurrentNode->ix <  r_limit ) {
 #define _DEVICE_                    
-                    CurrentNode->FillNode2D(1,0,SigW,SigF,TurbExtModel,delta_bl,1.0/dx_1,1.0/dy_1,_Hu,_isSrcAdd,sm,_FT);
+                    CurrentNode->FillNode2D(1,0,SigW,SigF,TurbExtModel,delta_bl,dx,dy,_Hu,_isSrcAdd,sm,_FT);
 #undef  _DEVICE_
          }
     }

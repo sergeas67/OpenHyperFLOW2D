@@ -23,4 +23,7 @@ MODELS += -D_BARRIER_
 
 # Explicit copy data from global memory to L1 cache (manual prefetch)
 #MODELS += -D_L1_COPY_
+
+# Calc RMS
+MODELS += -D_RMS_
  

@@ -99,11 +99,10 @@
 <data/CFL=0.1>
 
 ; CFL scenario
-<table=CFL_Scenario/4>
-0       0.10
-1000    0.10
+<table=CFL_Scenario/3>
+0       0.07
+1000    0.08
 20000   0.10
-200000  0.10
 <endtable>
 
 ; Base blending factor
@@ -114,13 +113,13 @@
 
 ; Base blending factor scenario
 <table=beta_Scenario/3>
-0       0.95
+0       0.85
 20000   0.985
 100000  0.9875
 <endtable>
 
 ; Maximum number of steps
-<data/Nmax=15000>
+<data/Nmax=20000>
 ; Every NOutStep-th step is displayed
 <data/NOutStep=100>
 <data/NSaveStep=1>
@@ -152,7 +151,7 @@
 ; turbulence Pr_t in flow
 <data/SigF=1.0>
 ; Boundary layer initial thickness, m
-<data/delta_bl=0.00001>
+<data/delta_bl=0.0005>
 <data/TurbStartIter=1>
 ; Turbulence models (extended)
 ; 0 - zero equation Prandtl model

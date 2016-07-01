@@ -53,7 +53,7 @@ ALIGN      = 16
 CPU_EXT    += -mavx2
 else
 ALIGN      = 16
-endif
+endif                                                                                                           ~`
 
 CPU        = native
 
