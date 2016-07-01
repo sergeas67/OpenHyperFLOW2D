@@ -713,20 +713,20 @@ FP GetVal(XY_Table* XY, FP x ) {
     int     i, n;
     FP  y;
 
-    //ќбщее число значений в таблице
+    //
     n = XY->n;
 
-    //¬ таблице - единственное значение.
+    //
     if ( n == 1 )
         return( XY->y[0] );
 
-    //јргумент меньше минимального значени€.
+    //
     if ( x <= XY->x[0] ) {
         i = 1;
         goto EndGetVal;
     }
 
-    //јргумент больше максимального значени€.
+    //
     if ( x >= XY->x[n-1] ) {
         i = n - 1;
         goto EndGetVal;
@@ -1822,21 +1822,21 @@ int    Table::operator  < (Table) {
 FP Table::GetVal(FP _x ) {
     if ( this == InputData::GetZeroTable() )
         return 0.;
-    //ќбщее число значений в таблице
+    //
     register int    i, _n = n;
     register FP _y;
 
-    //¬ таблице - единственное значение.
+    //
     if ( _n == 1 )
         return( y[0] );
 
-    //јргумент меньше минимального значени€.
+    //
     if ( _x <= x[0] ) {
         i = 1;
         goto EndGetVal;
     }
 
-    //јргумент больше максимального значени€.
+    //
     if ( _x >= x[n-1] ) {
         i = _n - 1;
         goto EndGetVal;

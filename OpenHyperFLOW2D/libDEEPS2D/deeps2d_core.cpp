@@ -1075,15 +1075,15 @@ void DEEPS2D_Run(ofstream* f_stream
                                   if ( !CurrentNode->isCond2D((CondType2D)c_flag) && 
                                         CurrentNode->S[k] != 0. ) {
 
-                                        FP Tmp = CurrentNode->S[k];
+                                        FP Tmp;
                                         FP beta_min;
                                         FP sqrt_RES = 0;
                                         FP absDD    = 0.;
 
                                         if(k == i2d_RhoU && k == i2d_RhoV ) {
-                                            //Tmp = sqrt(CurrentNode->S[i2d_RhoU]*CurrentNode->S[i2d_RhoU]+
-                                            //           CurrentNode->S[i2d_RhoV]*CurrentNode->S[i2d_RhoV]+1.e-30); // Flux
                                             Tmp = max(fabs(CurrentNode->S[i2d_RhoU]),fabs(CurrentNode->S[i2d_RhoV]));// max Flux
+                                        } else {
+                                           Tmp = CurrentNode->S[k];
                                         }
                                         
                                         absDD       = NextNode->S[k]-CurrentNode->S[k];
@@ -1124,20 +1124,17 @@ void DEEPS2D_Run(ofstream* f_stream
                                         
                                         if (isAlternateRMS) {
                                             DD_max[rank].DD[k].RMS    += absDD*absDD;
+                                            DD_max[rank].DD[k].sumDiv += Tmp*Tmp;
                                         } else {
                                             DD_max[rank].DD[k].RMS    += DD_local[k]*DD_local[k];
+                                            DD_max[rank].DD[k].iRMS++;
                                         }
                                         
-                                        DD_max[rank].DD[k].sumDiv += Tmp*Tmp;
-                                        DD_max[rank].DD[k].iRMS++;
-
                                           if (DD_max[rank].DD[k].DD==DD_local[k] ) {
                                               DD_max[rank].DD[k].i = i;
                                               DD_max[rank].DD[k].j = j;
                                           }
-
 #else
-                                        
                                         if (isAlternateRMS) {
                                              sumDiv(k,ii) += Tmp*Tmp;
                                              RMS(k,ii)    += absDD;
@@ -1154,7 +1151,6 @@ void DEEPS2D_Run(ofstream* f_stream
                                              j_c[ii] = j;
                                         }
 #endif // _MPI
-
                                         }
                                         
                                         if (k<(4+NUM_COMPONENTS)) {
