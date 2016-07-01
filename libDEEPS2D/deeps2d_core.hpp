@@ -118,13 +118,12 @@ struct MonitorPoint {
        FP      T;
        int     rank;
 };
+
 #ifdef _RMS_
 struct  RMS_pack {
     unsigned long long int sum_iRMS[6+NUM_COMPONENTS];
     float                  RMS[6+NUM_COMPONENTS];
     float                  sumDiv[6+NUM_COMPONENTS];
-    //float                  DD_max[6+NUM_COMPONENTS];
-    //unsigned int           iDD_max[6+NUM_COMPONENTS];
 };
 #endif // _RMS_
 

@@ -561,8 +561,6 @@ void DEEPS2D_Run(ofstream* f_stream,
 #ifdef _RMS_           
 #pragma unroll
                        for (int n=0; n < FlowNode2D<FP,NUM_COMPONENTS>::NumEq; n++) {
-                           //tmp_RMS_pack.DD_max[n]    = max(tmp_RMS_pack.DD_max[n],host_RMS_Array.GetElement(ii)->iDD_max[n]/int2float_RMS_scale);
-                           //tmp_RMS_pack.sum_RMS[n]  += host_RMS_Array.GetElement(ii)->sum_RMS[n];
                            tmp_RMS_pack.RMS[n]      += host_RMS_Array.GetElement(ii)->RMS[n];
                            tmp_RMS_pack.sum_iRMS[n] += host_RMS_Array.GetElement(ii)->sum_iRMS[n];
                            tmp_RMS_pack.sumDiv[n]   += host_RMS_Array.GetElement(ii)->sumDiv[n];

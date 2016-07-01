@@ -84,8 +84,8 @@
 ; 3 - Rho*V residual
 ; 4 - Rho*E residual
 ; 5 - Time
-<data/MonitorIndex=5>
-<data/ExitMonitorValue=0.0001>
+<data/MonitorIndex=0>
+<data/ExitMonitorValue=1.e-8>
 
 <data/NumMonitorPoints=0>
 
@@ -96,13 +96,13 @@
 
 ;Maximum time of calculation, s
 ; Courant number (for gas phase only)
-<data/CFL=0.1>
+<data/CFL=0.05>
 
 ; CFL scenario
 <table=CFL_Scenario/3>
-0       0.07
-1000    0.08
-20000   0.10
+0       0.05
+1000    0.05
+20000   0.05
 <endtable>
 
 ; Base blending factor
@@ -119,7 +119,7 @@
 <endtable>
 
 ; Maximum number of steps
-<data/Nmax=20000>
+<data/Nmax=80000>
 ; Every NOutStep-th step is displayed
 <data/NOutStep=100>
 <data/NSaveStep=1>
@@ -152,7 +152,7 @@
 <data/SigF=1.0>
 ; Boundary layer initial thickness, m
 <data/delta_bl=0.0005>
-<data/TurbStartIter=1>
+<data/TurbStartIter=20000>
 ; Turbulence models (extended)
 ; 0 - zero equation Prandtl model
 ; 1 - zero equation van Driest model
