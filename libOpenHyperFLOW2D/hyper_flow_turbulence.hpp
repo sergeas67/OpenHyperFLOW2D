@@ -77,7 +77,7 @@ enum TurbulenceExtendedModel {
      TEM_k_omega_Wilcox,  // 14 - k-omega model          (TODO)
      TEM_k_omega_SST,     // 15 - k-omega SST model      (TODO)
      TEM_Smagorinsky,     // 16 - Smagorinsky-Lilly model
-     TEM_SA_comp          // 17 - SA compressible model
+     TEM_SA_comp,         // 17 - SA compressible model
 };
 
 // omega as eps alias 
@@ -145,7 +145,7 @@ public:
 };
 
 template <class T, int a>
-T FlowNodeTurbulence2D<T,a>::I=0.005;  // turbulence intensity (%)
+T FlowNodeTurbulence2D<T,a>::I=0.0025;  // turbulence intensity (%)
 
 template <class T, int a>
 #ifdef _CUDA_

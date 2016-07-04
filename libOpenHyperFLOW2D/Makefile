@@ -1,4 +1,4 @@
-# OpenOpenHyperFLOW2D project (Version  2.0.1)
+# OpenHyperFLOW2D project (Version  2.0.1)
 # Written by  Serge A. Suchkov (sergeas67@gmail.com)
 # http://github.com/sergeas67/openhyperflow2d
 

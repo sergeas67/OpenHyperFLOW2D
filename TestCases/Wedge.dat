@@ -75,6 +75,8 @@
 ;--------------------------------------------------
 ; RMS calc algo
 <data/isAlternateRMS=1>
+
+; Use local time stepping
 <data/isLocalTimeStep=0>
 
 ; Monitor:
@@ -85,7 +87,7 @@
 ; 4 - Rho*E residual
 ; 5 - Time
 <data/MonitorIndex=0>
-<data/ExitMonitorValue=1.e-8>
+<data/ExitMonitorValue=1.e-5>
 
 <data/NumMonitorPoints=0>
 
@@ -100,9 +102,9 @@
 
 ; CFL scenario
 <table=CFL_Scenario/3>
-0       0.05
-1000    0.07
-20000   0.10
+0       0.1
+1000    0.1
+20000   0.1
 <endtable>
 
 ; Base blending factor
@@ -119,7 +121,7 @@
 <endtable>
 
 ; Maximum number of steps
-<data/Nmax=10000>
+<data/Nmax=50000>
 ; Every NOutStep-th step is displayed
 <data/NOutStep=100>
 <data/NSaveStep=1>
@@ -133,7 +135,7 @@
 ; 1 -  linear BFF with relaxation       beta = (beta + beta0^2/(beta0 + | max_local_residual |))/2
 ; 4 -  square root BFF                  beta = beta0^2/(beta0 + sqrt(| max_local_residual |))
 ; 5 -  square root  BFF with relaxation beta = (beta + beta0^2/(beta0 + sqrt(| max_local_residual |)))/2
-<data/BFF=5>
+<data/BFF=4>
 ;-------------------------------------------------
 ; Turbulence models
 ;-------------------------------------------------
@@ -143,7 +145,7 @@
 ; 3 - One equation models
 ; 4 - Two equations models
 ; 5 - Smagorinsky
-<data/TurbulenceModel=3>
+<data/TurbulenceModel=4>
 <data/isTurbulenceReset=1>
 <data/ZeroEqFactor=0>
 ; turbulence  Pr_t near wall
@@ -151,8 +153,8 @@
 ; turbulence Pr_t in flow
 <data/SigF=1.0>
 ; Boundary layer initial thickness, m
-<data/delta_bl=0.0005>
-<data/TurbStartIter=20>
+<data/delta_bl=0.001>
+<data/TurbStartIter=500>
 ; Turbulence models (extended)
 ; 0 - zero equation Prandtl model
 ; 1 - zero equation van Driest model
@@ -166,7 +168,7 @@
 ; 10 - Spalart-Allmares model
 ; 16 - Smagorinsky SGS model
 ; 17 - SA-comp version
-<data/TurbExtModel=10>
+<data/TurbExtModel=4>
 
 ;--------------------------------------------------
 ; Thermodynamic properties of components

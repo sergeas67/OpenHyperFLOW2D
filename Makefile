@@ -1,5 +1,5 @@
 ###################################################
-# Makefile for OpenOpenHyperFLOW2D project        #
+# Makefile for OpenHyperFLOW2D project        #
 ###################################################
 SHELL     = /bin/bash
 DATE      = date +%d-%b-%Y

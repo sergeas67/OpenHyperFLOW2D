@@ -567,7 +567,7 @@ void DEEPS2D_Run(ofstream* f_stream,
                        }
 #endif //_RMS_
                    }
-#ifdef _BARRIER_                  
+#ifdef _BARRIER_
                    if(n_s > 1) {
                       CUDA_BARRIER((char*)"Halo/dt exchange");
                   }
@@ -704,12 +704,16 @@ void DEEPS2D_Run(ofstream* f_stream,
              for (int k=0;k<(int)(FlowNode2D<FP,NUM_COMPONENTS>::NumEq);k++ ) {
                  
                  if (isAlternateRMS) {
-                     if(tmp_RMS_pack.RMS[k] > 0.0 && tmp_RMS_pack.sumDiv[k] > 0) { 
+                     if(tmp_RMS_pack.RMS[k] != 0.0 && tmp_RMS_pack.sumDiv[k] != 0.0) { 
                         tmp_RMS_pack.RMS[k] = sqrt(tmp_RMS_pack.RMS[k]/tmp_RMS_pack.sumDiv[k]);
+                     } else {
+                        tmp_RMS_pack.RMS[k] = 0;
                      }
                  } else {
-                     if(tmp_RMS_pack.sum_iRMS[k] > 0) {
+                     if(tmp_RMS_pack.sum_iRMS[k] != 0) {
                         tmp_RMS_pack.RMS[k] = sqrt(tmp_RMS_pack.RMS[k]/tmp_RMS_pack.sum_iRMS[k]);
+                     } else {
+                        tmp_RMS_pack.RMS[k] = 0;
                      }
                  }
 

@@ -288,6 +288,7 @@ FP CalcXForce2D(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* pJ,
                     Sp = 2 * M_PI * (j+0.5)*FlowNode2D<FP,NUM_COMPONENTS>::dy*FlowNode2D<FP,NUM_COMPONENTS>::dy;
                     Sd = 2 * M_PI * (j+0.5)*FlowNode2D<FP,NUM_COMPONENTS>::dy*FlowNode2D<FP,NUM_COMPONENTS>::dx;
                 }
+                
                 // Pressure forces
 
                 if (i > 0 && pJ->GetValue(i-1,j).isCond2D(CT_SOLID_2D)) {                         // [solid]<-[gas] -force
@@ -387,6 +388,16 @@ FP   Calc_Cp(FlowNode2D<FP,NUM_COMPONENTS>* CurrentNode, Flow2D* pF) {
         return(CurrentNode->p - pF->Pg())/(0.5*pF->ROG()*pF->Wg()*pF->Wg());
     else
         return 0;
+}
+
+FP   Calc_Cf(FlowNode2D<FP,NUM_COMPONENTS>* CurrentNode, Flow2D* pF) {
+    // Skin friction
+    if (CurrentNode->isCond2D(CT_WALL_NO_SLIP_2D) && pF->Wg() > 0.0) {
+        FP Ff = (CurrentNode->mu+CurrentNode->mu_t) * fabs(CurrentNode->dUdy);
+            return (Ff/(0.5*pF->ROG()*pF->Wg()*pF->Wg()));
+    } else {
+        return 0;
+    }
 }
 
 FP GetFmid(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* pJ,
@@ -530,7 +541,8 @@ void SaveXHeatFlux2D(ofstream* OutputData,
                      int     y_min) {
     char  HeatFluxHeader[128];
     FP Cp;
-    FP St;
+    //FP St;
+    FP Cf;
     FP Trec  = (1 + 0.45 * (TestFlow->kg() - 1.0) * TestFlow->MACH() * TestFlow->MACH())*TestFlow->Tg();
 
 #ifdef _REF_TEST_
@@ -542,10 +554,10 @@ void SaveXHeatFlux2D(ofstream* OutputData,
     UArray<FP> PrArray(pJ->GetX());
     
 #else
-    snprintf(HeatFluxHeader,128,"#VARIABLES = X, HeatFlux(X),  Alpha(X), Cp(X), St(X)");
+    snprintf(HeatFluxHeader,128,"#VARIABLES = X, HeatFlux(X),  Alpha(X), Cp(X), Cf(X)");
     
     UArray<FP> CpArray(pJ->GetX());
-    UArray<FP> StArray(pJ->GetX());
+    UArray<FP> CfArray(pJ->GetX());
 
 #endif // _REF_TEST_
     
@@ -561,7 +573,7 @@ void SaveXHeatFlux2D(ofstream* OutputData,
         HeatExcgCoeffArray.SetElement(i,&Zero);
         
         CpArray.SetElement(i,&Zero);
-        StArray.SetElement(i,&Zero);
+        CfArray.SetElement(i,&Zero);
 
 #ifdef _REF_TEST_
         ReArray.SetElement(i,&Zero);
@@ -627,7 +639,7 @@ void SaveXHeatFlux2D(ofstream* OutputData,
             FP Q     = lam_eff*(pJ->GetValue(i,j).Tg - Ts)/FlowNode2D<FP,NUM_COMPONENTS>::dy;
             FP alpha = lam_eff/FlowNode2D<FP,NUM_COMPONENTS>::dy;
             
-            Cp = St = 0.0;
+            Cp = Cf = 0.0;
 
 #ifdef _REF_TEST_
             FP Re    = (pJ->GetValue(i,pJ->GetY()-1).U * (i+0.5)*FlowNode2D<FP,NUM_COMPONENTS>::dx*pJ->GetValue(i,j).S[0])/pJ->GetValue(i,j).mu;
@@ -646,7 +658,8 @@ void SaveXHeatFlux2D(ofstream* OutputData,
             FP Alpha_Ref =  Nu*pJ->GetValue(i,j).lam/((i+0.5)*FlowNode2D<FP,NUM_COMPONENTS>::dx);
             FP Q_Ref     =  Alpha_Ref*(pJ->GetValue(i,j).Tg - Ts);
 #endif // _REF_TEST_            
-            St =     Q/(TestFlow->ROG()*TestFlow->Wg()*TestFlow->C*(Trec-Ts));
+            Cf =     Calc_Cf(CurrentNode,TestFlow);
+            //St =     Q/(TestFlow->ROG()*TestFlow->Wg()*TestFlow->C*(Trec-Ts));
             Cp =     Calc_Cp(CurrentNode,TestFlow);
             
             if(HeatFluxArray.GetElement(i) != 0.) {
@@ -665,13 +678,13 @@ void SaveXHeatFlux2D(ofstream* OutputData,
               HeatExcgCoeffArray.SetElement(i,&alpha);
 
               CpArray.SetElement(i,&Cp);
-              StArray.SetElement(i,&St);
+              CfArray.SetElement(i,&Cf);
             } else {
               HeatFluxArray.SetElement(i,&Q);
               HeatExcgCoeffArray.SetElement(i,&alpha);
               
               CpArray.SetElement(i,&Cp);
-              StArray.SetElement(i,&St);
+              CfArray.SetElement(i,&Cf);
 #ifdef _REF_TEST_
               HeatExcgCoeffRefArray.SetElement(i,&Alpha_Ref); 
               HeatFluxRefArray.SetElement(i,&Q_Ref);
@@ -682,10 +695,10 @@ void SaveXHeatFlux2D(ofstream* OutputData,
     }
     for(int i=0; i < (int)HeatFluxArray.GetNumElements(); i++) {
         *OutputData << i*FlowNode2D<FP,NUM_COMPONENTS>::dx << " " << HeatFluxArray.GetElement(i)<< " " << HeatExcgCoeffArray.GetElement(i) << 
-                                                                  " " << CpArray.GetElement(i) << " " << StArray.GetElement(i)  <<
+                                                              " " << CpArray.GetElement(i) << " " << CfArray.GetElement(i)  <<
 #ifdef _REF_TEST_
-                                                                  " " << HeatFluxRefArray.GetElement(i) << " " << HeatExcgCoeffRefArray.GetElement(i) << 
-                                                                  " " << ReArray.GetElement(i) << " " << PrArray.GetElement(i)  <<
+                                                              " " << HeatFluxRefArray.GetElement(i) << " " << HeatExcgCoeffRefArray.GetElement(i) << 
+                                                              " " << ReArray.GetElement(i) << " " << PrArray.GetElement(i)  <<
 #endif // _REF_TEST_ 
                                                                   endl;           
     }

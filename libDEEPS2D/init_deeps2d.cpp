@@ -2862,15 +2862,15 @@ void SaveMonitors(ofstream* MonitorsFile,
 }
 #ifdef _RMS_
 void SaveRMSHeader(ofstream* OutputData) {
-        char  TechPlotTitle[1024];
+        char  TecPlotTitle[1024];
         char  TmpData[256]={'\0'};
 
         if(is_Cx_calc)
            snprintf(TmpData,256,", Cx(N), Cy(N), Fx(N), Fy(N)\n");
 
-        snprintf(TechPlotTitle,1024,"#VARIABLES = N, RMS(Rho), RMS(Rho*U), RMS(Rho*V), RMS(Rho*E), RMS(Rho*Y_fu), RMS(Rho*Y_ox), RMS(RhoY*cp), RMS(k), RMS(eps)%s",TmpData);
+        snprintf(TecPlotTitle,1024,"#VARIABLES = N, RMS(Rho), RMS(Rho*U), RMS(Rho*V), RMS(Rho*E), RMS(Rho*Y_fu), RMS(Rho*Y_ox), RMS(RhoY*cp), RMS(k), RMS(eps)%s",TmpData);
 
-        *OutputData <<  TechPlotTitle << endl;
+        *OutputData <<  TecPlotTitle << endl;
     }
 
     void SaveRMS(ofstream* OutputData,unsigned int n, float* outRMS) {

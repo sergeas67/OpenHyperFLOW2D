@@ -765,11 +765,15 @@ cuda_DEEPS2D_Stage2(register FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
                         
                         absDD = NextNode->S[k]-CurrentNode->S[k];
 
-                        if(fabs(Tmp) > 1.e-15) {
+                        if(Tmp != 0.0 && absDD !=0  &&
+                           !isnan(Tmp) && !isnan(absDD)) {
                             DD_local = fabs(absDD/Tmp);
                             sqrt_RES = sqrt(DD_local);
                         } else {
-                            DD_local = 1.0;
+                            DD_local = 0.0;
+                            sqrt_RES = 0.0;
+                            Tmp      = 0.0;
+                            absDD    = 0.0;
                         }
                         
                         if(CurrentNode->isCond2D(CT_NONREFLECTED_2D)) {

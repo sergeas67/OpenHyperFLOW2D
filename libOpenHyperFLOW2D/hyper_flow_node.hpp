@@ -967,7 +967,7 @@ void  FlowNode2D<T,a>::TurbModRANS2D(register int is_mu_t,
              TurbulenceAxisymmAddOn(is_init, _FT);
         }
 
-        } else if (FlowNodeTurbulence2D<T,a>::isTurbulenceCond2D(TCT_Spalart_Allmaras_Model_2D)) { // SA-comp from  http://turbmodels.larc.nasa.gov/spalart.html
+        } else if (FlowNodeTurbulence2D<T,a>::isTurbulenceCond2D(TCT_Spalart_Allmaras_Model_2D)) { // SA and SA-comp from  http://turbmodels.larc.nasa.gov/spalart.html
 #ifdef __ICC
             __declspec(align(_ALIGN)) T Cb1, Cb2, sig, _k, Cw1, Cw2, Cw3, Cv1, /*Ct1,*/ Ct2, /*Ct3,*/ Ct4, C5, nu, nu_hat, ksi, fv1, fv2, ft2, fw, g, r, Omega, S_hat, a_sound2, comp_add;
             __declspec(align(_ALIGN)) T Wxy, Div_nu;

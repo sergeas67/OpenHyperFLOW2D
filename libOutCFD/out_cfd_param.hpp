@@ -104,6 +104,7 @@ FP   Calc_XSigmaFi(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* pJ,
                       Flow2D* pF);
 
 FP   Calc_Cp(FlowNode2D<FP,NUM_COMPONENTS>* CurrentNode, Flow2D* pF);
+FP   Calc_Cf(FlowNode2D<FP,NUM_COMPONENTS>* CurrentNode, Flow2D* pF);
 FP   Calc_Cx_2D(UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >* pJ, 
                     FP x, 
                     FP y,

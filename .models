@@ -1,5 +1,5 @@
 ####################################################
-# OpenOpenHyperFLOW2D extended models
+# OpenHyperFLOW2D extended models
 ####################################################
 # Mesh type
 MODELS += -D_UNIFORM_MESH_
