@@ -114,7 +114,7 @@ CPU        = core-avx2
 CPU_EXT    = 
 #-no-opt-prefetch
 ALIGN      = 16
-ALIGN2     = 16
+ALIGN2     = 32
 
 endif
 

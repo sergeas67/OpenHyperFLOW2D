@@ -96,13 +96,13 @@
 
 ;Maximum time of calculation, s
 ; Courant number (for gas phase only)
-<data/CFL=0.05>
+<data/CFL=0.1>
 
 ; CFL scenario
 <table=CFL_Scenario/3>
 0       0.05
-1000    0.05
-20000   0.05
+1000    0.07
+20000   0.10
 <endtable>
 
 ; Base blending factor
@@ -119,7 +119,7 @@
 <endtable>
 
 ; Maximum number of steps
-<data/Nmax=80000>
+<data/Nmax=10000>
 ; Every NOutStep-th step is displayed
 <data/NOutStep=100>
 <data/NSaveStep=1>
@@ -133,7 +133,7 @@
 ; 1 -  linear BFF with relaxation       beta = (beta + beta0^2/(beta0 + | max_local_residual |))/2
 ; 4 -  square root BFF                  beta = beta0^2/(beta0 + sqrt(| max_local_residual |))
 ; 5 -  square root  BFF with relaxation beta = (beta + beta0^2/(beta0 + sqrt(| max_local_residual |)))/2
-<data/BFF=4>
+<data/BFF=5>
 ;-------------------------------------------------
 ; Turbulence models
 ;-------------------------------------------------
@@ -143,7 +143,7 @@
 ; 3 - One equation models
 ; 4 - Two equations models
 ; 5 - Smagorinsky
-<data/TurbulenceModel=4>
+<data/TurbulenceModel=3>
 <data/isTurbulenceReset=1>
 <data/ZeroEqFactor=0>
 ; turbulence  Pr_t near wall
@@ -152,7 +152,7 @@
 <data/SigF=1.0>
 ; Boundary layer initial thickness, m
 <data/delta_bl=0.0005>
-<data/TurbStartIter=20000>
+<data/TurbStartIter=20>
 ; Turbulence models (extended)
 ; 0 - zero equation Prandtl model
 ; 1 - zero equation van Driest model
@@ -164,8 +164,9 @@
 ; 7 - Launder and Sharma, with Yap-correction k-eps model
 ; 8 - RNG k-eps model
 ; 10 - Spalart-Allmares model
-; 16 - Smagorinsky SGS model 
-<data/TurbExtModel=4>
+; 16 - Smagorinsky SGS model
+; 17 - SA-comp version
+<data/TurbExtModel=10>
 
 ;--------------------------------------------------
 ; Thermodynamic properties of components

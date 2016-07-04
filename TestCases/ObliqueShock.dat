@@ -55,7 +55,7 @@
 ; Computation parameters
 ;--------------------------------------------------
 ; RMS calc algo
-<data/isAlternateRMS=1>
+<data/isAlternateRMS=0>
 
 <data/isLocalTimeStep=0>
 ;

@@ -77,6 +77,7 @@ enum TurbulenceExtendedModel {
      TEM_k_omega_Wilcox,  // 14 - k-omega model          (TODO)
      TEM_k_omega_SST,     // 15 - k-omega SST model      (TODO)
      TEM_Smagorinsky,     // 16 - Smagorinsky-Lilly model
+     TEM_SA_comp          // 17 - SA compressible model
 };
 
 // omega as eps alias 

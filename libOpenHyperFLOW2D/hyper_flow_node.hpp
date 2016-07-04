@@ -969,7 +969,7 @@ void  FlowNode2D<T,a>::TurbModRANS2D(register int is_mu_t,
 
         } else if (FlowNodeTurbulence2D<T,a>::isTurbulenceCond2D(TCT_Spalart_Allmaras_Model_2D)) { // SA-comp from  http://turbmodels.larc.nasa.gov/spalart.html
 #ifdef __ICC
-            __declspec(align(_ALIGN)) T Cb1, Cb2, sig, _k, Cw1, Cw2, Cw3, Cv1, /*Ct1,*/ Ct2, /*Ct3,*/ Ct4, C5, nu, nu_hat, ksi, fv1, fv2, ft2, fw, g, r, Omega, S_hat, a_sound2;
+            __declspec(align(_ALIGN)) T Cb1, Cb2, sig, _k, Cw1, Cw2, Cw3, Cv1, /*Ct1,*/ Ct2, /*Ct3,*/ Ct4, C5, nu, nu_hat, ksi, fv1, fv2, ft2, fw, g, r, Omega, S_hat, a_sound2, comp_add;
             __declspec(align(_ALIGN)) T Wxy, Div_nu;
 #else
 #ifdef _DEVICE_
@@ -999,6 +999,7 @@ void  FlowNode2D<T,a>::TurbModRANS2D(register int is_mu_t,
            register T Wxy;
            register T Div_nu;
            register T a_sound2;
+           register T comp_add;
 #else
            T Cb1 __attribute__ ((aligned (_ALIGN)));
            T Cb2 __attribute__ ((aligned (_ALIGN)));
@@ -1026,6 +1027,7 @@ void  FlowNode2D<T,a>::TurbModRANS2D(register int is_mu_t,
            T Wxy __attribute__ ((aligned (_ALIGN)));
            T Div_nu __attribute__ ((aligned (_ALIGN)));
            T a_sound2 __attribute__ ((aligned (_ALIGN)));
+           T comp_add __attribute__ ((aligned (_ALIGN)));
 #endif // _DEVICE
 #endif //__ICC
             fv1 = 1.0;
@@ -1048,14 +1050,11 @@ void  FlowNode2D<T,a>::TurbModRANS2D(register int is_mu_t,
                 Ct2 = 2.0;
                 //Ct3 = 1.2; // orig 1.1
                 Ct4 = 0.5;   // orig 2
-                C5  = 3.5;   // comp. add
-                a_sound2 = k*R*Tg; // comp. add
+                
+                
                 nu  = mu/FlowNodeCore2D<T,a>::S[i2d_Rho];
                 ksi = FlowNodeCore2D<T,a>::S[i2d_nu_t]/nu;
                 fv1 = ksi*ksi*ksi/(ksi*ksi*ksi + Cv1*Cv1*Cv1);
-
-                nu_hat =  FlowNodeTurbulence2D<T,a>::mu_t/FlowNodeCore2D<T,a>::S[i2d_Rho]/fv1; // comp. add
-
                 fv2 = 1.0 - ksi/(1.0 + ksi * fv1);
                 Wxy = 0.5*(dVdx - dUdy);
                 Omega = sqrt(2.0*Wxy*Wxy);
@@ -1080,9 +1079,18 @@ void  FlowNode2D<T,a>::TurbModRANS2D(register int is_mu_t,
 
                 A[i2d_nu_t]   = A[i2d_nu_t]  - RX[i2d_nu_t];
                 B[i2d_nu_t]   = B[i2d_nu_t]  - RY[i2d_nu_t];
-
-                Src[i2d_nu_t] = Cb1*(1.0 - ft2)*S_hat*FlowNodeCore2D<T,a>::S[i2d_nu_t] - (Cw1*fw - Cb1/(_k*_k)*ft2)*(FlowNodeCore2D<T,a>::S[i2d_nu_t]/FlowNodeTurbulence2D<T,a>::l_min)*(FlowNodeCore2D<T,a>::S[i2d_nu_t]/FlowNodeTurbulence2D<T,a>::l_min) + (Cb2*Div_nu*Div_nu)/sig
-                                - C5*nu_hat*nu_hat/a_sound2*dUdy*dVdx;  // comp. add
+                
+                if (tem == TEM_SA_comp) {
+                    C5  = 3.5;   // comp. add
+                    a_sound2 = k*R*Tg; // comp. add
+                    nu_hat =  FlowNodeTurbulence2D<T,a>::mu_t/FlowNodeCore2D<T,a>::S[i2d_Rho]/fv1; // comp. add
+                    comp_add = - C5*nu_hat*nu_hat/a_sound2*dUdy*dVdx;  // comp. add
+                } else {
+                    comp_add = 0.;
+                }
+                
+                Src[i2d_nu_t] = Cb1*(1.0 - ft2)*S_hat*FlowNodeCore2D<T,a>::S[i2d_nu_t] - (Cw1*fw - Cb1/(_k*_k)*ft2)*(FlowNodeCore2D<T,a>::S[i2d_nu_t]/FlowNodeTurbulence2D<T,a>::l_min)*(FlowNodeCore2D<T,a>::S[i2d_nu_t]/FlowNodeTurbulence2D<T,a>::l_min) + (Cb2*Div_nu*Div_nu)/sig + comp_add;
+                                
             }
             //Axisymmetric turbulence add-on
              TurbulenceAxisymmAddOn(is_init, _FT);
@@ -1355,7 +1363,7 @@ void  FlowNode2D<T,a>::TurbModRANS2D(register int is_mu_t,
 
         } else if (FlowNodeTurbulence2D<T,a>::isTurbulenceCond2D(TCT_Spalart_Allmaras_Model_2D)) { // SA-comp from  http://turbmodels.larc.nasa.gov/spalart.html
 #ifdef __ICC
-            __declspec(align(_ALIGN)) T Cb1, Cb2, sig, _k, Cw1, Cw2, Cw3, Cv1, /*Ct1,*/ Ct2, /*Ct3,*/ Ct4, C5, nu, nu_hat, ksi, fv1, fv2, ft2, fw, g, r, Omega, S_hat, a_sound2;
+            __declspec(align(_ALIGN)) T Cb1, Cb2, sig, _k, Cw1, Cw2, Cw3, Cv1, /*Ct1,*/ Ct2, /*Ct3,*/ Ct4, C5, nu, nu_hat, ksi, fv1, fv2, ft2, fw, g, r, Omega, S_hat, a_sound2, comp_add;
             __declspec(align(_ALIGN)) T Wxy, Div_nu;
 #else
            T Cb1 __attribute__ ((aligned (_ALIGN)));
@@ -1384,6 +1392,7 @@ void  FlowNode2D<T,a>::TurbModRANS2D(register int is_mu_t,
            T Wxy __attribute__ ((aligned (_ALIGN)));
            T Div_nu __attribute__ ((aligned (_ALIGN)));
            T a_sound2 __attribute__ ((aligned (_ALIGN)));
+           T comp_add  __attribute__ ((aligned (_ALIGN)));
 #endif //__ICC
             fv1 = 1.0;
 
@@ -1406,14 +1415,9 @@ void  FlowNode2D<T,a>::TurbModRANS2D(register int is_mu_t,
                 Ct2 = 2.0;
                 //Ct3 = 1.2; // orig 1.1
                 Ct4 = 0.5;   // orig 2
-                C5  = 3.5;   // comp. add
-                a_sound2 = k*R*Tg; // comp. add
                 nu  = mu/FlowNodeCore2D<T,a>::S[i2d_Rho];
                 ksi = FlowNodeCore2D<T,a>::S[i2d_nu_t]/nu;
                 fv1 = ksi*ksi*ksi/(ksi*ksi*ksi + Cv1*Cv1*Cv1);
-
-                nu_hat =  FlowNodeTurbulence2D<T,a>::mu_t/FlowNodeCore2D<T,a>::S[i2d_Rho]/fv1; // comp. add
-
                 fv2 = 1.0 - ksi/(1.0 + ksi * fv1);
                 Wxy = 0.5*(dVdx - dUdy);
                 Omega = sqrt(2.0*Wxy*Wxy);
@@ -1439,8 +1443,16 @@ void  FlowNode2D<T,a>::TurbModRANS2D(register int is_mu_t,
                 A[i2d_nu_t]   = A[i2d_nu_t]  - RX[i2d_nu_t];
                 B[i2d_nu_t]   = B[i2d_nu_t]  - RY[i2d_nu_t];
 
-                Src[i2d_nu_t] = Cb1*(1.0 - ft2)*S_hat*FlowNodeCore2D<T,a>::S[i2d_nu_t] - (Cw1*fw - Cb1/(_k*_k)*ft2)*(FlowNodeCore2D<T,a>::S[i2d_nu_t]/FlowNodeTurbulence2D<T,a>::l_min)*(FlowNodeCore2D<T,a>::S[i2d_nu_t]/FlowNodeTurbulence2D<T,a>::l_min) + (Cb2*Div_nu*Div_nu)/sig
-                                - C5*nu_hat*nu_hat/a_sound2*dUdy*dVdx;  // comp. add
+                if (tem == TEM_SA_comp) {
+                    C5  = 3.5;   // comp. add
+                    a_sound2 = k*R*Tg; // comp. add
+                    nu_hat =  FlowNodeTurbulence2D<T,a>::mu_t/FlowNodeCore2D<T,a>::S[i2d_Rho]/fv1; // comp. add
+                    comp_add = - C5*nu_hat*nu_hat/a_sound2*dUdy*dVdx;  // comp. add
+                } else {
+                    comp_add = 0.;
+                }
+                
+                Src[i2d_nu_t] = Cb1*(1.0 - ft2)*S_hat*FlowNodeCore2D<T,a>::S[i2d_nu_t] - (Cw1*fw - Cb1/(_k*_k)*ft2)*(FlowNodeCore2D<T,a>::S[i2d_nu_t]/FlowNodeTurbulence2D<T,a>::l_min)*(FlowNodeCore2D<T,a>::S[i2d_nu_t]/FlowNodeTurbulence2D<T,a>::l_min) + (Cb2*Div_nu*Div_nu)/sig + comp_add;
             }
             //Axisymmetric turbulence add-on
              TurbulenceAxisymmAddOn(is_init);
