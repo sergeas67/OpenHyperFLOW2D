@@ -3,12 +3,19 @@
 ###################################################
 SHELL     = /bin/bash
 DATE      = date +%d-%b-%Y
+
 #Version
 include   .version
+
 # Compilers
 include   .compiler
+
 # Parallel code tunings
 include   .parallel
+
+# Extended options
+include   .options
+
 # Extended models
 include   .models
 
@@ -114,13 +121,10 @@ Step:
 	gnuplot TestCases/Step_Res.dat
 Bubble2D:
 	bin/OpenHyperFLOW2D.sh TestCases/Bubble2D
-ShowAllResults:
-	gnuplot TestCases/T.dat
-	gnuplot TestCases/pressure.dat
-	gnuplot TestCases/Mach.dat
-	gnuplot TestCases/Rho.dat
-	gnuplot TestCases/U.dat
-	gnuplot TestCases/V.dat
+ShowResults:
+	gnuplot TestCases/ObliqueShock_Res.dat
+	gnuplot TestCases/Wedge_Res.dat
+	gnuplot TestCases/Step_Res.dat
 #$(NVCC)
 $(TARGET_2D): local  Utl libexcept libflow objData libhyperflow libdeeps2d liboutcfd $(OBJECTS_2D)
 	$(CXXC) $(STATIC) $(OBJECTS_2D) $(CFLAGS) $(LLIBS_2D) -o $(TARGET_2D)

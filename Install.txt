@@ -4,9 +4,9 @@ System Requirements
 * CPU:           x86_64 compatible;
 * GPU:           CUDA compatible NVIDIA card;
 * OS:            Linux x86_64 (tested on OpenSUSE 10+, SLES 10+, CentOS 6+, Scientific Linux 5+);
-* C++ compiler:  GNU C++ 4.1+;
+* C++ compiler:  GNU C++ 4.1+, Intel C++ 10+;
 * Drivers        Latest proprietary Nvidia driver
-* SDK            CUDA 5.5+
+* SDK            CUDA 5.5+  (up to CUDA 8.0 tested)
 
 Installation
 ============
@@ -15,7 +15,9 @@ Installation
 
 Edit '.compiler' file:
 
-Select 'COMPILER=GNU' (Intel C++ compiler not support for this version)
+Select compiler:
+ 'COMPILER=GNU' for GNU C++ compiler or
+ 'COMPILER=INTEL' for Intel C++ compiler
 
 2. Configure parallel features
 
@@ -24,9 +26,8 @@ Edit '.parallel' file:
 Select 'PARALLEL=CUDA'
 
 Edit 'cuda.compiler' file:
-
-Specify path to nvcc compiler 'NVCC=...'
-Specify path to CUDA include files 'CUDA_INCPATH=...'
+Specify CUDA version: e.g. 'CUDA_VER=8.0' 
+Specify CUDA root path: Default 'CUDA_ROOT=/usr/local'
 
 3. Build
 

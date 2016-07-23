@@ -35,5 +35,5 @@ splot 'Step.plt' u 1:2:13  t 'Mach'
 #show title
 #set terminal x11 6
 #splot 'Step.plt' u 1:2:6  t 'p'
-
+print "Press <Enter> for next test"
 pause -1

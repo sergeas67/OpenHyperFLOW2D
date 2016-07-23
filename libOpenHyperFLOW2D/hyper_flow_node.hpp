@@ -155,14 +155,14 @@ public:
 #ifdef    _UNIFORM_MESH_
      static 
 #endif // _UNIFORM_MESH_
-    T                dx,dy;       // dx, dy(dr)
-    T                x,y;         // x, y(r)
-    int              ix,iy;       // i_x,i_y
+    T                dx,dy;          // dx, dy(dr)
+    T                x,y;            // x, y(r)
+    int              ix,iy;          // i_x,i_y
 // Neighboring nodes
-    FlowNode2D<T,a>*            UpNode;
-    FlowNode2D<T,a>*            DownNode;
-    FlowNode2D<T,a>*            LeftNode;
-    FlowNode2D<T,a>*            RightNode;
+    FlowNode2D<T,a>* UpNode;
+    FlowNode2D<T,a>* DownNode;
+    FlowNode2D<T,a>* LeftNode;
+    FlowNode2D<T,a>* RightNode;
     
     T          p;                    // pressure 
     int        idXl;                 // is left node present ? (0 or 1)
@@ -441,21 +441,20 @@ inline void FlowNode2D<T,a>::FillNode2D(register int is_mu_t,
     else if(k < 1)
         return;
 #ifdef _DEVICE_
-    register unsigned int i; // __attribute__ ((aligned (_ALIGN)));
+    register unsigned int i; 
      // viscous stresses & diffusion fluxes
-    register T  sxx;//   __attribute__ ((aligned (_ALIGN)));
-    register T  txy;//   __attribute__ ((aligned (_ALIGN)));
-    register T  syy;//   __attribute__ ((aligned (_ALIGN)));
-    register T  qx;//    __attribute__ ((aligned (_ALIGN)));
-    register T  qy;//    __attribute__ ((aligned (_ALIGN)));
-    register T  L;//     __attribute__ ((aligned (_ALIGN)));
-    register T  _mu;//   __attribute__ ((aligned (_ALIGN)));
-    register T  _lam;//  __attribute__ ((aligned (_ALIGN)));
-    register T  t00;//   __attribute__ ((aligned (_ALIGN)));
-   // T  G     __attribute__ ((aligned (_ALIGN)));
-    register T  Tmp1;//  __attribute__ ((aligned (_ALIGN)));
-    register T  Tmp2;//  __attribute__ ((aligned (_ALIGN)));
-    register T  Tmp3;//  __attribute__ ((aligned (_ALIGN)));
+    register T  sxx;  
+    register T  txy;  
+    register T  syy;  
+    register T  qx;   
+    register T  qy;   
+    register T  L;    
+    register T  _mu;  
+    register T  _lam; 
+    register T  t00;  
+    register T  Tmp1; 
+    register T  Tmp2; 
+    register T  Tmp3; 
     Tmp3 = 0;
 #else
 #ifdef __ICC

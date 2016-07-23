@@ -1,0 +1,26 @@
+####################################################
+# OpenHyperFLOW2D ext. options
+####################################################
+# Mesh type
+MODELS += -D_UNIFORM_MESH_
+
+MODELS += -D_PARALLEL_RECALC_Y_PLUS_
+
+# Output RMS residuals for all variables
+MODELS += -D_RMS_
+
+# Use GPU device mmaping
+#MODELS += -D_DEVICE_MMAP_
+
+# Use Unified Memory
+#MODELS += -D_UVA_
+
+# Use direct P2P access for multiGPU configs
+MODELS += -D_P2P_ACCESS_
+
+# Use additional barrier sync
+MODELS += -D_BARRIER_
+
+# Explicit copy data from global memory to L1 cache (manual prefetch)
+#MODELS += -D_L1_COPY_
+

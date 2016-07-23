@@ -5,6 +5,8 @@
 include   ../.version
 include   ../.compiler
 include   ../.parallel
+# Extended options
+include   ../.options
 include   ../.models
 
 # for utils only

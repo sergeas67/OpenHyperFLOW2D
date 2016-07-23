@@ -152,17 +152,23 @@
 <data/Ts0=300.>
 
 ;--------------------------------------------------
-; Thermodynamic properties of components
+; Chemical reactions model
+;--------------------------------------------------
+; Model of chemical reactions
+; 0 - No reactions
+; 1 - Zeldovich model
+; 2 - Arrenius model
 ;--------------------------------------------------
 
-; General parameters
+<data/ChemicalReactionsModel=0>
 
-; Stechiometric Oxygen/Fuel mass ratio: K0 = Mox/Mfuel
-<data/K0=15.25>
+; Stechiometric Oxygen/Fuel mass ratio: K0 = Mox/Mh2 (CH4+2*O2 = 2*H2O+CO2)
+<data/K0=34.>
  
 ; Coefficient of chemical reactions completion:
-;   1.  = 0%   (no combustion)
-;   0.  = 100% (full combustion)
+;   0.  = 0%   (no combustion)
+;   1.  = 100% (full combustion)
+
 <data/gamma=0.>
 ;
 ; Ignition temperature, K.
@@ -172,9 +178,9 @@
 ;--------------------------------------------------
 <data/NumSrc=0>
 
-;------------------------
+;--------------------------------------------------
 ; Combustion products  properties
-; ------------------------
+; -------------------------------------------------
 ; Heat of air formation, J/kg 
 <data/H_cp=-289.85e4>
 ; Gas constant, J/(kg.K)

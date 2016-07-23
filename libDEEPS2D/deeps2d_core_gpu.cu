@@ -411,6 +411,7 @@ void DEEPS2D_Run(ofstream* f_stream,
                                                                                                        beta_Scenario->GetVal(iter+last_iter),beta0,
                                                                                                        bFF, min(CFL0,CFL_Scenario->GetVal(iter+last_iter)),
                                                                                                        nrbc_beta0,
+                                                                                                       Chemical_reactions_model,
                                                                                                        cudaCRM2D->GetElement(ii),
                                                                                                        noTurbCond,
                                                                                                        SigW,SigF,dx_1,dy_1,delta_bl,dx,dy,
@@ -567,7 +568,7 @@ void DEEPS2D_Run(ofstream* f_stream,
                        }
 #endif //_RMS_
                    }
-#ifdef _BARRIER_
+#ifdef _BARRIER_                  
                    if(n_s > 1) {
                       CUDA_BARRIER((char*)"Halo/dt exchange");
                   }
@@ -671,7 +672,7 @@ void DEEPS2D_Run(ofstream* f_stream,
 
              }
 
-             if(isCalibrate && ThreadBlockSize == 0 && iter+last_iter > (NOutStep+1)*8 ) {
+             if(isCalibrate && ThreadBlockSize == 0 && iter+last_iter > (NOutStep+1)*6 ) {
                 current_div_stage1 = opt_thread_block_size_stage1[0];
                 current_div_stage2 = opt_thread_block_size_stage2[0];
                 current_div_heat   = opt_thread_block_size_heat[0];
@@ -704,16 +705,12 @@ void DEEPS2D_Run(ofstream* f_stream,
              for (int k=0;k<(int)(FlowNode2D<FP,NUM_COMPONENTS>::NumEq);k++ ) {
                  
                  if (isAlternateRMS) {
-                     if(tmp_RMS_pack.RMS[k] != 0.0 && tmp_RMS_pack.sumDiv[k] != 0.0) { 
+                     if(tmp_RMS_pack.RMS[k] > 0.0 && tmp_RMS_pack.sumDiv[k] > 0) { 
                         tmp_RMS_pack.RMS[k] = sqrt(tmp_RMS_pack.RMS[k]/tmp_RMS_pack.sumDiv[k]);
-                     } else {
-                        tmp_RMS_pack.RMS[k] = 0;
                      }
                  } else {
-                     if(tmp_RMS_pack.sum_iRMS[k] != 0) {
+                     if(tmp_RMS_pack.sum_iRMS[k] > 0) {
                         tmp_RMS_pack.RMS[k] = sqrt(tmp_RMS_pack.RMS[k]/tmp_RMS_pack.sum_iRMS[k]);
-                     } else {
-                        tmp_RMS_pack.RMS[k] = 0;
                      }
                  }
 

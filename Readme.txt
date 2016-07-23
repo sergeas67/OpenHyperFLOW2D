@@ -3,9 +3,9 @@
 
        Copyright (C)  1995-2016 by Serge A. Suchkov (sergeas67@gmail.com)
                    Copyright policy: LGPL V3
-	    http://github.com/sergeas67/openhyperflow2d	   
+            http://github.com/sergeas67/OpenHyperFLOW2D
 
-CFD code for simulation 2D (flat/axisymmetric) transient viscous
+Parallel CFD code for simulation 2D (flat/axisymmetric) transient viscous
 compressible multicomponent sub/trans/supersonic reacting gas flows.
 
 Basic features
@@ -24,7 +24,8 @@ Basic features
 		* Klebanoff;
 		* Smagorinsky-Lilly;
 	    + One-equation models:
-		* Spalart-Allmaras model;
+		* Spalart-Allmaras model ("standard" version);
+		* Spalart-Allmaras model (SA-comp version);
 	    + Two-equations models:
 		* Standard (Spalding) k-eps model;
 		* Chien k-eps model;

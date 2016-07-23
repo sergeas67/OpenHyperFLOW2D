@@ -29,6 +29,7 @@ int            isGasSource=0;
 int            isRecalcYplus;
 int            isLocalTimeStep;
 int            isHighOrder;
+int            Chemical_reactions_model;
 #ifdef   _RMS_
 int            isAlternateRMS;
 #endif //_RMS_ 
@@ -461,20 +462,33 @@ void InitSharedData(InputData* _data,
             if ( _data->GetDataError()==-1 ) {
                 Abort_OpenHyperFLOW2D();
             }
-
-            model_data->K0     = _data->GetFloatVal((char*)"K0"); // Stoichiometric ratio (OX/Fuel)
+            
+            
+            // Model of chemical reactions
+            // 0 - No reactions
+            // 1 - Zeldovich model
+            // 2 - Arrenius model
+            
+            Chemical_reactions_model = _data->GetIntVal("ChemicalReactionsModel"); // Model of chemical reactions
             if ( _data->GetDataError()==-1 ) {
-                Abort_OpenHyperFLOW2D();
+               Abort_OpenHyperFLOW2D();
             }
 
-            model_data->gamma  = _data->GetFloatVal((char*)"gamma"); // Factor completion of a chemical reaction
-            if ( _data->GetDataError()==-1 ) {
-                Abort_OpenHyperFLOW2D();
-            }
+            if (Chemical_reactions_model > 0) {
+                model_data->K0     = _data->GetFloatVal((char*)"K0"); // Stoichiometric ratio (OX/Fuel)
+                if ( _data->GetDataError()==-1 ) {
+                    Abort_OpenHyperFLOW2D();
+                }
 
-            model_data->Tf     = _data->GetFloatVal((char*)"Tf");   // Ignition temperature
-            if ( _data->GetDataError()==-1 ) {
-                Abort_OpenHyperFLOW2D();
+                model_data->gamma  = _data->GetFloatVal((char*)"gamma"); // Factor completion of a chemical reaction
+                if ( _data->GetDataError()==-1 ) {
+                    Abort_OpenHyperFLOW2D();
+                }
+
+                model_data->Tf     = _data->GetFloatVal((char*)"Tf");   // Ignition temperature
+                if ( _data->GetDataError()==-1 ) {
+                    Abort_OpenHyperFLOW2D();
+                }
             }
 
             isAdiabaticWall     = _data->GetIntVal((char*)"isAdiabaticWall");  // is walls adiabatic ?

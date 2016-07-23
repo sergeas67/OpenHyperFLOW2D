@@ -167,6 +167,7 @@ extern int                               isIgnoreUnsetNodes;
 extern unsigned int                      iter;
 extern SourceList2D*                     SrcList;
 extern int                               TurbMod;
+extern int                               Chemical_reactions_model;
 extern BlendingFactorFunction            bFF;
 extern SourceList2D*                     SrcList;
 extern int                               isHighOrder;
@@ -409,6 +410,7 @@ cuda_DEEPS2D_Stage2(register FlowNode2D<FP,NUM_COMPONENTS>*     pLJ,
                     register FP beta_init, register FP  beta0, 
                     register int b_FF, register FP CFL0,
                     register FP nrbc_beta0,
+                    register int Chemical_reactions_model,
                     register ChemicalReactionsModelData2D* pCRMD,
                     register int noTurbCond,
                     register FP SigW, register FP SigF, 

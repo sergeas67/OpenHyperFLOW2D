@@ -6,6 +6,8 @@
 
 include   ../.compiler
 include   ../.parallel
+# Extended options
+include   ../.options
 include   ../.models
 
 ifeq     ("$(COMPILER)","Intel")

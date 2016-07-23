@@ -41,9 +41,7 @@ XY<int>*                                      cudaWallNodes           = NULL;
 FlowNode2D<FP,NUM_COMPONENTS>*                cudaSubDomain           = NULL;
 FlowNodeCore2D<FP,NUM_COMPONENTS>*            cudaCoreSubDomain       = NULL;
 ChemicalReactionsModelData2D*                 cudaCRM2D               = NULL;
-
 UArray< MonitorPoint >*                       MonitorPointsArray      = NULL;
-
 FP*                                           cudaHu;
 UArray<FP*>*                                  cudaHuArray;
 FP                                            x0;
