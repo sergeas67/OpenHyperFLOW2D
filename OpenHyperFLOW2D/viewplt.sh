@@ -148,7 +148,7 @@ set style data lines
 set cntrparam levels auto 40
 set grid
 set title "All Residuals RMS"
-set yrange [1.e-8:]
+#set yrange [1.e-8:]
 $LOGSCALE
 set logscale y 10
 show title
