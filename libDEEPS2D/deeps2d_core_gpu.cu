@@ -184,7 +184,7 @@ void DEEPS2D_Run(ofstream* f_stream,
     RMS_pack*             host_RMS_pack;
     RMS_pack              zero_RMS_pack;
     RMS_pack              tmp_RMS_pack;
-    
+    int iX0;
     memset(&zero_RMS_pack,0,sizeof(RMS_pack));
     n_s = cudaDimArray->GetNumElements();
 
@@ -269,7 +269,7 @@ void DEEPS2D_Run(ofstream* f_stream,
                        
                        unsigned int dtest_int = (unsigned int)(int2float_scale*10);
 
-                       int iX0=0;
+                       iX0 = 0;
 
                        dtmin = 10*dt;
                        
@@ -750,7 +750,7 @@ void DEEPS2D_Run(ofstream* f_stream,
 
   } while((int)iter < Nstep);
 
-for (unsigned int i=0;i<GlobalSubDomain->GetNumElements();i++) {
+for (int i=0;i<n_s;i++) {
 
       int SubStartIndex = GlobalSubDomain->GetElementPtr(i)->GetX();
       int SubMaxX = GlobalSubDomain->GetElementPtr(i)->GetY();
@@ -806,17 +806,24 @@ for (unsigned int i=0;i<GlobalSubDomain->GetNumElements();i++) {
 
            if(num_cuda_blocks*num_cuda_threads != max_X*max_Y)
               num_cuda_blocks++;
+           
+           if(i == n_s-1)
+             r_Overlap = 0;
+           else
+             r_Overlap = 1;
+           if(i == 0)
+             l_Overlap = 0;
+           else
+             l_Overlap = 1;
 
            cuda_Recalc_y_plus<<<num_cuda_blocks,num_cuda_threads, 0, cuda_streams[i]>>>(cudaSubDomainArray->GetElement(i),
                                                                                         max_X*max_Y,
                                                                                         cudaWallNodesArray->GetElement(i),
                                                                                         NumWallNodes,
-                                                                                        min(dx,dy),
-                                                                                        max((x0+FlowNode2D<FP,NUM_COMPONENTS>::dx*max_X),
-                                                                                               (FlowNode2D<FP,NUM_COMPONENTS>::dy*max_Y)),
-                                                                                        FlowNode2D<FP,NUM_COMPONENTS>::dx,
-                                                                                        FlowNode2D<FP,NUM_COMPONENTS>::dy,
+                                                                                        iX0 + max_X - r_Overlap,
+                                                                                        iX0 + l_Overlap,
                                                                                         max_Y);
+           iX0 += max_X;
            CUDA_BARRIER((char*)"y+ recalc");
        }
 
@@ -899,6 +906,57 @@ for (unsigned int i=0;i<GlobalSubDomain->GetNumElements();i++) {
           pHeatFlux_OutFile = OpenData(HeatFluxXFileName);
           
           SaveXHeatFlux2D(pHeatFlux_OutFile,J,Flow2DList->GetElement(Cp_Flow_index-1),Ts0,y_max,y_min);
+ /*
+ #pragma unroll
+          for(int ii=0;ii<n_s;ii++) {  // CUDA version
+
+              int i_gpu;
+              if(isSingleGPU) {
+                  i_gpu = ActiveSingleGPU;
+              } else {
+                  i_gpu = ii;
+              }
+
+              if(cudaSetDevice(i_gpu) != cudaSuccess ) {
+                 *f_stream << "\nError set CUDA device no: "<< i_gpu << endl;
+                 Exit_OpenHyperFLOW2D(n_s);
+              }
+              int max_X = cudaDimArray->GetElement(ii).GetX();
+              int max_Y = cudaDimArray->GetElement(ii).GetY();
+
+              cudaJ = cudaSubDomainArray->GetElement(ii);
+              
+              if (ThreadBlockSize == 0) {
+                  num_cuda_threads = min(max_num_threads,dprop.multiProcessorCount*warp_size/max(1,current_div_heat));
+              } else {
+                  num_cuda_threads = min(max_num_threads,ThreadBlockSize);
+              }
+              
+              num_cuda_blocks  = (max_X*max_Y)/num_cuda_threads;
+
+              if(num_cuda_blocks*num_cuda_threads != max_X*max_Y)
+                 num_cuda_blocks++;
+
+              if(ii == n_s-1)
+                r_Overlap = 0;
+              else
+                r_Overlap = 1;
+              if(ii == 0)
+                l_Overlap = 0;
+              else
+                l_Overlap = 1;
+              
+              cuda_SetNeighboringNodes<<<num_cuda_blocks,num_cuda_threads, 0, cuda_streams[i]>>>(cudaJ,
+                                                                                                 max_X*max_Y,
+                                                                                                 iX0 + max_X - r_Overlap,
+                                                                                                 max_Y);
+
+              iX0 += max_X;
+          }
+#ifdef _BARRIER_               
+                   CUDA_BARRIER((char*)"Set Neighboring Nodes");
+#endif // _BARRIER_
+*/
           pHeatFlux_OutFile->close();
          }
 

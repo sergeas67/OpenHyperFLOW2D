@@ -127,17 +127,27 @@ int inline cuda_CalcChemicalReactions(register FlowNode2D<FP,NUM_COMPONENTS>* Ca
                       }
                    }
               }
+<<<<<<< .mine
+            CalcNode->S[i2d_Yfu] = Yfu*CalcNode->S[i2d_Rho];
+            CalcNode->S[i2d_Yox] = Yox*CalcNode->S[i2d_Rho];
+            CalcNode->S[i2d_Ycp] = Ycp*CalcNode->S[i2d_Rho];
+=======
             CalcNode->S[i2d_Yfu] = Yfu*CalcNode->S[i2d_Rho];
             CalcNode->S[i2d_Yox] = Yox*CalcNode->S[i2d_Rho];
             CalcNode->S[i2d_Ycp] = Ycp*CalcNode->S[i2d_Rho];
         }
+>>>>>>> .r416
 //--- chemical reactions (Zeldovich model) -------------------------------------------------->
+<<<<<<< .mine
+        }
+=======
     } else if (cr_model==CRM_ARRENIUS) {
 //--- chemical reactions (Arrenius model) -------------------------------------------------->
 //--- chemical reactions (Arrenius model) -------------------------------------------------->
         CalcNode->S[i2d_Yfu] = Yfu*CalcNode->S[i2d_Rho];
         CalcNode->S[i2d_Yox] = Yox*CalcNode->S[i2d_Rho];
         CalcNode->S[i2d_Ycp] = Ycp*CalcNode->S[i2d_Rho];
+>>>>>>> .r416
     }
         
     CalcNode->R   = model_data->R_Fuel*Yfu+
@@ -447,8 +457,6 @@ cuda_Recalc_y_plus(FlowNode2D<FP,NUM_COMPONENTS>* pJ2D,
                    int NumWallNodes2D,
                    FP min_l_min,
                    FP max_l_min,
-                   FP _dx, 
-                   FP _dy,
                    int max_y) {
 
     register unsigned long int index = threadIdx.x + blockIdx.x * blockDim.x;

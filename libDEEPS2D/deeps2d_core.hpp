@@ -459,8 +459,6 @@ cuda_Recalc_y_plus(FlowNode2D<FP,NUM_COMPONENTS>* pJ2D,
                    int NumWallNodes2D,
                    FP min_l_min,
                    FP max_l_min,
-                   FP _dx, 
-                   FP _dy,
                    int max_y);
 
 extern void CUDA_BARRIER(char* KernelName);
