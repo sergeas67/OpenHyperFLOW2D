@@ -457,17 +457,14 @@ int start_OpenHyperFLOW2D_GPU( int argc, char **argv )
 
                       *o_stream << "Run cuda_Recalc_y_plus kernel on CUDA device No " << i_gpu << flush;
 
-
                       cuda_Recalc_y_plus<<<num_cuda_blocks,num_cuda_threads, 0, cuda_streams[i]>>>(cudaSubDomain,
                                                                                                    TmpMaxX*MaxY,
                                                                                                    cudaWallNodes,
                                                                                                    NumWallNodes,
-                                                                                                   min(dx,dy),
-                                                                                                   max((x0+FlowNode2D<FP,NUM_COMPONENTS>::dx*TmpMaxX),
-                                                                                                       (FlowNode2D<FP,NUM_COMPONENTS>::dy*MaxY)),
-                                                                                                   FlowNode2D<FP,NUM_COMPONENTS>::dx,
-                                                                                                   FlowNode2D<FP,NUM_COMPONENTS>::dy,
+                                                                                                   TmpMaxX - r_Overlap,
+                                                                                                   TmpMaxX + l_Overlap,
                                                                                                    MaxY);
+
 
                       CUDA_BARRIER((char*)"cuda_Recalc_y_plus");
                       *o_stream << "...OK" << endl;
