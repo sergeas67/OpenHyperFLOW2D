@@ -393,7 +393,12 @@ FP   Calc_Cp(FlowNode2D<FP,NUM_COMPONENTS>* CurrentNode, Flow2D* pF) {
 FP   Calc_Cf(FlowNode2D<FP,NUM_COMPONENTS>* CurrentNode, Flow2D* pF) {
     // Skin friction
     if (CurrentNode->isCond2D(CT_WALL_NO_SLIP_2D) && pF->Wg() > 0.0) {
-        FP Ff = (CurrentNode->mu+CurrentNode->mu_t) * fabs(CurrentNode->dUdy);
+        FP Ff;
+        if (CurrentNode != CurrentNode->UpNode) {
+          Ff = (CurrentNode->UpNode->mu+CurrentNode->UpNode->mu_t) * fabs(CurrentNode->UpNode->dUdy);
+        } else {
+          Ff = (CurrentNode->DownNode->mu+CurrentNode->DownNode->mu_t) * fabs(CurrentNode->DownNode->dUdy);    
+        }
             return (Ff/(0.5*pF->ROG()*pF->Wg()*pF->Wg()));
     } else {
         return 0;
@@ -611,11 +616,11 @@ void SaveXHeatFlux2D(ofstream* OutputData,
             N3 = j + n3;
             N4 = j - n4;
 
-            CurrentNode= &(pJ->GetValue(i,j));
-            UpNode     = &(pJ->GetValue(i,N3));
-            DownNode   = &(pJ->GetValue(i,N4));
-            RightNode  = &(pJ->GetValue(N2,j));
-            LeftNode   = &(pJ->GetValue(N1,j));
+            CurrentNode = &(pJ->GetValue(i,j));
+            CurrentNode->UpNode    = UpNode      = &(pJ->GetValue(i,N3));
+            CurrentNode->DownNode  = DownNode    = &(pJ->GetValue(i,N4));
+            CurrentNode->RightNode = RightNode   = &(pJ->GetValue(N2,j));
+            CurrentNode->LeftNode  = LeftNode    =  &(pJ->GetValue(N1,j));
 
             if(LeftNode) {
               lam_eff += LeftNode->lam + LeftNode->lam_t;
