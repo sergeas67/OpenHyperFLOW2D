@@ -2552,7 +2552,7 @@ void SaveRMSHeader(ofstream* OutputData) {
         if(is_Cd_calc)
            snprintf(TmpData,256,", Cd(N), Cv(N)");
 
-        snprintf(TecPlotTitle,1024,"#VARIABLES = N, RMS_Ro(N), RMS_RoU(N), RMS_RoV(N), RMS_RoE(N), RMS_RoY_fu(N), RMS_RoY_ox(N), RMS_RoY_cp(N), RMS_k(N), RMS_eps(N)%s",TmpData);
+        snprintf(TecPlotTitle,1024,"#VARIABLES = N, RMS(Rho), RMS(Rho*U), RMS(Rho*V), RMS(Rho*E), RMS(Rho*Y_fu), RMS(Rho*Y_ox), RMS(RhoY*cp), RMS(k), RMS(eps)%s",TmpData);
 
         *OutputData <<  TecPlotTitle << endl;
     }
