@@ -127,43 +127,36 @@ int inline cuda_CalcChemicalReactions(register FlowNode2D<FP,NUM_COMPONENTS>* Ca
                       }
                    }
               }
-<<<<<<< .mine
-            CalcNode->S[i2d_Yfu] = Yfu*CalcNode->S[i2d_Rho];
-            CalcNode->S[i2d_Yox] = Yox*CalcNode->S[i2d_Rho];
-            CalcNode->S[i2d_Ycp] = Ycp*CalcNode->S[i2d_Rho];
-=======
             CalcNode->S[i2d_Yfu] = Yfu*CalcNode->S[i2d_Rho];
             CalcNode->S[i2d_Yox] = Yox*CalcNode->S[i2d_Rho];
             CalcNode->S[i2d_Ycp] = Ycp*CalcNode->S[i2d_Rho];
         }
->>>>>>> .r416
 //--- chemical reactions (Zeldovich model) -------------------------------------------------->
-<<<<<<< .mine
-        }
-=======
     } else if (cr_model==CRM_ARRENIUS) {
 //--- chemical reactions (Arrenius model) -------------------------------------------------->
 //--- chemical reactions (Arrenius model) -------------------------------------------------->
         CalcNode->S[i2d_Yfu] = Yfu*CalcNode->S[i2d_Rho];
         CalcNode->S[i2d_Yox] = Yox*CalcNode->S[i2d_Rho];
         CalcNode->S[i2d_Ycp] = Ycp*CalcNode->S[i2d_Rho];
->>>>>>> .r416
     }
         
     CalcNode->R   = model_data->R_Fuel*Yfu+
                     model_data->R_OX*Yox+
                     model_data->R_cp*Ycp+
                     model_data->R_air*Yair;
+    
     CalcNode->CP  = GetVal(model_data->Cp_Fuel,CalcNode->Tg)*Yfu+
                     GetVal(model_data->Cp_OX,CalcNode->Tg)*Yox+
                     GetVal(model_data->Cp_cp,CalcNode->Tg)*Ycp+
                     GetVal(model_data->Cp_air,CalcNode->Tg)*Yair;
 
     if ( sm == SM_NS ) {
+        
         CalcNode->mu  = GetVal(model_data->mu_Fuel,CalcNode->Tg)*Yfu+
                         GetVal(model_data->mu_OX,CalcNode->Tg)*Yox+
                         GetVal(model_data->mu_cp,CalcNode->Tg)*Ycp+
                         GetVal(model_data->mu_air,CalcNode->Tg)*Yair;
+        
         CalcNode->lam = GetVal(model_data->lam_Fuel,CalcNode->Tg)*Yfu+
                         GetVal(model_data->lam_OX,CalcNode->Tg)*Yox+
                         GetVal(model_data->lam_cp,CalcNode->Tg)*Ycp+
