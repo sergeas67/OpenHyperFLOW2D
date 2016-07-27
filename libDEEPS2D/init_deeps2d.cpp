@@ -1936,6 +1936,10 @@ void* InitDEEPS2D(void* lpvParam)
                                                     );
                         }
                         *f_stream << "OK\n" << flush;
+                        if (is_Cx_calc) {
+                            double D_circle = 2*sqrt((Xstart-X_0)*(Xstart-X_0) + (Ystart-Y_0)*(Ystart-Y_0));
+                            *f_stream  << "Circle Re = "  << Re_Airfoil(D_circle,Flow2DList->GetElement(Cx_Flow_index-1)) << endl;
+                        }
                         delete SBC;
                     }
                 }
