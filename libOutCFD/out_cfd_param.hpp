@@ -31,6 +31,37 @@ FP y0;  // Y start point
 FP dy;  // cut width
 };
 
+enum VAR_ID {
+     UNKNOWN_ID=5000,
+     U_ID,
+     V_ID,
+     Rho_ID,
+     p_ID,
+     T_ID,
+     p_asterisk_ID,
+     T_asterisk_ID,
+     Yox_ID,
+     Yfuel_ID,
+     Ycp_ID,
+     Yair_ID,
+     Src_m_ID,
+     Src_ox_ID,
+     Src_fuel_ID,
+     Src_E_ID,
+     mu_mu_t_ID,
+     Mach_ID,
+     Q_heat_ID,
+     alpha_eff_ID,
+};
+
+struct OutVariable {
+         char      VarName[64];
+         VAR_ID    VarID;
+};
+
+VAR_ID FindVarName(char* );
+
+FP OutVar(FlowNode2D<FP,NUM_COMPONENTS>* pNode, VAR_ID VarID);
 FP T_asterisk(FlowNode2D<FP,NUM_COMPONENTS>* node );
 FP p_asterisk(FlowNode2D<FP,NUM_COMPONENTS>* node );
 FP Schliren(FlowNode2D<FP,NUM_COMPONENTS>* node );

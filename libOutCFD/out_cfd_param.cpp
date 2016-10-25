@@ -11,6 +11,116 @@
 
 #include "libOutCFD/out_cfd_param.hpp"
 
+VAR_ID FindVarName(char* VarName) {
+
+    if (strstr(VarName,"U")) {
+        return U_ID;                                      // U
+    } else if (strstr(VarName,"V")) {
+        return V_ID;                                      // V
+    } else if (strstr(VarName,"T*")) {
+       return T_asterisk_ID;                              // T*
+    } else if (strstr(VarName,"p*")) {
+       return p_asterisk_ID;                              // p*
+    } else if (strstr(VarName,"Rho")) {
+       return Rho_ID;                                     // Rho
+    } else if (strstr(VarName,"Y_fu")) {
+       return Yfuel_ID;                                   // Y_fu
+    } else if (strstr(VarName,"Y_ox")) {
+       return Yox_ID;                                     // Y_ox
+    } else if (strstr(VarName,"Y_cp")) {
+       return Ycp_ID;                                     // Y_cp
+    } else if (strstr(VarName,"Y_air")) {
+      return Yair_ID;                                     // Y_air
+    } else if (strstr(VarName,"p")) {
+      return p_ID;                                        // p
+    } else if (strstr(VarName,"T")) {
+      return T_ID;                                        // T
+    } else if (strstr(VarName,"Src_m")) {
+      return  Src_m_ID;                                   // Src_m
+    } else if (strstr(VarName,"Src_ox")) {
+      return  Src_ox_ID;                                  // Src_ox
+    } else if (strstr(VarName,"Src_fu")) {
+      return Src_fuel_ID;                                 // Src_fu
+    } else if (strstr(VarName,"Src_E")) {
+      return Src_E_ID;                                    // Src_E
+    } else if (strstr(VarName,"Q_heat")) {
+      return Q_heat_ID;                                   // Q_heat
+    } else if (strstr(VarName,"mu_t/mu")) {
+      return mu_mu_t_ID;                                  // mu_t/mu
+    } else if (strstr(VarName,"Mach")) {
+      return Mach_ID;
+    } else if (strstr(VarName,"alpha_eff")) {
+      return alpha_eff_ID;
+    } else {
+      return UNKNOWN_ID;
+    }
+}
+
+FP OutVar(FlowNode2D<FP,NUM_COMPONENTS>* pNode, VAR_ID VarID) {
+
+    if (VarID == U_ID) {
+        return pNode->U;                                             // U
+    } else if (VarID == V_ID) {
+        return pNode->V;                                             // V
+    } else if (VarID == T_ID) {
+       return pNode->Tg;                                             // T
+    } else if (VarID == p_ID) {
+       return pNode->p;                                              // p
+    } else if (VarID == Rho_ID) {
+       return pNode->S[i2d_Rho];                                     // Rho
+    } else if (VarID == Yfuel_ID) {
+       return pNode->Y[h_fu];                                        // Y_fu
+    } else if (VarID == Yox_ID) {
+       return pNode->Y[h_ox];                                        // Y_ox
+    } else if (VarID == Ycp_ID) {
+       return pNode->Y[h_cp];                                        // Y_cp
+    } else if (VarID == Yair_ID) {
+      return pNode->Y[h_air];                                        // Y_air
+    } else if (VarID == Src_fuel_ID) {
+      return pNode->Src[i2d_Yfu];                                    // Src_fu
+    } else if (VarID == Src_E_ID) {
+      return pNode->Src[i2d_RhoE];                                   // Src_E
+    } else if (VarID == Q_heat_ID) {
+      return pNode->Q_conv;                                           // Q_conv
+    } else if (VarID == p_asterisk_ID) {
+      return p_asterisk(pNode);                                      // p*
+    } else if (VarID == T_asterisk_ID) {
+      return T_asterisk(pNode);                                      // T*
+    } else if (VarID == Src_m_ID) {
+      return  pNode->Src[i2d_Rho];                                   // Src_m
+    } else if (VarID == Src_ox_ID) {
+      return  pNode->Src[i2d_Yox];                                   // Src_ox
+    } else if (VarID == mu_mu_t_ID) {
+        if (pNode->mu == 0.0)
+            return 0.0;
+        else  
+            return  pNode->mu_t/pNode->mu;                           // mu_t/mu
+    } else if (VarID == Mach_ID) {
+        if (pNode->R == 0.0) {
+            return 0.0;
+        } else {
+            double A  = sqrt(pNode->k*pNode->R*pNode->Tg);
+            double WW = sqrt(pNode->U*pNode->U + pNode->V*pNode->V);
+            return WW/A;                                              // Mach
+        }
+    } else if (VarID == alpha_eff_ID) {
+        /*
+        FP K0 = ;
+        
+        FP M_fuel_total = pNode->Y[h_fu] + pNode->Y[h_cp]/(1+K0);
+        FP M_ox_total   = pNode->Y[h_ox] + pNode->Y[h_cp]*K0/(1+K0);
+        FP M_fu_sum     = M_fuel_total + M_ox_total;
+        
+        if (M_ox_tota*K0 > 0)
+           return M_ox_total/M_ox_total/K0;
+        else
+           return 0.0;
+        
+        */    
+    }
+  return 0.0;
+}
+
 FP Re_Airfoil(FP chord, Flow2D* Flow) {
  return Flow->Wg()*chord*Flow->ROG()/Flow->mu;
 }
@@ -393,12 +503,7 @@ FP   Calc_Cp(FlowNode2D<FP,NUM_COMPONENTS>* CurrentNode, Flow2D* pF) {
 FP   Calc_Cf(FlowNode2D<FP,NUM_COMPONENTS>* CurrentNode, Flow2D* pF) {
     // Skin friction
     if (CurrentNode->isCond2D(CT_WALL_NO_SLIP_2D) && pF->Wg() > 0.0) {
-        FP Ff;
-        if (CurrentNode != CurrentNode->UpNode) {
-          Ff = (CurrentNode->UpNode->mu+CurrentNode->UpNode->mu_t) * fabs(CurrentNode->UpNode->dUdy);
-        } else {
-          Ff = (CurrentNode->DownNode->mu+CurrentNode->DownNode->mu_t) * fabs(CurrentNode->DownNode->dUdy);    
-        }
+        FP Ff = (CurrentNode->mu+CurrentNode->mu_t) * fabs(CurrentNode->dUdy);
             return (Ff/(0.5*pF->ROG()*pF->Wg()*pF->Wg()));
     } else {
         return 0;
@@ -616,11 +721,11 @@ void SaveXHeatFlux2D(ofstream* OutputData,
             N3 = j + n3;
             N4 = j - n4;
 
-            CurrentNode = &(pJ->GetValue(i,j));
-            CurrentNode->UpNode    = UpNode      = &(pJ->GetValue(i,N3));
-            CurrentNode->DownNode  = DownNode    = &(pJ->GetValue(i,N4));
-            CurrentNode->RightNode = RightNode   = &(pJ->GetValue(N2,j));
-            CurrentNode->LeftNode  = LeftNode    =  &(pJ->GetValue(N1,j));
+            CurrentNode= &(pJ->GetValue(i,j));
+            UpNode     = &(pJ->GetValue(i,N3));
+            DownNode   = &(pJ->GetValue(i,N4));
+            RightNode  = &(pJ->GetValue(N2,j));
+            LeftNode   = &(pJ->GetValue(N1,j));
 
             if(LeftNode) {
               lam_eff += LeftNode->lam + LeftNode->lam_t;
