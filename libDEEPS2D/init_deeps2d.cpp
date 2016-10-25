@@ -52,6 +52,7 @@ UArray< XY<int> >* WallNodes;
 UArray<UMatrix2D< FlowNode2D<FP,NUM_COMPONENTS> >*>*     SubDomainArray;
 UArray<UMatrix2D< FlowNodeCore2D<FP,NUM_COMPONENTS> >*>* CoreSubDomainArray;
 UArray<XCut>*                                            XCutArray;
+UArray<OutVariable>*                                     OutVariables_Array;
 
 FP  makeZero;
 
@@ -92,7 +93,6 @@ int     ScaleFLAG=1;
 int     isAdiabaticWall;
 int     isOutHeatFluxX;
 int     isOutHeatFluxY;
-int     is_p_asterisk_out;
 
 ChemicalReactionsModelData2D chemical_reactions;
 BlendingFactorFunction       bFF;
@@ -413,6 +413,47 @@ void InitSharedData(InputData* _data,
             if ( _data->GetDataError()==-1 ) {
                 Abort_OpenHyperFLOW2D();
             }
+// Make output variables list            
+            char* OutVariablesList = _data->GetStringVal((char*)"OutVariablesList");
+            if ( _data->GetDataError()==-1 ) {
+                Abort_OpenHyperFLOW2D();
+            } else {
+                OutVariable TmpOutVar;
+                char* VarName;
+                OutVariables_Array = new UArray<OutVariable>();
+                
+                VarName = strtok(OutVariablesList,",");
+                
+                if (!VarName) {
+                    strncpy(TmpOutVar.VarName,OutVariablesList,64);
+                    TmpOutVar.VarID = FindVarName(TmpOutVar.VarName);
+                    if (TmpOutVar.VarID == UNKNOWN_ID) {
+                        *(_data->GetMessageStream()) << "Unknown variable \"" << TmpOutVar.VarName  << "\" ignored." << endl;
+                    } else {
+                        *(_data->GetMessageStream()) << "Add variable \"" << TmpOutVar.VarName  << "\" to out variables list..." << endl;
+                        OutVariables_Array->AddElement(&TmpOutVar);
+                    }
+
+                } else {
+                    do {
+                         
+                         strncpy(TmpOutVar.VarName,VarName,64);
+                         TmpOutVar.VarID = FindVarName(TmpOutVar.VarName);
+                         if (TmpOutVar.VarID == UNKNOWN_ID) {
+                             *(_data->GetMessageStream()) << "Unknown variable \"" << TmpOutVar.VarName  << "\" ignored." << endl;
+                         } else {
+                             *(_data->GetMessageStream()) << "Add variable \"" << TmpOutVar.VarName  << "\" to output variables list." << endl;
+                             OutVariables_Array->AddElement(&TmpOutVar);
+                         }
+                         VarName = strtok(NULL,",");
+                    }while(VarName);
+
+                } 
+              if (OutVariables_Array->GetNumElements() == 0) {
+               *(_data->GetMessageStream()) << "ERROR: Output variables list is empthy !" << endl;
+                Abort_OpenHyperFLOW2D();
+              }
+            }
 
             if (NumMonitorPoints > 0 ) {
                 *(_data->GetMessageStream()) << "Read monitor points...\n" << flush;
@@ -672,9 +713,6 @@ void* InitDEEPS2D(void* lpvParam)
             }
 
             isOutHeatFluxY = Data->GetIntVal((char*)"isOutHeatFluxY");
-            if ( Data->GetDataError()==-1 ) Abort_OpenHyperFLOW2D();
-
-            is_p_asterisk_out  = Data->GetIntVal((char*)"is_p_asterisk_out");
             if ( Data->GetDataError()==-1 ) Abort_OpenHyperFLOW2D();
 
             // Clear Flow list
@@ -1936,10 +1974,6 @@ void* InitDEEPS2D(void* lpvParam)
                                                     );
                         }
                         *f_stream << "OK\n" << flush;
-                        if (is_Cx_calc) {
-                            double D_circle = 2*sqrt((Xstart-X_0)*(Xstart-X_0) + (Ystart-Y_0)*(Ystart-Y_0));
-                            *f_stream  << "Circle Re = "  << Re_Airfoil(D_circle,Flow2DList->GetElement(Cx_Flow_index-1)) << endl;
-                        }
                         delete SBC;
                     }
                 }
@@ -2825,7 +2859,7 @@ void DataSnapshot(char* filename, WRITE_MODE ioMode) {
         if ( ioMode ) // 0 - append(TecPlot), 1- rewrite(GNUPlot)
             CutFile(filename);
         pOutputData = OpenData(filename);
-        SaveData2D(pOutputData,ioMode);
+        SaveData2D(pOutputData,OutVariables_Array,ioMode);
 #ifdef _DEBUG_0
     } __except(SysException e) {
         E=e;
@@ -2905,41 +2939,91 @@ void SaveRMSHeader(ofstream* OutputData) {
         *OutputData << endl;
     }
 #endif // _RMS_
-    void SaveData2D(ofstream* OutputData, int type) { // type = 1 - GNUPLOT
+    void SaveData2D(ofstream* OutputData,
+                    UArray<OutVariable>* OutVariablesArray, 
+                    int type) { // type = 1 - GNUPLOT
         int    i,j;
         char   TechPlotTitle1[1024]={0};
         char   TechPlotTitle2[256]={0};
         char   YR[2];
+        char   HT[2];
+
         FlowNode2D<FP,NUM_COMPONENTS>* CurrentNode = NULL;
         FP     Cp_wall = 0.0;
         FP Mach,A,W,Re,Re_t,dx_out,dy_out;
-        char   RT[10];
-        // Calc_Cp(&J->GetValue(i,j),Flow2DList->GetElement(Cx_Flow_index-1))
-        if(is_p_asterisk_out)
-          snprintf(RT,10,"p*");
-        else
-          snprintf(RT,10,"mu_t/mu");
+        
+        int NUM_VARS=2; // X,Y = 0,1
+        
+        char  VarList[512];
+
+        if(!OutVariablesArray || OutVariablesArray->GetNumElements() == 0) {
+           cout << "Variables list empthy !" << endl;
+           return;
+        }
 
         if(FlowNode2D<FP,NUM_COMPONENTS>::FT == 1) // FT_FLAT
           snprintf(YR,2,"R");
         else
           snprintf(YR,2,"Y");
+        
+        if (type == 1) {
+           snprintf(HT,2,"# ");
+        } else {
+           snprintf(HT,2," ");
+        }
 
-        snprintf(TechPlotTitle1,1024,"VARIABLES = X, %s, U, V, T, p, Rho, Y_fuel, Y_ox, Y_cp, Y_i, %s, Mach, l_min, dt_local"
-                                     "\n",YR, RT); 
-        snprintf(TechPlotTitle2,256,"ZONE T=\"Time: %g sec.\" I= %i J= %i F=POINT\n",GlobalTime, MaxX, MaxY);
+        dx_out =(dx*MaxX)/(MaxX-1); 
+        dy_out =(dy*MaxY)/(MaxY-1); 
+        
+        memset(VarList,0,512);
+
+        for (int i=0; i < OutVariablesArray->GetNumElements();i++) {
+            if(strlen(VarList)+strlen(OutVariablesArray->GetElementPtr(i)->VarName) + 2 < 512) {
+                strcat(VarList,OutVariablesArray->GetElementPtr(i)->VarName);
+                if (i < OutVariablesArray->GetNumElements()-1) {
+                    strcat(VarList,", ");
+                }
+             NUM_VARS++;
+            }
+        }
+
+        snprintf(TechPlotTitle1,1024,"%sVARIABLES = X, %s, %s"
+                                     "\n",HT, YR,VarList); 
+        
+        snprintf(TechPlotTitle2,256,"%sZONE T=\"Time: %g sec.\" I= %i J= %i F=POINT\n",HT, GlobalTime, MaxX, MaxY);
 
         if ( type ) {
-            *OutputData <<  TechPlotTitle1;
-            *OutputData <<  TechPlotTitle2;
+            *OutputData << TechPlotTitle1;
+            *OutputData << TechPlotTitle2;
         } else {
             *OutputData <<  TechPlotTitle1;
             *OutputData <<  TechPlotTitle2;
         }
         
-        dx_out =(dx*MaxX)/(MaxX-1); 
-        dy_out =(dy*MaxY)/(MaxY-1); 
-        
+
+         for (int j=0;j<(int)MaxY;j++ ) {
+             for (int  i=0;i<(int)MaxX;i++ ) {
+                 for (int ii=0;ii<NUM_VARS;ii++) {
+                     if (ii == 0) {
+                         *OutputData << i*dx_out*1.e3                                                           << "  "; // x
+                     } else if (ii == 1) {
+                         *OutputData << dy_out*j*1.e3                                                           << "  "; // y
+                     } else {
+                         if (J->GetValue(i,j).isCond2D(CT_NODE_IS_SET_2D) &&
+                             !J->GetValue(i,j).isCond2D(CT_SOLID_2D)) {
+                             *OutputData << OutVar(&J->GetValue(i,j),OutVariablesArray->GetElement(ii-2).VarID) << "  "; // Var
+                         } else {
+                             *OutputData << "0  ";
+                         }
+                     }
+                 }
+                 *OutputData <<  "\n" ;
+             }
+            if ( type )
+                *OutputData <<  "\n" ;
+         }
+
+        /*
         for ( j=0;j<(int)MaxY;j++ ) {
             for ( i=0;i<(int)MaxX;i++ ) {
                 *OutputData << i*dx_out*1.e3                    << "  "; // 1
@@ -2952,7 +3036,7 @@ void SaveRMSHeader(ofstream* OutputData) {
                     *OutputData << J->GetValue(i,j).Tg          << "  "; // 5
                     *OutputData << J->GetValue(i,j).p           << "  "; // 6
                     *OutputData << J->GetValue(i,j).S[0]        << "  "; // 7
-                    
+
                     if(CurrentNode && 
                        Flow2DList  &&
                        Cx_Flow_index > 0)
@@ -2974,12 +3058,12 @@ void SaveRMSHeader(ofstream* OutputData) {
                           *OutputData << J->GetValue(i,j).mu_t/J->GetValue(i,j).mu << "  ";  // 12
                         
                     } else {
-                        *OutputData << " +0. +0  +0  +0  +0  "; /* 8 9 10 11 12 */
+                        *OutputData << " +0. +0  +0  +0  +0  "; 
                     }
                 } else {
-                    *OutputData << "  0  0  ";                     /* 3 4 */
-                    *OutputData << J->GetValue(i,j).Tg;            /* 5 */
-                    *OutputData << "  0  0  0  0  0  0  0";        /* 6 7 8 9 10 11 12 */
+                    *OutputData << "  0  0  ";                    
+                    *OutputData << J->GetValue(i,j).Tg;           
+                    *OutputData << "  0  0  0  0  0  0  0";       
                 }
                 if(!J->GetValue(i,j).isCond2D(CT_SOLID_2D)) {
                     if( Mach > 1.e-30) 
@@ -2994,6 +3078,7 @@ void SaveRMSHeader(ofstream* OutputData) {
             if ( type )
                 *OutputData <<  "\n" ;
         }
+     */
     }
 
     inline FP kg(FP Cp, FP R) {

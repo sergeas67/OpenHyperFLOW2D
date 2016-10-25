@@ -308,7 +308,7 @@ extern void                                  DisableP2PAccess(int dev1, int dev2
 #endif //_CUDA_ 
 extern const char*                           PrintTurbCond(int TM);
 extern void*                                 InitDEEPS2D(void*);
-extern void                                  SaveData2D(ofstream* OutputData, int);
+extern void                                  SaveData2D(ofstream* OutputData, UArray<OutVariable>*, int);
 extern ofstream*                             OpenData(char* outputDataFile);
 extern void                                  SaveRMSHeader(ofstream* OutputData);
 extern void                                  SaveRMS(ofstream* OutputData,unsigned int n, float* outRMS);
@@ -459,6 +459,8 @@ cuda_Recalc_y_plus(FlowNode2D<FP,NUM_COMPONENTS>* pJ2D,
                    int NumWallNodes2D,
                    FP min_l_min,
                    FP max_l_min,
+                   FP _dx, 
+                   FP _dy,
                    int max_y);
 
 extern void CUDA_BARRIER(char* KernelName);
