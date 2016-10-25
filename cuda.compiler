@@ -28,7 +28,6 @@ CUDA_OPTIONS    =  $(CUDA_DEBUG) -D_DEBUG_$(DEBUGLEVEL) $(CUDA_OPTIMIZE) -D_UNIF
                                                                                                 -gencode arch=compute_35,code=sm_35 \
                                                                                                 -gencode arch=compute_37,code=sm_37 \
                                                                                                 -gencode arch=compute_52,code=sm_52
-                                                                                                
 ifeq ("$(CUDA_VER)","8.0")
 CUDA_OPTIONS    += -gencode arch=compute_60,code=sm_60 -gencode arch=compute_61,code=sm_61
 endif
