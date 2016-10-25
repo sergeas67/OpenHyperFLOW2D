@@ -9,10 +9,14 @@ COMPILER=GNU
 # Debug level
 DEBUGLEVEL = 0
 
-ifeq     ("$(COMPILER)","Intel")
+ifeq ("$(COMPILER)","Intel")
+
 IS_OPENMP=0
+
 else
+
 IS_OPENMP=`gcc -fopenmp -S -I . -I  utl utl/utl.cpp 2>/dev/null; echo $?`
+
 endif
 
 # Top SIMD features
