@@ -8,32 +8,7 @@ set pm3d
 set title "MACH number"
 show title
 set terminal x11 1
-splot 'Step.plt' u 1:2:13  t 'Mach'
+splot 'Step.plt' u 1:2:8  t 'Mach'
 
-
-#set title "U-velocity"
-#show title
-#set terminal x11 2
-#splot 'Step.plt' u 1:2:3  t 'U-velocity'
-
-#set title "V-velocity"
-#show title
-#set terminal x11 3
-#splot 'Step.plt' u 1:2:4  t 'V-velocity'
-
-#set title "Temperature"
-#show title
-#set terminal x11 4
-#splot 'Step.plt' u 1:2:5  t 'T'
-
-#set title "Density"
-#show title
-#set terminal x11 5
-#splot 'Step.plt' u 1:2:7  t 'Rho'
-
-#set title "Prssure"
-#show title
-#set terminal x11 6
-#splot 'Step.plt' u 1:2:6  t 'p'
 print "Press <Enter> for next test"
 pause -1

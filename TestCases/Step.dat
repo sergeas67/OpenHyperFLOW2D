@@ -15,11 +15,13 @@
 <data/isOutHeatFluxX=0>
 ; Out heat flux on walls along y direction
 <data/isOutHeatFluxY=0>
-; is p* out ?
-<data/is_p_asterisk_out=0>
-; Recalc y+  on each iterations
-<data/isRecalcYplus=0>
 <data/isIgnoreUnsetNodes=0>
+
+;---------------------------------------------------
+; Output variables list
+;---------------------------------------------------
+<data/OutVariablesList=U,V,Rho,T,p,Mach>
+
 ;--------------------------------------------------;
 ; Single GPU mode                                  ;
 ;--------------------------------------------------;
