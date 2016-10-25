@@ -49,7 +49,7 @@ CLFLAGS   +=
 # Libs
 #
 LLIBS_2D     += $(STATIC) -L ./lib -lDEEPS2D -lexcept -lobj_data -lutl2d  -lhf2d -lflow2d -lOutCFD -L $(CUDA_LIBPATH) -lcudart
-	
+
 TARGET_BASE  = OpenHyperFLOW2D-CUDA
 TARGET_2D    = $(TARGET_BASE)-$(VERSION)
 SOURCES_2D   = hf2d_start_gpu.cu hf2d_start.cpp
@@ -119,13 +119,11 @@ Wedge:
 Step:
 	bin/OpenHyperFLOW2D.sh TestCases/Step
 	gnuplot TestCases/Step_Res.dat
-Bubble2D:
-	bin/OpenHyperFLOW2D.sh TestCases/Bubble2D
 ShowResults:
 	gnuplot TestCases/ObliqueShock_Res.dat
 	gnuplot TestCases/Wedge_Res.dat
 	gnuplot TestCases/Step_Res.dat
-#$(NVCC)
+
 $(TARGET_2D): local  Utl libexcept libflow objData libhyperflow libdeeps2d liboutcfd $(OBJECTS_2D)
 	$(CXXC) $(STATIC) $(OBJECTS_2D) $(CFLAGS) $(LLIBS_2D) -o $(TARGET_2D)
 	cp $(TARGET_2D) bin/$(TARGET_2D)
