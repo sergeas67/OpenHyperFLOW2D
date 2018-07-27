@@ -23,4 +23,4 @@ endif
 SIMD=AVX2
 
 # Use 32 or 64 bit float point variables
-FP_OPTS  = -DFP=double
+FP_OPTS  = -DFP=float
