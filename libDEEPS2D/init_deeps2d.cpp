@@ -1952,7 +1952,7 @@ void* InitDEEPS2D(void* lpvParam)
                         else if ( CompIndex==1 ) Y=Y_ox;
                         else if ( CompIndex==2 ) Y=Y_cp;
                         else if ( CompIndex==3 ) Y=Y_air;
-                        else if(CompIndex==4) Y=Y_mix;
+                        else if(CompIndex==4)    Y=Y_mix;
                         else {
                             *f_stream << "\n";
                             *f_stream << "Bad component index [" << CompIndex << "]\n"<< flush;
